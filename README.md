@@ -100,19 +100,20 @@ bash tools/check.sh docs/prd
 
 ## 导出 PDF
 
-对外评审、客户签字、正式存档时把 Markdown 渲染成带打印样式的 HTML，再用本机 Chrome 打印成 PDF。样式完全可控，不依赖第三方转换服务。
+产品需求与任务规格**分开导出两份**，一条命令产出：
 
 ```bash
-bash tools/export-pdf.sh \
-	docs/prd/product.md \
-	docs/prd/versions/1.0/prd.md \
-	docs/prd/versions/1.0/scope.md \
-	--title "产品名称" \
-	--version 1.0 \
-	--output docs/prd/versions/1.0/export/prd-1.0.pdf
+bash tools/export-prd.sh 1.0 --title "订阅管理工具"
 ```
 
-产出带封面页、页眉页脚页码、章节分页，需求编号与任务编号自动渲染成等宽高亮，方便对方按编号反馈。需要在封面加提示语时用 `--note`，缺省不加。排版样式在 [`templates/export/style.css`](templates/export/style.css)。
+| 产物 | 内容 | 读者 | 对外 |
+| --- | --- | --- | --- |
+| `prd-1.0.pdf` | 产品定义 + PRD + Scope | 合作方、需要签字的客户 | 是 |
+| `tasks-1.0.pdf` | 任务与交互规格 | 实现者，含 AI Agent | 否，仅内部 |
+
+分开的理由是读者不同、生命周期不同（PRD 发布即冻结、任务持续更新）、体量差三到五倍，以及错误文案与兜底策略属于内部细节不该对外承诺。
+
+流程是 Markdown 渲染成带打印样式的 HTML，再用本机 Chrome 打印为 PDF。产出带封面页、页眉页脚页码、章节分页，需求编号与任务编号自动渲染成等宽高亮。排版样式在 [`templates/export/style.css`](templates/export/style.css)，两份样张见 [`templates/export/`](templates/export/)。
 
 **Markdown 是唯一源头，PDF 只是产物。** 收到别人批注过的 PDF 时把改动搬回 Markdown，不接受 PDF 作为输入源。导出目录默认进 `.gitignore`，只有实际对外交付过的那一份才提交，文件名带日期与接收方。
 
@@ -136,7 +137,7 @@ bash tools/export-pdf.sh \
 | Release Criteria | 只写产品维度判据，工程标准由项目自己的交付体系管 |
 | 决策落点 | 跨版本不可逆的进 `decisions.md`，模块级进实现文档，单次改动进 commit message |
 | 文档语言 | 中文，`Non-goals` / `Release Criteria` / `In Scope` 这类术语保留英文 |
-| 导出交付 | Markdown 是唯一源头，PDF 是产物；导出目录默认不进 Git，只提交实际对外交付的那一份 |
+| 导出交付 | 分两份 PDF，产品需求对外、任务规格仅内部；Markdown 是唯一源头，导出目录默认不进 Git |
 | 分析输出 | 编号列表，每条按问题描述、存在的隐患、解决方案三段写 |
 
 ## 仓库自测

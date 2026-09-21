@@ -11,15 +11,42 @@ PRD 导出为 PDF 的流程、单向关系与交付记录要求
 - 收到别人批注过的 PDF 时，把改动手工搬回 Markdown，**不接受 PDF 作为输入源**
 - 双向维护的后果是两份各自演进，而 PDF 的 diff 在 Git 里不可读，几轮之后没人知道哪份是对的
 
+## 两份文档，只有一份对外
+> 产品需求与任务规格**分开导出两份 PDF**，不合并。
+
+| 文档 | 内容 | 读者 | 对外 |
+| --- | --- | --- | --- |
+| `prd-<版本>.pdf` | `product.md` + `prd.md` + `scope.md` | 未来的自己、合作方、需要签字的客户 | **是** |
+| `tasks-<版本>.pdf` | `tasks.md` 或 `tasks/` 下全部任务 | 实现者，含 AI Agent | **否，仅内部** |
+
+分开的四个理由：
+
+1. **读者不同**：客户关心为什么做与做什么，不需要翻过几十页交互规格才看到成功标准
+2. **生命周期不同**：PRD 发布即冻结，任务规格在开发期间持续修改，合并会让冻结规则失效
+3. **体量差距**：一个需求通常对应三到五个任务，每个任务带界面图与七字段规格表，合并后 PRD 的章节会被淹没
+4. **对外范围**：错误文案、兜底策略、边界处理属于内部实现细节，发出去可能被当成承诺
+
+**客户明确要求确认功能边界时**，才单独发任务文档，并在交付记录里注明。
+
 ## 导出方式
 Markdown 渲染成带打印样式的 HTML，再用本机 Chrome 打印为 PDF。这条路径的样式完全可控，不依赖第三方转换服务。
+
+一条命令产出该版本的两份 PDF：
+
+```bash
+bash tools/export-prd.sh 1.0 --title "产品名称"
+```
+
+产物落在 `docs/prd/versions/1.0/export/` 下：`prd-1.0.pdf` 与 `tasks-1.0.pdf`。标题缺省从 `docs/prd/README.md` 的一级标题取。只要其中一份时加 `--prd-only` 或 `--tasks-only`。
+
+需要自定义组合时用底层命令：
 
 ```bash
 bash tools/export-pdf.sh \
 	docs/prd/product.md \
 	docs/prd/versions/1.0/prd.md \
-	docs/prd/versions/1.0/scope.md \
 	--title "产品名称" \
+	--subtitle "产品需求文档" \
 	--version 1.0 \
 	--output docs/prd/versions/1.0/export/prd-1.0.pdf
 ```
@@ -34,6 +61,7 @@ bash tools/export-pdf.sh \
 - 导出目录固定为 `docs/prd/versions/<版本>/export/`
 - **该目录默认进 `.gitignore`**，日常导出不污染仓库，也不产生无法阅读的二进制 diff
 - **只有实际对外交付过的那一份才提交**，文件名带日期与接收方：`prd-1.0-20260921-客户名.pdf`
+- **任务规格默认不对外，也不提交**；确实发出去过才提交并在交付记录里注明原因
 - 提交的同时在该版本的 `notes.md` 里记一行交付记录：日期、接收方、对应的 git commit
 
 ```markdown

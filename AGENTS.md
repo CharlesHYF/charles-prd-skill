@@ -33,7 +33,7 @@
 
 - 文档用中文，`Non-goals`、`Release Criteria`、`In Scope` 这类没有稳定中文对应的正式术语保留英文
 - 分析、提方案、报告问题时用编号列表，每条按问题描述、存在的隐患、解决方案三段写
-- 导出产物不进 Git，`tools/node_modules/` 与 `export/` 已在 `.gitignore`
+- 导出分两份：产品需求对外、任务规格仅内部；导出产物不进 Git，`tools/node_modules/` 与 `/export/` 已在 `.gitignore`
 - Shell 缩进用 Tab，行尾 LF
 - 禁用 Unicode 弯引号、破折号、Emoji，统一半角与 `--`
 - 文件头描述只写核心职责，不用 `--` 追加功能罗列
@@ -48,5 +48,6 @@ bash tools/check.sh templates/prd-template   # 校验本仓自带模板
 bash tests/run_tests.sh               # check.sh 回归测试
 bash tests/check_structure.sh         # skill 完整性、版本号与链接
 bash tools/install-skills.sh          # 软链安装到 ~/.claude/skills
-bash tools/export-pdf.sh <md...> --title 标题 --version 1.0   # 导出 PDF
+bash tools/export-prd.sh 1.0 --title 标题   # 导出该版本的两份 PDF
+bash tools/export-pdf.sh <md...> --title 标题 --version 1.0   # 自定义组合导出
 ```
