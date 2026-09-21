@@ -109,11 +109,10 @@ bash tools/export-pdf.sh \
 	docs/prd/versions/1.0/scope.md \
 	--title "产品名称" \
 	--version 1.0 \
-	--note "本文件由 Markdown 源文件导出，反馈请引用需求编号，勿直接修改本 PDF。" \
 	--output docs/prd/versions/1.0/export/prd-1.0.pdf
 ```
 
-产出带封面页、页眉页脚页码、章节分页，需求编号自动渲染成等宽高亮，方便对方按编号反馈。排版样式在 [`templates/export/style.css`](templates/export/style.css)。
+产出带封面页、页眉页脚页码、章节分页，需求编号与任务编号自动渲染成等宽高亮，方便对方按编号反馈。需要在封面加提示语时用 `--note`，缺省不加。排版样式在 [`templates/export/style.css`](templates/export/style.css)。
 
 **Markdown 是唯一源头，PDF 只是产物。** 收到别人批注过的 PDF 时把改动搬回 Markdown，不接受 PDF 作为输入源。导出目录默认进 `.gitignore`，只有实际对外交付过的那一份才提交，文件名带日期与接收方。
 

@@ -9,7 +9,6 @@ PRD 导出为 PDF 的流程、单向关系与交付记录要求
 ## 单向关系
 - 任何修改都回到 Markdown 再重新导出，**不在 PDF 上改内容**
 - 收到别人批注过的 PDF 时，把改动手工搬回 Markdown，**不接受 PDF 作为输入源**
-- 导出的 PDF 首页固定带一句说明：本文件由 Markdown 源文件导出，反馈请引用需求编号
 - 双向维护的后果是两份各自演进，而 PDF 的 diff 在 Git 里不可读，几轮之后没人知道哪份是对的
 
 ## 导出方式
@@ -22,13 +21,13 @@ bash tools/export-pdf.sh \
 	docs/prd/versions/1.0/scope.md \
 	--title "产品名称" \
 	--version 1.0 \
-	--note "本文件由 Markdown 源文件导出，反馈请引用需求编号，勿直接修改本 PDF。" \
 	--output docs/prd/versions/1.0/export/prd-1.0.pdf
 ```
 
 - 多个输入文件按顺序合并成一份 PDF，文件之间自动分隔
 - 样式在 [`templates/export/style.css`](../../../templates/export/style.css)，改它就能改全局排版
-- 需求编号会自动渲染成等宽高亮，方便对方在 PDF 上按编号反馈
+- 需求编号与任务编号会自动渲染成等宽高亮，方便对方按编号反馈
+- 需要在封面加一句提示时用 `--note`，缺省不加
 - 首次运行会安装渲染依赖，之后离线可用
 
 ## 导出产物的归属
