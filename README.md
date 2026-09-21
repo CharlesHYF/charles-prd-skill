@@ -113,7 +113,7 @@ bash tools/export-prd.sh 1.0 --title "订阅管理工具"
 
 分开的理由是读者不同、生命周期不同（PRD 发布即冻结、任务持续更新）、体量差三到五倍，以及错误文案与兜底策略属于内部细节不该对外承诺。
 
-流程是 Markdown 渲染成带打印样式的 HTML，再用本机 Chrome 打印为 PDF。产出带封面页、页眉页脚页码、章节分页，需求编号与任务编号自动渲染成等宽高亮。排版样式在 [`templates/export/style.css`](templates/export/style.css)，两份样张见 [`templates/export/`](templates/export/)。
+流程是 Markdown 渲染成带打印样式的 HTML，再用本机 Chrome 打印为 PDF。图用 Mermaid 写在 Markdown 里，导出时渲染成矢量 SVG，手绘风格，全程离线。产出带封面页、页眉页脚页码、章节分页，需求编号与任务编号自动渲染成等宽高亮。排版样式在 [`templates/export/style.css`](templates/export/style.css)，两份样张见 [`templates/export/`](templates/export/)。
 
 **Markdown 是唯一源头，PDF 只是产物。** 收到别人批注过的 PDF 时把改动搬回 Markdown，不接受 PDF 作为输入源。导出目录默认进 `.gitignore`，只有实际对外交付过的那一份才提交，文件名带日期与接收方。
 
@@ -133,7 +133,7 @@ bash tools/export-prd.sh 1.0 --title "订阅管理工具"
 | 需求表达 | 必须能写成测试用例，禁止"优化"、"提升体验"、"合理"这类无法判定的说法 |
 | 原型定位 | 开发期间是交互事实来源，发布后转历史存档，实现代码成为唯一事实来源 |
 | 原型规范 | 不受编码规范约束，但不许被复制进 `src/` |
-| 图 | 每张 PNG 配同名 `.md` 记录提示词要点与生成日期 |
+| 图 | Mermaid 手绘风格写在 Markdown 里，导出为矢量；界面标注图内联 SVG；只有导入的位图才需要来源说明 |
 | Release Criteria | 只写产品维度判据，工程标准由项目自己的交付体系管 |
 | 决策落点 | 跨版本不可逆的进 `decisions.md`，模块级进实现文档，单次改动进 commit message |
 | 文档语言 | 中文，`Non-goals` / `Release Criteria` / `In Scope` 这类术语保留英文 |

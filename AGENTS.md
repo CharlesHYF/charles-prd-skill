@@ -47,6 +47,7 @@ bash tools/check.sh docs/prd          # 校验某个项目的 PRD 结构
 bash tools/check.sh templates/prd-template   # 校验本仓自带模板
 bash tests/run_tests.sh               # check.sh 回归测试
 bash tests/check_structure.sh         # skill 完整性、版本号与链接
+find tools tests -name '*.sh' -not -path '*/node_modules/*' -print0 | xargs -0 shellcheck --severity=warning
 bash tools/install-skills.sh          # 软链安装到 ~/.claude/skills
 bash tools/export-prd.sh 1.0 --title 标题   # 导出该版本的两份 PDF
 bash tools/export-pdf.sh <md...> --title 标题 --version 1.0   # 自定义组合导出

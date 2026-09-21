@@ -5,7 +5,9 @@
 	"type": "module",
 	"description": "PRD 导出工具的依赖声明",
 	"dependencies": {
+		"@iconify-json/lucide": "^1.2.135",
 		"markdown-it": "^14.1.0",
+		"mermaid": "^12.0.0",
 		"puppeteer-core": "^23.0.0"
 	}
 }

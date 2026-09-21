@@ -12,9 +12,11 @@
 
 ### 界面
 
-![界面标注](diagrams/task-001-xxx.png)
+<svg class="annotation" viewBox="0 0 1600 900">
+	<!-- 界面元素与红色标注框，画法见 charles-prd-standards 的 rules/diagrams.md -->
+</svg>
 
-图注：标出本任务涉及的元素位置。生成日期 YYYY-MM-DD。
+图注：标出本任务涉及的元素位置。
 
 ### 交互规格
 

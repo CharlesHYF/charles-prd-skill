@@ -67,7 +67,8 @@ project/docs/prd/
 | --- | --- |
 | 产品定义、需求、边界 | Markdown |
 | 页面布局、按钮、弹窗、状态、完整操作流程 | HTML Prototype |
-| 复杂流程的解释、系统模块关系与数据流 | Excalidraw 风格 PNG |
+| 复杂流程的解释、系统模块关系与数据流 | Mermaid 手绘风格图，写在 Markdown 里 |
+| 界面元素位置与标注 | 内联 SVG |
 | 视觉风格探索、组件细节、Design Tokens | Penpot（可选，需要设计画布时才引入） |
 
 工具能力与价格会变，长期稳定的事实来源放在 Git 里。
@@ -78,7 +79,7 @@ project/docs/prd/
 3. **需求条目必须编号**（`REQ-<版本>-<序号>`），测试用例引用该编号建立追溯
 4. **原型不受编码规范约束，但也不许被复制进 `src/`**，见 [prototype](rules/prototype.md)
 5. **Release Criteria 只写产品维度判据**，工程交付标准由项目自己的编码规范与交付闸门管，PRD 不重复定义
-6. **图必须带生成说明**，一行字记录提示词要点与生成日期
+6. **图用 Mermaid 或内联 SVG 写在 Markdown 里**，是文本不是位图；只有外部导入的截图才需要来源说明
 7. 文档用中文，`Non-goals`、`Release Criteria`、`In Scope` 这类没有稳定中文对应的正式术语保留英文
 8. **Markdown 是唯一源头**，PDF 是导出产物，不在 PDF 上改内容，见 [export](rules/export.md)
 9. **需求描述必须能写成测试用例**，出现"优化"、"提升体验"、"合理"这类无法判定的表述一律改写，见 [writing](rules/writing.md)

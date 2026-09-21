@@ -5,12 +5,19 @@
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import MarkdownIt from "markdown-it";
 
+const require = createRequire(import.meta.url);
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const STYLE_PATH = resolve(SCRIPT_DIR, "../templates/export/style.css");
+const MERMAID_THEME_PATH = resolve(SCRIPT_DIR, "../templates/export/mermaid-theme.json");
+
+// Mermaid 与图标包都从本地依赖读取，导出过程不联网
+const MERMAID_SOURCE = readFileSync(require.resolve("mermaid/dist/mermaid.min.js"), "utf8");
+const ICON_PACK = readFileSync(require.resolve("@iconify-json/lucide/icons.json"), "utf8");
 
 const REQ_ID_PATTERN = /\b(REQ-\d+\.\d+-\d{3})\b/g;
 
@@ -70,6 +77,19 @@ const markdown = new MarkdownIt({
 	typographer: false,
 });
 
+// mermaid 代码块交给浏览器端渲染成矢量 SVG，其余代码块走默认高亮
+const defaultFence = markdown.renderer.rules.fence;
+
+markdown.renderer.rules.fence = (tokens, index, options, env, self) => {
+	const token = tokens[index];
+
+	if (token.info.trim().toLowerCase() === "mermaid") {
+		return `<div class="mermaid-wrap"><pre class="mermaid">${escapeHtml(token.content)}</pre></div>\n`;
+	}
+
+	return defaultFence(tokens, index, options, env, self);
+};
+
 const options = parseArgs(process.argv.slice(2));
 
 if (options.inputs.length === 0 || !options.output) {
@@ -83,6 +103,7 @@ const sections = options.inputs.map((inputPath) => markdown.render(readFileSync(
 const body = sections.join('\n<hr>\n').replace(REQ_ID_PATTERN, '<span class="req-id">$1</span>');
 
 const style = readFileSync(STYLE_PATH, "utf8");
+const mermaidConfig = readFileSync(MERMAID_THEME_PATH, "utf8");
 
 const html = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -98,6 +119,15 @@ ${buildCover(options)}
 <div class="content">
 ${body}
 </div>
+<script>${MERMAID_SOURCE}</script>
+<script>
+	mermaid.registerIconPacks([{ name: "lucide", icons: ${ICON_PACK} }]);
+	mermaid.initialize(Object.assign({ startOnLoad: false }, ${mermaidConfig}));
+	window.__mermaidDone = mermaid
+		.run()
+		.then(function () { return true; })
+		.catch(function (error) { return String(error); });
+</script>
 </body>
 </html>
 `;

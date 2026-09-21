@@ -90,6 +90,16 @@ const browser = await puppeteer.launch({
 try {
 	const page = await browser.newPage();
 	await page.goto(`file://${resolve(options.input)}`, { waitUntil: "networkidle0" });
+
+	// 图是浏览器端渲染的，不等它画完就打印会得到空白块
+	const mermaidResult = await page.evaluate(() => window.__mermaidDone ?? "no-diagram");
+
+	if (mermaidResult !== true && mermaidResult !== "no-diagram") {
+		console.error(`[NG] 图渲染失败：${mermaidResult}`);
+		await browser.close();
+		process.exit(1);
+	}
+
 	await page.pdf({
 		path: options.output,
 		format: "A4",
