@@ -81,6 +81,21 @@ for skill_dir in skills/*/; do
 	fi
 done
 
+# 二之二、每个 skill 目录必须自足：软链安装后仍能取到 tools 与 templates
+# 没有这两个软链时，skill 文档里的工具与模板路径在安装点会全部失效
+for skill_dir in skills/*/; do
+	skill_name=$(basename "${skill_dir}")
+
+	for linked in "tools" "templates"; do
+
+		if [ -L "${skill_dir}${linked}" ] && [ -e "${skill_dir}${linked}" ]; then
+			pass "skill 自足 ${linked}: ${skill_name}"
+		else
+			fail "${skill_name} 缺少可用的 ${linked} 软链(软链安装后将取不到工具与模板)"
+		fi
+	done
+done
+
 # 三、版本号：主 skill 的 metadata 与五处配置必须一致
 MAIN_VERSION=$(grep -m1 '^[[:space:]]*version:' "${MAIN_SKILL}" | awk '{print $2}' | tr -d '"')
 

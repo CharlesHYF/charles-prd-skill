@@ -64,7 +64,7 @@ flowchart LR
 - 节点文字控制在 8 个字以内，超长会溢出节点框
 
 ## 视觉约束
-主题配置在 [`templates/export/mermaid-theme.json`](../../../templates/export/mermaid-theme.json)，改它就能改全局风格，不要在单张图里写死颜色。
+主题配置在 [`templates/export/mermaid-theme.json`](../templates/export/mermaid-theme.json)，改它就能改全局风格，不要在单张图里写死颜色。
 
 - **手绘风格全开**（`look: handDrawn`），对 flowchart 与 state 效果明显，sequence 与 er 因为靠对齐传递信息效果较弱，这是预期行为
 - **配色沿用文档那套**：蓝 `#2563EB` 主色与关键步骤、黄 `#D99A2B` 提示与降级、绿 `#2E9E6B` 成功路径、红 `#D93025` 关键与阻塞
@@ -94,7 +94,7 @@ flowchart LR
 </svg>
 ```
 
-完整范例见 [`templates/export/sample-tasks.md`](../../../templates/export/sample-tasks.md) 里 Task-001 的界面一节。
+完整范例见 [`templates/export/sample-tasks.md`](../templates/export/sample-tasks.md) 里 Task-001 的界面一节。
 
 ## 外部导入的位图
 截图、照片、第三方工具产出的 PNG 这类**位图**才需要配同名 `.md` 说明来源与日期，因为它们无法从文本复现：

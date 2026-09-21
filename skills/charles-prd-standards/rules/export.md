@@ -52,10 +52,22 @@ bash tools/export-pdf.sh \
 ```
 
 - 多个输入文件按顺序合并成一份 PDF，文件之间自动分隔
-- 样式在 [`templates/export/style.css`](../../../templates/export/style.css)，改它就能改全局排版
+- 样式在 [`templates/export/style.css`](../templates/export/style.css)，改它就能改全局排版
 - 需求编号与任务编号会自动渲染成等宽高亮，方便对方按编号反馈
 - 需要在封面加一句提示时用 `--note`，缺省不加
 - 首次运行会安装渲染依赖，之后离线可用
+
+## 工具从 skill 调用，不复制进产品仓
+> skill 目录内有 `tools` 与 `templates` 软链，直接调用即可，**不要把它们复制到产品仓库里**。
+
+```bash
+# 软链安装的路径，其它工具按各自的 skills 目录替换
+bash ~/.claude/skills/charles-prd-standards/tools/export-prd.sh 1.0 --title "产品名称"
+```
+
+- 复制过去会让每个产品仓多背上百 MB 的渲染依赖
+- 更麻烦的是 `check.sh`、`style.css`、`mermaid-theme.json` 变成散落各处的拷贝，skill 更新后不会同步，同一条规则在不同项目里表现不一样
+- 产品仓只放自己的 `docs/prd/`，工具留在 skill 里
 
 ## 导出产物的归属
 - 导出目录固定为 `docs/prd/versions/<版本>/export/`

@@ -60,7 +60,7 @@ project/docs/prd/
     └── 3.0/
 ```
 
-模板在 [`templates/prd-template/`](../../templates/prd-template/)，直接复制为起点。
+模板在 [`templates/prd-template/`](templates/prd-template/)，直接复制为起点。
 
 ## 工具选择
 | 内容 | 用什么 |
