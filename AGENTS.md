@@ -23,6 +23,12 @@
 3. 新增规则时优先考虑能否被 `tools/check.sh` 机器验证，不能验证的放进 `charles-prd-review` 的内容评审清单
 4. 版本号出现在六处，必须同步：主 SKILL.md、四个 plugin 配置、`gemini-extension.json`
 
+## 修改边界
+
+- `tools/render.mjs` 里的 SVG 占位符保护逻辑不要移除：Markdown 的 HTML 块遇空行结束，没有它内联 SVG 会被截断成源码
+- `templates/export/mermaid-theme.json` 里各图类型的 `useMaxWidth: false` 不要改回：开着会让图在 A4 页宽里被压到看不清
+- 样式表里图的尺寸用 `max-width` 加 `max-height` 双限，不要改成 `width: 100%`，纵向图会被撑到超过一页
+
 ## 独立性
 
 **本仓不依赖任何其它 skill，也不点名引用。** 涉及编码规范、测试要求、交付闸门的部分，一律写成"项目自己的规范体系"这类通用表述，由使用者的项目决定具体是什么。

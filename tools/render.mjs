@@ -20,6 +20,21 @@ const MERMAID_SOURCE = readFileSync(require.resolve("mermaid/dist/mermaid.min.js
 const ICON_PACK = readFileSync(require.resolve("@iconify-json/lucide/icons.json"), "utf8");
 
 const REQ_ID_PATTERN = /\b(REQ-\d+\.\d+-\d{3})\b/g;
+const TASK_ID_PATTERN = /\b(Task-\d{3})\b/g;
+
+// 内联 SVG 里的空行会截断 Markdown 的 HTML 块，导致后半段被当成代码块输出
+// 渲染前先把整块 SVG 换成注释占位符，渲染后再放回去
+const SVG_BLOCK_PATTERN = /<svg[\s\S]*?<\/svg>/g;
+const SVG_PLACEHOLDER_PATTERN = /<!--CHARLES-SVG-(\d+)-->/g;
+
+const protectSvgBlocks = (markdownText, blocks) =>
+	markdownText.replace(SVG_BLOCK_PATTERN, (match) => {
+		blocks.push(match);
+		return `<!--CHARLES-SVG-${blocks.length - 1}-->`;
+	});
+
+const restoreSvgBlocks = (htmlText, blocks) =>
+	htmlText.replace(SVG_PLACEHOLDER_PATTERN, (match, index) => blocks[Number(index)] ?? match);
 
 const parseArgs = (argv) => {
 	const options = {
@@ -97,10 +112,21 @@ if (options.inputs.length === 0 || !options.output) {
 	process.exit(2);
 }
 
-const sections = options.inputs.map((inputPath) => markdown.render(readFileSync(inputPath, "utf8")));
+const svgBlocks = [];
 
-// 需求编号加等宽高亮，便于对方在 PDF 上引用编号反馈
-const body = sections.join('\n<hr>\n').replace(REQ_ID_PATTERN, '<span class="req-id">$1</span>');
+const sections = options.inputs.map((inputPath) => {
+	const source = protectSvgBlocks(readFileSync(inputPath, "utf8"), svgBlocks);
+	return markdown.render(source);
+});
+
+// 需求与任务编号加等宽高亮，便于对方在 PDF 上按编号反馈
+const body = restoreSvgBlocks(
+	sections
+		.join("\n<hr>\n")
+		.replace(REQ_ID_PATTERN, '<span class="req-id">$1</span>')
+		.replace(TASK_ID_PATTERN, '<span class="req-id">$1</span>'),
+	svgBlocks,
+);
 
 const style = readFileSync(STYLE_PATH, "utf8");
 const mermaidConfig = readFileSync(MERMAID_THEME_PATH, "utf8");

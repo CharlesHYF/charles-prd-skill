@@ -236,6 +236,48 @@ mv "${NOREQ_TASK_DIR}/versions/1.0/tasks.tmp" "${NOREQ_TASK_DIR}/versions/1.0/ta
 run_check "${NOREQ_TASK_DIR}"
 expect_contains "${CHECK_OUTPUT}" "没有任何关联需求编号" "检查八:任务缺关联需求被拦"
 
+echo "=== 场景八：内联 SVG 不被 Markdown 截断 ==="
+SVG_DIR="$(mktemp -d)"
+cat > "${SVG_DIR}/doc.md" <<'INNER'
+# 界面
+
+<svg class="annotation" viewBox="0 0 100 50">
+	<rect x="1" y="1" width="20" height="10"/>
+
+	<text x="5" y="20">空行后仍属于同一个 SVG</text>
+
+	<circle cx="50" cy="25" r="5"/>
+</svg>
+
+图注：上面的 SVG 内部有空行。
+INNER
+
+# 渲染结果内联了体积很大的 mermaid 运行时，直接 grep 文件而不是读进变量
+if node "${REPO_ROOT}/tools/render.mjs" "${SVG_DIR}/doc.md" --output "${SVG_DIR}/doc.html" >/dev/null 2>&1; then
+
+	if grep -qF -- '<circle cx="50"' "${SVG_DIR}/doc.html"; then
+		pass "内联 SVG 的空行之后仍被完整保留"
+	else
+		fail "内联 SVG 的空行之后被截断"
+	fi
+
+	if grep -qF -- "&lt;circle" "${SVG_DIR}/doc.html"; then
+		fail "内联 SVG 被转义成源码输出"
+	else
+		pass "内联 SVG 未被转义成源码输出"
+	fi
+
+	if grep -qF -- "CHARLES-SVG" "${SVG_DIR}/doc.html"; then
+		fail "SVG 占位符未被还原"
+	else
+		pass "SVG 占位符已全部还原"
+	fi
+else
+	fail "render.mjs 执行失败，无法验证 SVG 保护"
+fi
+
+rm -rf "${SVG_DIR}"
+
 echo "=== 场景六：仓库自带模板必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-template"
 expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "模板通过自身校验"
