@@ -1,0 +1,19 @@
+{
+  "name": "charles-prd",
+  "displayName": "Charles PRD",
+  "description": "Charles 的产品文档与原型规范",
+  "version": "1.0.0",
+  "author": {
+    "name": "Charles",
+    "email": "w1400214654@outlook.com"
+  },
+  "homepage": "https://github.com/CharlesHYF/charles-prd-skill",
+  "repository": "https://github.com/CharlesHYF/charles-prd-skill",
+  "license": "MIT",
+  "keywords": [
+    "prd",
+    "product",
+    "prototype"
+  ],
+  "skills": "./skills/"
+}

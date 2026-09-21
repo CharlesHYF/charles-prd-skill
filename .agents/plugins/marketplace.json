@@ -1,0 +1,19 @@
+{
+  "name": "charles-prd",
+  "interface": {
+    "displayName": "Charles PRD"
+  },
+  "plugins": [
+    {
+      "name": "charles-prd",
+      "source": {
+        "source": "url",
+        "url": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

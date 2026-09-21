@@ -1,0 +1,81 @@
+<!--
+产品原型入口，演示核心 Journey 与四种关键状态
+创建日期：2026-09-21
+修改日期：2026-09-21
+-->
+<!DOCTYPE html>
+<html
+	lang="zh-CN"
+>
+<head>
+	<meta
+		charset="UTF-8"
+	>
+	<meta
+		name="viewport"
+		content="width=device-width, initial-scale=1.0"
+	>
+	<title>
+		产品原型
+	</title>
+	<link
+		rel="stylesheet"
+		href="style.css"
+	>
+</head>
+<body>
+	<header
+		class="app-header"
+	>
+		<h1>
+			产品名称
+		</h1>
+
+		<nav
+			class="app-nav"
+		>
+			<button
+				type="button"
+				data-state="empty"
+			>
+				空状态
+			</button>
+
+			<button
+				type="button"
+				data-state="loading"
+			>
+				加载中
+			</button>
+
+			<button
+				type="button"
+				data-state="success"
+			>
+				成功
+			</button>
+
+			<button
+				type="button"
+				data-state="error"
+			>
+				错误
+			</button>
+		</nav>
+	</header>
+
+	<main
+		class="app-main"
+	>
+		<section
+			class="state-panel"
+			id="statePanel"
+		>
+		</section>
+	</main>
+
+	<script
+		src="app.js"
+	></script>
+</body>
+</html>

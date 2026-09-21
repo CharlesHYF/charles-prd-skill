@@ -1,0 +1,20 @@
+{
+  "name": "charles-prd",
+  "description": "Charles 的产品文档与原型规范：最小 PRD 目录、版本冻结规则、HTML 原型定位与需求编号追溯",
+  "version": "1.0.0",
+  "author": {
+    "name": "Charles",
+    "email": "w1400214654@outlook.com"
+  },
+  "homepage": "https://github.com/CharlesHYF/charles-prd-skill",
+  "repository": "https://github.com/CharlesHYF/charles-prd-skill",
+  "license": "MIT",
+  "keywords": [
+    "prd",
+    "product",
+    "prototype",
+    "documentation",
+    "versioning"
+  ],
+  "skills": "./skills/"
+}
