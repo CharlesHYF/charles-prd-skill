@@ -1,8 +1,8 @@
 <div align="center">
 
-# charles-prd-skill
+<img src="assets/banner.png" alt="charles-prd" width="880">
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue) ![Scope](https://img.shields.io/badge/scope-PRD%20%7C%20Prototype%20%7C%20Diagrams-informational) ![AI Tools](https://img.shields.io/badge/AI%20tools-Claude%20Code%20%7C%20Codex%20%7C%20Cursor%20%7C%20Gemini-brightgreen) ![Docs](https://img.shields.io/badge/docs-%E4%B8%AD%E6%96%87-red)
+![Version](https://img.shields.io/badge/version-1.0.0-blue) ![Scope](https://img.shields.io/badge/scope-PRD%20%7C%20Tasks%20%7C%20Prototype%20%7C%20PDF-informational) ![AI Tools](https://img.shields.io/badge/AI%20tools-Claude%20Code%20%7C%20Codex%20%7C%20Cursor%20%7C%20Gemini-brightgreen) ![Docs](https://img.shields.io/badge/docs-%E4%B8%AD%E6%96%87-red)
 
 </div>
 
