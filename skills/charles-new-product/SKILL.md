@@ -8,7 +8,7 @@ metadata:
 
 # 新产品定义
 
-> 从零定义一个产品时使用。判据是**这个产品的 `product.md` 是否已经存在**：不存在走本工作流，存在就直接开新的版本目录。
+> 从零定义一个产品时使用。判据是**代码是否已经存在**：从零设计走本工作流；项目已经在跑、要把现状整理成文档，走 [charles-legacy-prd](../charles-legacy-prd/SKILL.md)。
 
 ## 前置阅读
 - [目录结构](../charles-prd-standards/rules/structure.md)

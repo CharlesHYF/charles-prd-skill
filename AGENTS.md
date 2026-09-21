@@ -10,6 +10,7 @@
 | --- | --- |
 | `skills/charles-prd-standards/` | 规范本体：目录结构、版本管理、任务与交互规格、原型、图、文字表达、导出交付、协作格式 |
 | `skills/charles-new-product/` | 从零定义新产品的短循环工作流 |
+| `skills/charles-legacy-prd/` | 给已有项目补 PRD，从实现反向整理 |
 | `skills/charles-prd-review/` | PRD 评审，找内容矛盾 |
 
 ## 交付红线

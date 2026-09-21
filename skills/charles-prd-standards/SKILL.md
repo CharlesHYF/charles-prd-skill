@@ -25,6 +25,7 @@ metadata:
 | 场景 | 工作流 |
 | --- | --- |
 | 从零定义新产品 | [charles-new-product](../charles-new-product/SKILL.md) |
+| 给已有项目补 PRD | [charles-legacy-prd](../charles-legacy-prd/SKILL.md) |
 | 评审 PRD、找出内容矛盾 | [charles-prd-review](../charles-prd-review/SKILL.md) |
 | 规划新版本 | 复制模板建 `versions/<版本>/`，按 [structure](rules/structure.md) 写 |
 | 判断信息该写在哪 | [boundaries](rules/boundaries.md) |
