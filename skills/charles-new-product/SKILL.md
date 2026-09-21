@@ -1,6 +1,6 @@
 ---
 name: charles-new-product
-description: Use when starting a brand-new product from zero for Charles - defining the product, writing the first PRD and scope, building a clickable HTML prototype, and driving the short loop from definition through release to the next version. Not for adding a feature to an existing product.
+description: Use when starting a brand-new product from zero for Charles, including when he asks to produce the whole PRD package in one go - asks all blocking questions first in a single round, then produces product definition, PRD, scope, tasks with interaction specs, diagrams, prototype and both PDFs together. Not for adding a feature to an existing product.
 metadata:
   version: "1.0.0"
   author: Charles <w1400214654@outlook.com>
@@ -17,13 +17,36 @@ metadata:
 ## 短循环
 不要把 PRD、设计、原型、开发拆成很多正式阶段，保持一个短循环。
 
+### 0. 集中提问，问到没有阻塞问题为止
+> Charles 说「一键出全部」时，**不是立刻开写**，而是先把该问的一次问完，确认后再一次产出全部内容。
+> 带着未定前提写出来的内容，写得越多返工越多。问清的成本远低于返工。
+
+按下面七类逐项检查，**每一类都要有明确答案**才能进入产出：
+
+| 类别 | 要问清什么 | 不问清的后果 |
+| --- | --- | --- |
+| 产品形态与边界 | 这一版做成什么、明确不做什么 | 范围蔓延，Non-goals 写不出来 |
+| 目标用户优先级 | 先服务谁，核心流程先做哪条 | 主路径定不了，原型无从下手 |
+| 运行环境与依赖 | 跑在哪、用什么登录、团队现在用什么 | 身份、权限、集成方式全部悬空 |
+| 内容与数据来源 | 内容从哪来、数据谁提供、是否自建 | 影响一整组功能的存在与否 |
+| 外部系统对接 | 接哪个系统、受控操作有哪些、对接人是谁 | Release Criteria 无法验证 |
+| 关键数值 | 有效期、阈值、频率、容量、超时、重试次数 | 只能推算，上线后大面积返工 |
+| 合规与硬约束 | 哪些是不能降级的、失败时能不能放行 | 降级策略可能违反合规要求 |
+
+提问方式：
+
+- **一次性提出全部问题**，按阻塞程度排序，不要挤牙膏式一个个问
+- 每个问题给出**两到四个具体选项与推荐项**，降低回答成本；Charles 可以直接选，也可以给别的答案
+- 回答后如果引出新的必问项，再问一轮，并说明为什么需要第二轮
+- **确实问不出来的**（对方也不知道）记入 `notes.md`，同时写清"这条不定会导致什么后果、影响哪些需求"
+- 关键数值一律问，问不到就在需求条目里就地标注"待确认"，见 [writing](../charles-prd-standards/rules/writing.md)
+
+判据：**还有问题的答案会改变已经写下的需求吗？** 会就继续问，不会才开写。
+
 ### 1. 写 product.md
 长期稳定的产品定义：产品是什么、目标用户是谁、他们的核心问题、为什么这个产品值得使用、三条产品原则。
 
 **这一步只做一次**，后续版本不重写它。写不出目标用户与核心问题就先别往下走，后面每一步都要靠它做取舍。
-
-> **写的过程中随时数未解决问题。累计超过三条阻塞性问题就停下来集中确认，不要先写完再列清单。**
-> 阻塞性指的是：这个问题的答案会改变已经写下的需求。比如「接哪个业务系统」决定 Release Criteria 能不能验证，「某个概念的确切含义」可能推翻一整组需求。带着这些未知继续写，写出来的比例越大，返工的比例就越大。
 
 ### 2. 写 versions/1.0/prd.md 与 scope.md
 按固定八章节写 `prd.md`，需求条目带编号（`REQ-1.0-001`）。
@@ -36,7 +59,9 @@ metadata:
 这一步经常反过来改第 2 步：画出来才发现流程不通。改 PRD 再改原型，不要只改原型。
 
 ### 4. 补必要的流程图与架构图
-只画 PRD 里已定义的节点。**每张图配一个同名 `.md` 记录提示词要点与生成日期**，细则见 [diagrams](../charles-prd-standards/rules/diagrams.md)。
+**图用 Mermaid 直接写在 `prd.md` 与 `tasks.md` 正文里**，不要单独建文件放进 `diagrams/`——写进独立文件的话正文没有图、导出的 PDF 也没有图，等于白画。
+
+只画 PRD 里已定义的节点。横向图控制在 6 个节点以内，细则见 [diagrams](../charles-prd-standards/rules/diagrams.md)。
 
 ### 5. 边开发边修 PRD 与 Prototype
 进入编码阶段，这一步起同时受项目编码规范约束。产品侧要做到三件事：
@@ -57,6 +82,29 @@ metadata:
 ### 7. 复制最小骨架开始 2.0
 从 `templates/prd-template/versions/1.0/` 复制骨架建 `versions/2.0/`，**不要复制 1.0 的内容再删改**，那样会带进上一版的遗留表述。
 
+## 一次产出的完整清单
+确认完毕后一次产出下面全部内容，不分批交付：
+
+| 产物 | 内容 |
+| --- | --- |
+| `docs/prd/README.md` | 版本导航与三个状态 |
+| `docs/prd/product.md` | 产品定义、目标用户、核心问题、产品原则 |
+| `docs/prd/decisions.md` | 本次确认中定下的不可逆取舍 |
+| `versions/1.0/prd.md` | 八章节，需求带编号，**流程图与状态图用 Mermaid 写在正文里** |
+| `versions/1.0/scope.md` | In Scope / Later / Out of Scope |
+| `versions/1.0/tasks.md` | 任务与交互规格，**界面标注图内联 SVG** |
+| `versions/1.0/notes.md` | 问不出来的待验证问题与影响范围 |
+| `versions/1.0/prototype/` | 核心 Journey 的可点击原型，含四种状态 |
+| 两份 PDF | 用 `tools/export-prd.sh` 产出，产品需求对外、任务规格内部 |
+
+产出后自己跑一遍校验与评审再交付：
+
+```bash
+bash tools/check.sh docs/prd
+```
+
+再按 [charles-prd-review](../charles-prd-review/SKILL.md) 的八类清单自评审，发现的矛盾直接改掉，改不了的列进交付说明。
+
 ## 交付闸门
 - `product.md`、`versions/1.0/prd.md`、`scope.md` 三个文件齐全
 - 需求条目全部带编号
@@ -64,3 +112,5 @@ metadata:
 - 每张图有同名生成说明
 - `docs/prd/**/prototype/` 已加进项目的规范校验排除清单
 - 发布时 tag 已打、版本目录已冻结、README 状态已更新
+- **七类必问项全部有答案**，问不出来的已记入 `notes.md` 并写明影响范围
+- 推算出来的数值已在需求条目里就地标注

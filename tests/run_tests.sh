@@ -151,6 +151,7 @@ mkdir -p "${BAD_DIR}/versions/2.0"
 rm -f "${BAD_DIR}/versions/1.0/scope.md"
 printf '%s\n' "- REQ-1.0-001 重复编号" >> "${BAD_DIR}/versions/1.0/prd.md"
 printf 'x' > "${BAD_DIR}/versions/1.0/diagrams/core-flow.png"
+printf '# 流程图\n\n```mermaid\nflowchart LR\n\tA --> B\n```\n' > "${BAD_DIR}/versions/1.0/diagrams/user-flow.md"
 
 run_check "${BAD_DIR}"
 expect_contains "${CHECK_OUTPUT}" "缺少必需文件：${BAD_DIR}/product.md" "检查一:缺 product.md"
@@ -158,7 +159,8 @@ expect_contains "${CHECK_OUTPUT}" "版本目录名不是明确版本号：versio
 expect_contains "${CHECK_OUTPUT}" "versions/1.0/ 缺少 scope.md" "检查三:major 缺 scope.md"
 expect_contains "${CHECK_OUTPUT}" "versions/2.0/ 缺少 prd.md" "检查三:空版本目录缺 prd.md"
 expect_contains "${CHECK_OUTPUT}" "需求编号重复" "检查五:需求编号重复被拦"
-expect_contains "${CHECK_OUTPUT}" "缺少同名生成说明" "检查六:图缺生成说明被拦"
+expect_contains "${CHECK_OUTPUT}" "缺少同名来源说明" "检查六:位图缺来源说明被拦"
+expect_contains "${CHECK_OUTPUT}" "把 Mermaid 图写进了 diagrams/ 独立文件" "检查六:Mermaid 写错位置被拦"
 
 if [ "${CHECK_EXIT}" -ne 0 ]; then
 	pass "违规 PRD 退出码非 0"

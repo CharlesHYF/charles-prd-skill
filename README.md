@@ -17,7 +17,7 @@ Charles 的产品文档与原型规范，面向独立开发者的单人流程。
 | skill | 用途 |
 | --- | --- |
 | `charles-prd-standards` | 规范本体：目录结构、版本管理、任务与交互规格、原型、图、文字表达、导出交付、协作格式 |
-| `charles-new-product` | 从零定义新产品：产品定义、PRD、原型、发布、进入下一版的短循环 |
+| `charles-new-product` | 从零定义新产品：**先集中问清七类必答项，确认后一次产出全部文档、图、原型与 PDF** |
 | `charles-prd-review` | PRD 评审：找需求矛盾、范围与目标脱节、无法判定的 Release Criteria |
 
 ## 安装
@@ -96,6 +96,8 @@ bash tools/check.sh docs/prd
 | 七 | `README.md` 声明三个版本状态 |
 | 八 | 任务编号唯一、必需小节齐全、交互规格七字段齐全、关联需求存在 |
 
+说「一键出全部」时，`charles-new-product` 会先按七类必答项集中提问（产品形态、用户优先级、运行环境、内容来源、外部对接、关键数值、合规约束），确认后一次产出全部内容，不分批交付。
+
 内容级的矛盾（需求打架、范围与目标脱节、判据无法判定）脚本查不了，由 `charles-prd-review` 的七类清单人工过。
 
 ## 导出 PDF
@@ -133,7 +135,7 @@ bash tools/export-prd.sh 1.0 --title "订阅管理工具"
 | 需求表达 | 必须能写成测试用例，禁止"优化"、"提升体验"、"合理"这类无法判定的说法 |
 | 原型定位 | 开发期间是交互事实来源，发布后转历史存档，实现代码成为唯一事实来源 |
 | 原型规范 | 不受编码规范约束，但不许被复制进 `src/` |
-| 图 | Mermaid 手绘风格写在 Markdown 里，导出为矢量；界面标注图内联 SVG；只有导入的位图才需要来源说明 |
+| 图 | Mermaid 手绘风格**写在 prd.md 与 tasks.md 正文里**，不放进 diagrams/；界面标注图内联 SVG；`diagrams/` 只存外部导入的位图并配来源说明 |
 | Release Criteria | 只写产品维度判据，工程标准由项目自己的交付体系管 |
 | 决策落点 | 跨版本不可逆的进 `decisions.md`，模块级进实现文档，单次改动进 commit message |
 | 文档语言 | 中文，`Non-goals` / `Release Criteria` / `In Scope` 这类术语保留英文 |

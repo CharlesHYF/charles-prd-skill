@@ -17,7 +17,9 @@
 | `versions/<版本>/scope.md` | In Scope / Later / Out of Scope | 每次范围取舍时 |
 | `versions/<版本>/notes.md` | 临时想法、未决事项、待验证问题 | 随手记录 |
 | `versions/<版本>/prototype/` | 可点击的产品原型 | 交互变化时 |
-| `versions/<版本>/diagrams/` | 流程图、架构示意图、概念图 | 需要解释复杂关系时 |
+| `versions/<版本>/diagrams/` | **只存外部导入的位图**（截图、照片、第三方工具产出的 PNG）与其来源说明 | 引入外部素材时 |
+
+> **流程图、架构图、状态图一律用 Mermaid 写在 `prd.md` 与 `tasks.md` 正文里，不单独建文件。** 图是文本，写在正文里读者才看得到、导出的 PDF 里才有。写进 `diagrams/` 独立文件的话，正文没有图、PDF 也没有图，等于白画。细则见 [diagrams](diagrams.md)。
 
 ## README.md 只做导航
 不写产品内容，只回答"现在有哪些版本、各自什么状态"。

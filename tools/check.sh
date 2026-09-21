@@ -7,7 +7,7 @@
 set -uo pipefail
 
 # 校验范围，与 README 同源，改这里要同步改那一处
-LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的生成说明/版本状态/任务规格'
+LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/版本状态/任务规格'
 
 # 违规计数：任意一项 > 0 则退出码非 0
 VIOLATIONS=0
@@ -193,16 +193,27 @@ check_requirement_ids() {
 	done < <(find "${PRD_ROOT}" -type f -name 'prd.md' 2>/dev/null)
 }
 
-# 检查六：每张图必须有同名生成说明，否则改图时无从复现提示词
+# 检查六：图的位置与来源
+# Mermaid 图写进 diagrams/ 独立文件的话，正文与导出的 PDF 里都没有图，等于白画
+# 位图无法从文本复现，必须配同名说明记录来源
 check_diagram_notes() {
-	echo "[6/8] 检查图的生成说明..."
+	echo "[6/8] 检查图的位置与来源..."
+
+	local diagram_file
+	while IFS= read -r diagram_file; do
+
+		if grep -q '^```mermaid' "${diagram_file}"; then
+			report "${diagram_file} 把 Mermaid 图写进了 diagrams/ 独立文件(图要写在 prd.md 与 tasks.md 正文里,否则正文与 PDF 里都看不到)"
+		fi
+
+	done < <(find "${PRD_ROOT}" -type f -path '*/diagrams/*' -name '*.md' 2>/dev/null)
 
 	local image_file note_file
 	while IFS= read -r image_file; do
 		note_file="${image_file%.*}.md"
 
 		if [ ! -f "${note_file}" ]; then
-			report "${image_file} 缺少同名生成说明 $(basename "${note_file}")"
+			report "${image_file} 缺少同名来源说明 $(basename "${note_file}")(位图无法从文本复现,要记录来源与日期)"
 		fi
 
 	done < <(find "${PRD_ROOT}" -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.webp' \) 2>/dev/null)

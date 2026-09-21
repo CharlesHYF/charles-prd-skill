@@ -7,6 +7,8 @@
 > **图用 Mermaid 写在 Markdown 里，导出时渲染成矢量 SVG 进 PDF。** 图是文本，改图就是改代码，Git 里有可读 diff，不依赖任何外部服务。
 
 ## 默认做法
+> **图直接写在 `prd.md` 与 `tasks.md` 正文里，不要单独放进 `diagrams/`。** 写进独立文件的话，正文与导出的 PDF 里都没有图。`diagrams/` 只存外部导入的位图。
+
 在 Markdown 里直接写 ```mermaid 代码块，`tools/export-pdf.sh` 会用本机 Chrome 渲染成矢量图。全程离线，Mermaid 与图标包都在本地依赖里。
 
 ````markdown
