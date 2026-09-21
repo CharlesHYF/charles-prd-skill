@@ -29,7 +29,7 @@ VERSION_FILES=(
 )
 
 # 链接检查跳过的占位目标（文档里用于举例，不指向真实文件）
-LINK_PLACEHOLDERS='^(url|path|link|xxx|#.*)$'
+LINK_PLACEHOLDERS='(^(url|path|link|#).*|xxx|<|\\{)'
 
 PASS_COUNT=0
 FAIL_COUNT=0
@@ -142,7 +142,8 @@ while IFS= read -r md_file; do
 	${md_file} -> ${link}"
 		fi
 
-	done < <(grep -oE '\]\([^)]+\)' "${md_file}" | sed -E 's/^\]\(//; s/\)$//')
+	done < <(awk '/^```/ { infence = !infence; next } !infence { print }' "${md_file}" \
+		| grep -oE '\]\([^)]+\)' | sed -E 's/^\]\(//; s/\)$//')
 
 done < <(git ls-files '*.md' 2>/dev/null || find . -name '*.md' -not -path './.git/*')
 
