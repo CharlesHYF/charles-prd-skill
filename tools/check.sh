@@ -7,7 +7,7 @@
 set -uo pipefail
 
 # 校验范围，与 README 同源，改这里要同步改那一处
-LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的生成说明/版本状态'
+LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的生成说明/版本状态/任务规格'
 
 # 违规计数：任意一项 > 0 则退出码非 0
 VIOLATIONS=0
@@ -20,6 +20,27 @@ VERSION_DIR_REGEX='^[0-9]+\.[0-9]+$'
 
 # 需求编号：REQ-<版本>-<三位序号>
 REQ_ID_REGEX='REQ-[0-9]+\.[0-9]+-[0-9]{3}'
+
+# 任务编号：Task-<三位序号>，在单个版本内唯一
+TASK_ID_REGEX='Task-[0-9]{3}'
+
+# 每个任务必须齐全的小节
+REQUIRED_TASK_SECTIONS=(
+	"### 任务内容"
+	"### 交互规格"
+	"### 验收"
+)
+
+# 交互规格必填的七个字段
+REQUIRED_SPEC_FIELDS=(
+	"触发"
+	"前置条件"
+	"正常路径"
+	"边界情况"
+	"错误处理"
+	"兜底行为"
+	"显示规则"
+)
 
 # prd.md 必须齐全的八个章节
 REQUIRED_SECTIONS=(
@@ -49,7 +70,7 @@ report() {
 
 # 检查一：PRD 根目录下的必需文件
 check_required_files() {
-	echo "[1/7] 检查必需文件..."
+	echo "[1/8] 检查必需文件..."
 
 	local required
 	for required in "README.md" "product.md"; do
@@ -66,7 +87,7 @@ check_required_files() {
 
 # 检查二：版本目录命名，禁止 current / latest / new 这类会过期的名字
 check_version_dirs() {
-	echo "[2/7] 检查版本目录命名..."
+	echo "[2/8] 检查版本目录命名..."
 
 	if [ ! -d "${PRD_ROOT}/versions" ]; then
 		return
@@ -94,7 +115,7 @@ check_version_dirs() {
 
 # 检查三：major 版本必须有 prd.md 与 scope.md，minor 版本至少有 changes.md
 check_version_docs() {
-	echo "[3/7] 检查版本内必需文档..."
+	echo "[3/8] 检查版本内必需文档..."
 
 	if [ ! -d "${PRD_ROOT}/versions" ]; then
 		return
@@ -135,7 +156,7 @@ check_version_docs() {
 
 # 检查四：prd.md 的八个章节不增不减
 check_prd_sections() {
-	echo "[4/7] 检查 prd.md 章节完整性..."
+	echo "[4/8] 检查 prd.md 章节完整性..."
 
 	local prd_file section
 	while IFS= read -r prd_file; do
@@ -152,7 +173,7 @@ check_prd_sections() {
 
 # 检查五：需求条目必须带编号，且同一版本内不重复
 check_requirement_ids() {
-	echo "[5/7] 检查需求编号..."
+	echo "[5/8] 检查需求编号..."
 
 	local prd_file ids duplicated
 	while IFS= read -r prd_file; do
@@ -174,7 +195,7 @@ check_requirement_ids() {
 
 # 检查六：每张图必须有同名生成说明，否则改图时无从复现提示词
 check_diagram_notes() {
-	echo "[6/7] 检查图的生成说明..."
+	echo "[6/8] 检查图的生成说明..."
 
 	local image_file note_file
 	while IFS= read -r image_file; do
@@ -189,7 +210,7 @@ check_diagram_notes() {
 
 # 检查七：README 必须声明三个版本状态
 check_version_states() {
-	echo "[7/7] 检查版本状态声明..."
+	echo "[7/8] 检查版本状态声明..."
 
 	local readme="${PRD_ROOT}/README.md"
 
@@ -204,6 +225,85 @@ check_version_states() {
 			report "${readme} 缺少版本状态声明：${state}"
 		fi
 	done
+}
+
+# 检查八：任务编号、必需小节与交互规格字段
+# 图上的标注不能代替规格表，字段缺一项就意味着开发要回头问
+check_tasks() {
+	echo "[8/8] 检查任务与交互规格..."
+
+	local task_file
+	while IFS= read -r task_file; do
+		local ids duplicated
+		ids=$(grep -oE "^## ${TASK_ID_REGEX}" "${task_file}" | grep -oE "${TASK_ID_REGEX}" || true)
+
+		if [ -z "${ids}" ]; then
+			report "${task_file} 没有任何任务编号(格式 ## Task-<三位序号>：标题)"
+			continue
+		fi
+
+		duplicated=$(printf '%s\n' "${ids}" | sort | uniq -d)
+
+		if [ -n "${duplicated}" ]; then
+			report "${task_file} 任务编号重复：$(printf '%s' "${duplicated}" | tr '\n' ' ')"
+		fi
+
+		local task_count section field
+		task_count=$(printf '%s\n' "${ids}" | grep -c . | tr -d ' ')
+
+		# 小节与字段按出现次数核对，数量对不上说明某个任务漏写
+		for section in "${REQUIRED_TASK_SECTIONS[@]}"; do
+			local section_count
+			section_count=$(grep -cF -- "${section}" "${task_file}" || true)
+
+			if [ "${section_count}" -lt "${task_count}" ]; then
+				report "${task_file} 有 ${task_count} 个任务，但只有 ${section_count} 处 ${section}"
+			fi
+		done
+
+		for field in "${REQUIRED_SPEC_FIELDS[@]}"; do
+			local field_count
+			field_count=$(grep -cE "^\| *${field} *\|" "${task_file}" || true)
+
+			if [ "${field_count}" -lt "${task_count}" ]; then
+				report "${task_file} 有 ${task_count} 个任务，但交互规格里只有 ${field_count} 处「${field}」字段"
+			fi
+		done
+
+		# 关联需求必须存在，且引用的需求编号要能在同版本 prd.md 里找到
+		local version_dir prd_file referenced missing
+		version_dir="$(dirname "${task_file}")"
+		prd_file="${version_dir}/prd.md"
+		referenced=$(grep -oE "${REQ_ID_REGEX}" "${task_file}" | sort -u || true)
+
+		if [ -z "${referenced}" ]; then
+			report "${task_file} 没有任何关联需求编号(每个任务必须关联至少一个 REQ)"
+			continue
+		fi
+
+		if [ ! -f "${prd_file}" ]; then
+			continue
+		fi
+
+		missing=""
+		local req_id
+		while IFS= read -r req_id; do
+
+			if [ -z "${req_id}" ]; then
+				continue
+			fi
+
+			if ! grep -qF -- "${req_id}" "${prd_file}"; then
+				missing="${missing} ${req_id}"
+			fi
+
+		done <<< "${referenced}"
+
+		if [ -n "${missing}" ]; then
+			report "${task_file} 引用了 prd.md 里不存在的需求编号：${missing}"
+		fi
+
+	done < <(find "${PRD_ROOT}" -type f -name 'tasks.md' 2>/dev/null)
 }
 
 if [ ! -d "${PRD_ROOT}" ]; then
@@ -223,6 +323,7 @@ check_prd_sections
 check_requirement_ids
 check_diagram_notes
 check_version_states
+check_tasks
 
 echo "==============================="
 

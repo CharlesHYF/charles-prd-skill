@@ -37,6 +37,10 @@ metadata:
 | [prototype](rules/prototype.md) | 原型定位、编码规范豁免边界、时效性 |
 | [diagrams](rules/diagrams.md) | 图的用途边界、视觉约束、生成说明 |
 | [boundaries](rules/boundaries.md) | 产品文档与实现文档的职责边界，信息该落在哪里 |
+| [tasks](rules/tasks.md) | 任务编号、固定结构、交互规格的七个必填字段 |
+| [writing](rules/writing.md) | 需求描述句式、可判定性、禁用表达与产品黑话 |
+| [export](rules/export.md) | 导出 PDF 的单向关系、交付记录与产物归属 |
+| [collaboration](rules/collaboration.md) | 工作节奏、分析输出格式、产品取舍的处理 |
 
 ## 最小目录
 ```
@@ -48,6 +52,7 @@ project/docs/prd/
     ├── 1.0/
     │   ├── prd.md         这一版为什么做、做什么
     │   ├── scope.md       In Scope / Later / Out of Scope
+    │   ├── tasks.md       任务与交互规格，带界面图
     │   ├── notes.md       临时想法与待验证问题
     │   ├── prototype/     可点击的 HTML 原型
     │   └── diagrams/      流程图与架构图
@@ -75,3 +80,6 @@ project/docs/prd/
 5. **Release Criteria 只写产品维度判据**，工程交付标准由项目自己的编码规范与交付闸门管，PRD 不重复定义
 6. **图必须带生成说明**，一行字记录提示词要点与生成日期
 7. 文档用中文，`Non-goals`、`Release Criteria`、`In Scope` 这类没有稳定中文对应的正式术语保留英文
+8. **Markdown 是唯一源头**，PDF 是导出产物，不在 PDF 上改内容，见 [export](rules/export.md)
+9. **需求描述必须能写成测试用例**，出现"优化"、"提升体验"、"合理"这类无法判定的表述一律改写，见 [writing](rules/writing.md)
+10. **每个任务必须写全交互规格七个字段**（触发、前置条件、正常路径、边界情况、错误处理、兜底行为、显示规则），提示文案写完整原文，见 [tasks](rules/tasks.md)

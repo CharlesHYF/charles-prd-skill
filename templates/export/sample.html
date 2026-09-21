@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>订阅管理工具</title>
+<style>
+:root {
+	--color-text: #1f2430;
+	--color-muted: #6b7280;
+	--color-line: #e2e4e9;
+	--color-accent: #2563eb;
+	--color-code-bg: #f6f7f9;
+	--color-table-head: #f2f3f5;
+	--color-note-bg: #eef4ff;
+	--color-note-line: #2563eb;
+	--color-warn-bg: #fff6e8;
+	--color-warn-line: #d97706;
+	--font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+	--font-mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+@page {
+	size: A4;
+	margin: 20mm 18mm 18mm;
+}
+
+body {
+	margin: 0;
+	color: var(--color-text);
+	font-family: var(--font-sans);
+	font-size: 10.5pt;
+	line-height: 1.75;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+.cover {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	height: 240mm;
+	text-align: center;
+	page-break-after: always;
+}
+
+.cover__eyebrow {
+	color: var(--color-accent);
+	font-size: 16pt;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+}
+
+.cover__title {
+	margin: 6mm 0 0;
+	padding: 0;
+	border: none;
+	font-size: 30pt;
+	font-weight: 700;
+	line-height: 1.3;
+	page-break-before: avoid;
+}
+
+.cover__subtitle {
+	margin-top: 5mm;
+	color: var(--color-text);
+	font-size: 12pt;
+}
+
+.cover__meta {
+	margin-top: 8mm;
+	color: var(--color-muted);
+	font-size: 10pt;
+}
+
+.cover__note {
+	margin-top: 14mm;
+	padding: 5mm 6mm;
+	width: 78%;
+	border: 1px solid var(--color-note-line);
+	border-radius: 3px;
+	background: var(--color-note-bg);
+	color: var(--color-text);
+	font-size: 10pt;
+	line-height: 1.7;
+	text-align: left;
+}
+
+.content {
+	padding-top: 2mm;
+}
+
+h1 {
+	margin: 0 0 6mm;
+	padding-bottom: 3mm;
+	border-bottom: 2px solid var(--color-text);
+	font-size: 20pt;
+	font-weight: 700;
+	page-break-before: always;
+	page-break-after: avoid;
+}
+
+h1:first-of-type {
+	page-break-before: avoid;
+}
+
+h2 {
+	margin: 9mm 0 4mm;
+	font-size: 14pt;
+	font-weight: 700;
+	page-break-after: avoid;
+}
+
+h3 {
+	margin: 7mm 0 3mm;
+	font-size: 11.5pt;
+	font-weight: 600;
+	page-break-after: avoid;
+}
+
+h4 {
+	margin: 5mm 0 2mm;
+	font-size: 10.5pt;
+	font-weight: 600;
+	page-break-after: avoid;
+}
+
+p {
+	margin: 0 0 3mm;
+	orphans: 3;
+	widows: 3;
+}
+
+ul,
+ol {
+	margin: 0 0 3mm;
+	padding-left: 6mm;
+}
+
+li {
+	margin-bottom: 1.5mm;
+}
+
+blockquote {
+	margin: 4mm 0;
+	padding: 3.5mm 5mm;
+	border-left: 3px solid var(--color-note-line);
+	background: var(--color-note-bg);
+	page-break-inside: avoid;
+}
+
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+table {
+	width: 100%;
+	margin: 4mm 0;
+	border-collapse: collapse;
+	font-size: 9.5pt;
+	page-break-inside: avoid;
+}
+
+th,
+td {
+	padding: 2.5mm 3mm;
+	border: 1px solid var(--color-line);
+	text-align: left;
+	vertical-align: top;
+}
+
+th {
+	background: var(--color-table-head);
+	font-weight: 600;
+}
+
+code {
+	padding: 0.5mm 1.5mm;
+	border-radius: 2px;
+	background: var(--color-code-bg);
+	font-family: var(--font-mono);
+	font-size: 9pt;
+}
+
+pre {
+	margin: 4mm 0;
+	padding: 4mm;
+	border: 1px solid var(--color-line);
+	border-radius: 3px;
+	background: var(--color-code-bg);
+	font-size: 8.5pt;
+	line-height: 1.6;
+	overflow-x: hidden;
+	white-space: pre-wrap;
+	word-break: break-all;
+	page-break-inside: avoid;
+}
+
+pre code {
+	padding: 0;
+	background: none;
+	font-size: inherit;
+}
+
+hr {
+	margin: 7mm 0;
+	border: none;
+	border-top: 1px solid var(--color-line);
+}
+
+a {
+	color: var(--color-accent);
+	text-decoration: none;
+	word-break: break-all;
+}
+
+img {
+	max-width: 100%;
+	border: 1px solid var(--color-line);
+	border-radius: 3px;
+	page-break-inside: avoid;
+}
+
+p:has(> img:only-child) {
+	margin: 5mm 0 2mm;
+	text-align: center;
+}
+
+p:has(> img:only-child) + p {
+	margin-bottom: 5mm;
+	color: var(--color-muted);
+	font-size: 9pt;
+	text-align: center;
+}
+
+table td:first-child {
+	width: 22%;
+	font-weight: 600;
+}
+
+table th:first-child {
+	width: 22%;
+}
+
+strong {
+	font-weight: 600;
+}
+
+.req-id {
+	font-family: var(--font-mono);
+	font-size: 9pt;
+	font-weight: 600;
+	color: var(--color-accent);
+}
+
+.callout-warn {
+	border-left-color: var(--color-warn-line);
+	background: var(--color-warn-bg);
+}
+
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="cover__eyebrow">产品需求文档</div>
+<h1 class="cover__title">订阅管理工具</h1>
+<div class="cover__meta">版本：1.0 &nbsp;&middot;&nbsp; 2026-09-21</div>
+<div class="cover__note">本文件由 Markdown 源文件导出，反馈请引用需求编号或任务编号，勿直接修改本 PDF。</div>
+</div>
+<div class="content">
+<h1>产品定义</h1>
+<h2>是什么</h2>
+<p>一个面向独立开发者的订阅管理工具，把分散在邮箱、账单和各家后台的订阅集中到一处。</p>
+<h2>目标用户</h2>
+<p>同时维护三个以上付费订阅的独立开发者与小团队负责人。</p>
+<h2>核心问题</h2>
+<p>订阅散落在各家平台，续费日期、金额和用途需要逐个后台查，经常出现忘记取消导致的重复扣款。</p>
+<h2>价值</h2>
+<p>一处看全部订阅，续费前主动提醒，取消路径直达。</p>
+<h2>产品原则</h2>
+<ul>
+<li>只做记录与提醒，不代管支付凭证</li>
+<li>数据本地优先，云端同步是可选项</li>
+<li>任何提醒都要给出可执行的下一步</li>
+</ul>
+<hr>
+<h1>Product 1.0</h1>
+<h2>背景</h2>
+<p>当前用表格手工维护订阅清单，续费日期靠记忆，过去半年出现两次重复扣款。</p>
+<h2>目标用户与核心问题</h2>
+<p>这一版只服务单人使用场景，解决&quot;续费前不知情&quot;这一个问题，不处理团队协作与费用分摊。</p>
+<h2>这一版的目标</h2>
+<p>上线三个月内，用户能在一处看到全部订阅，并在续费前七天收到提醒。</p>
+<h2>Non-goals</h2>
+<ul>
+<li>不做自动取消订阅</li>
+<li>不做多人协作与权限</li>
+<li>不接入支付渠道</li>
+</ul>
+<h2>核心用户流程</h2>
+<p>用户导入或手工录入订阅，系统按续费周期计算下次扣款日，到期前推送提醒，用户点击提醒直达该服务的取消页面。</p>
+<h2>主要功能与行为</h2>
+<ul>
+<li><span class="req-id">REQ-1.0-001</span> 支持手工录入订阅，必填字段为服务名称、金额、币种、续费周期、下次续费日</li>
+<li><span class="req-id">REQ-1.0-002</span> 支持从邮箱账单解析订阅信息，解析失败时降级为手工录入，不阻断流程</li>
+<li><span class="req-id">REQ-1.0-003</span> 续费日前七天推送提醒，提醒内容包含金额与取消入口</li>
+<li><span class="req-id">REQ-1.0-004</span> 订阅列表按下次续费日升序排列，已取消的订阅移入归档区不参与排序</li>
+<li><span class="req-id">REQ-1.0-005</span> 已失效：原计划支持按标签分组，改为 2.0 的 <span class="req-id">REQ-2.0-002</span></li>
+</ul>
+<h2>成功标准 / Release Criteria</h2>
+<ul>
+<li>用户能在三分钟内完成首次录入并看到完整列表</li>
+<li>提醒送达率不低于百分之九十五</li>
+<li>续费日计算在跨月与闰年场景下结果正确</li>
+</ul>
+<h2>未解决问题</h2>
+<ul>
+<li>邮箱解析的准确率需要真实样本验证，目前只在十封测试邮件上跑通</li>
+<li>多币种订阅是否需要统一折算展示，取决于首批用户的实际构成</li>
+</ul>
+<hr>
+<h1>附录</h1>
+<h2>字段定义</h2>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>必填</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>serviceName</td>
+<td>String</td>
+<td>是</td>
+<td>服务名称，展示用，不做唯一性约束</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>Decimal</td>
+<td>是</td>
+<td>单次扣款金额，保留两位小数</td>
+</tr>
+<tr>
+<td>currency</td>
+<td>String</td>
+<td>是</td>
+<td>币种代码，遵循 ISO 4217</td>
+</tr>
+<tr>
+<td>cycle</td>
+<td>Enum</td>
+<td>是</td>
+<td>续费周期，取值为月度、季度、年度</td>
+</tr>
+<tr>
+<td>nextChargeDate</td>
+<td>Date</td>
+<td>是</td>
+<td>下次续费日，由周期与上次扣款日推算</td>
+</tr>
+<tr>
+<td>status</td>
+<td>Enum</td>
+<td>是</td>
+<td>订阅状态，取值为生效、已取消、已过期</td>
+</tr>
+</tbody>
+</table>
+<h2>续费日计算规则</h2>
+<blockquote>
+<p>跨月场景需要特别处理：上次扣款日为 31 号而下月只有 30 天时，续费日取当月最后一天，不顺延到下月 1 号。</p>
+</blockquote>
+<pre><code class="language-js">const nextChargeDate = (lastCharge, cycle) =&gt; {
+	const next = new Date(lastCharge);
+	const targetDay = next.getDate();
+
+	next.setMonth(next.getMonth() + CYCLE_MONTHS[cycle]);
+
+	if (next.getDate() !== targetDay) {
+		next.setDate(0);
+	}
+
+	return next;
+};
+</code></pre>
+<p>行内代码示例：状态字段用 <code>status</code> 而不是 <code>state</code>，与数据库字段保持一致。</p>
+<h2>状态流转</h2>
+<ol>
+<li>新建订阅后状态为生效</li>
+<li>用户主动取消后状态变为已取消，保留历史记录</li>
+<li>续费失败连续三次后状态变为已过期，不再推送提醒</li>
+</ol>
+<h2>参考</h2>
+<ul>
+<li>币种代码标准：ISO 4217</li>
+<li>提醒推送的时区处理遵循用户设备本地时区</li>
+</ul>
+<hr>
+<h1>任务</h1>
+<blockquote>
+<p>需求说做什么，任务说怎么做。每个任务带界面图与完整交互规格，开发照着实现不需要回头问。</p>
+</blockquote>
+<h2>Task-001：文件列表的删除操作</h2>
+<p><strong>关联需求</strong>：<span class="req-id">REQ-1.0-003</span></p>
+<h3>任务内容</h3>
+<p>在文件列表操作区提供删除入口，支持多选批量删除，删除前需要确认。</p>
+<h3>界面</h3>
+<p><img src="assets/task-001-file-list.png" alt="文件列表与操作区标注"></p>
+<p>图注：操作区在列表右上角，删除与重命名、新建文件夹、下载到本地同一组。生成日期 2026-09-21。</p>
+<h3>交互规格</h3>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>触发</td>
+<td>点击操作区&quot;删除&quot;按钮</td>
+</tr>
+<tr>
+<td>前置条件</td>
+<td>列表中已勾选至少一个文件或文件夹</td>
+</tr>
+<tr>
+<td>正常路径</td>
+<td>弹确认框显示&quot;确认删除选中的 {count} 项？&quot; → 用户确认 → 执行删除 → 刷新列表 → 顶部提示&quot;已删除 {count} 项&quot;</td>
+</tr>
+<tr>
+<td>边界情况</td>
+<td>未勾选任何对象时提示&quot;请选择需要删除的文件/文件夹&quot;，不弹确认框；勾选的文件夹非空时确认框追加一行&quot;其中 {folderCount} 个文件夹包含子内容，将一并删除&quot;</td>
+</tr>
+<tr>
+<td>错误处理</td>
+<td>网络失败提示&quot;删除失败，请重试&quot;，列表保持原状不刷新；无权限提示&quot;没有删除权限：{name}&quot;，整批不执行</td>
+</tr>
+<tr>
+<td>兜底行为</td>
+<td>部分成功时提示&quot;成功 {successCount} 项，失败 {failCount} 项&quot;并列出失败项名称与原因，成功项保留删除结果不回滚</td>
+</tr>
+<tr>
+<td>显示规则</td>
+<td>删除执行中按钮置灰并显示加载态，防止重复点击；操作完成后勾选状态清空</td>
+</tr>
+</tbody>
+</table>
+<h3>验收</h3>
+<ul>
+<li>勾选单个文件删除后，列表不再显示该文件</li>
+<li>未勾选时点击删除只出现提示，不出现确认框</li>
+<li>勾选包含子内容的文件夹时，确认框显示子内容提示行</li>
+<li>网络断开时删除失败，列表内容与删除前一致</li>
+</ul>
+<h2>Task-002：返回上一层</h2>
+<p><strong>关联需求</strong>：<span class="req-id">REQ-1.0-004</span></p>
+<h3>任务内容</h3>
+<p>在列表上方提供返回按钮，点击回到上一层目录。</p>
+<h3>交互规格</h3>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>触发</td>
+<td>点击&quot;返回&quot;按钮</td>
+</tr>
+<tr>
+<td>前置条件</td>
+<td>当前不处于首层</td>
+</tr>
+<tr>
+<td>正常路径</td>
+<td>加载上一层目录 → 列表刷新 → 面包屑去掉最后一级</td>
+</tr>
+<tr>
+<td>边界情况</td>
+<td>处于首层时按钮字色置为 <code>#D7D7D7</code> 且不可点击，点击无任何反应也不提示</td>
+</tr>
+<tr>
+<td>错误处理</td>
+<td>上一层目录加载失败时提示&quot;目录加载失败，请重试&quot;，停留在当前层</td>
+</tr>
+<tr>
+<td>兜底行为</td>
+<td>上一层目录已被他人删除时，直接跳回首层并提示&quot;原目录已不存在，已返回根目录&quot;</td>
+</tr>
+<tr>
+<td>显示规则</td>
+<td>返回过程中列表显示加载态，不显示空列表</td>
+</tr>
+</tbody>
+</table>
+<h3>验收</h3>
+<ul>
+<li>首层时返回按钮为灰色且点击无反应</li>
+<li>非首层时点击返回，列表内容与面包屑同步回退一级</li>
+</ul>
+
+</div>
+</body>
+</html>

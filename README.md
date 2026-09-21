@@ -16,7 +16,7 @@ Charles 的产品文档与原型规范，面向独立开发者的单人流程。
 
 | skill | 用途 |
 | --- | --- |
-| `charles-prd-standards` | 规范本体：目录结构、版本管理、原型定位、图、信息落点边界 |
+| `charles-prd-standards` | 规范本体：目录结构、版本管理、任务与交互规格、原型、图、文字表达、导出交付、协作格式 |
 | `charles-new-product` | 从零定义新产品：产品定义、PRD、原型、发布、进入下一版的短循环 |
 | `charles-prd-review` | PRD 评审：找需求矛盾、范围与目标脱节、无法判定的 Release Criteria |
 
@@ -79,7 +79,7 @@ project/docs/prd/
 
 ## 结构校验器
 
-`tools/check.sh` 把确定性规则变成会 fail 的检查，共七项：
+`tools/check.sh` 把确定性规则变成会 fail 的检查，共八项：
 
 ```bash
 bash tools/check.sh docs/prd
@@ -94,8 +94,30 @@ bash tools/check.sh docs/prd
 | 五 | 需求编号存在且不重复 |
 | 六 | 每张图有同名生成说明 |
 | 七 | `README.md` 声明三个版本状态 |
+| 八 | 任务编号唯一、必需小节齐全、交互规格七字段齐全、关联需求存在 |
 
 内容级的矛盾（需求打架、范围与目标脱节、判据无法判定）脚本查不了，由 `charles-prd-review` 的七类清单人工过。
+
+## 导出 PDF
+
+对外评审、客户签字、正式存档时把 Markdown 渲染成带打印样式的 HTML，再用本机 Chrome 打印成 PDF。样式完全可控，不依赖第三方转换服务。
+
+```bash
+bash tools/export-pdf.sh \
+	docs/prd/product.md \
+	docs/prd/versions/1.0/prd.md \
+	docs/prd/versions/1.0/scope.md \
+	--title "产品名称" \
+	--version 1.0 \
+	--note "本文件由 Markdown 源文件导出，反馈请引用需求编号，勿直接修改本 PDF。" \
+	--output docs/prd/versions/1.0/export/prd-1.0.pdf
+```
+
+产出带封面页、页眉页脚页码、章节分页，需求编号自动渲染成等宽高亮，方便对方按编号反馈。排版样式在 [`templates/export/style.css`](templates/export/style.css)。
+
+**Markdown 是唯一源头，PDF 只是产物。** 收到别人批注过的 PDF 时把改动搬回 Markdown，不接受 PDF 作为输入源。导出目录默认进 `.gitignore`，只有实际对外交付过的那一份才提交，文件名带日期与接收方。
+
+首次运行会安装渲染依赖（markdown-it 与 puppeteer-core），之后离线可用。Chrome 路径可用 `CHROME_PATH` 覆盖。
 
 ## 核心约定
 
@@ -105,16 +127,22 @@ bash tools/check.sh docs/prd
 | 版本目录 | 直接写明确版本号，发布后冻结，只允许修正笔误 |
 | 版本与 Git | 发布时打 tag，tag 名与目录名对应 |
 | 需求编号 | `REQ-<版本>-<三位序号>`，不复用，作废时标注失效 |
+| 任务编号 | `Task-<三位序号>`，版本内唯一，必须关联至少一个需求 |
+| 交互规格 | 七个必填字段：触发、前置条件、正常路径、边界情况、错误处理、兜底行为、显示规则 |
+| 提示文案 | 在规格里写完整原文加引号，变量用大括号标出，不写"给出相应提示" |
+| 需求表达 | 必须能写成测试用例，禁止"优化"、"提升体验"、"合理"这类无法判定的说法 |
 | 原型定位 | 开发期间是交互事实来源，发布后转历史存档，实现代码成为唯一事实来源 |
 | 原型规范 | 不受编码规范约束，但不许被复制进 `src/` |
 | 图 | 每张 PNG 配同名 `.md` 记录提示词要点与生成日期 |
 | Release Criteria | 只写产品维度判据，工程标准由项目自己的交付体系管 |
 | 决策落点 | 跨版本不可逆的进 `decisions.md`，模块级进实现文档，单次改动进 commit message |
 | 文档语言 | 中文，`Non-goals` / `Release Criteria` / `In Scope` 这类术语保留英文 |
+| 导出交付 | Markdown 是唯一源头，PDF 是产物；导出目录默认不进 Git，只提交实际对外交付的那一份 |
+| 分析输出 | 编号列表，每条按问题描述、存在的隐患、解决方案三段写 |
 
 ## 仓库自测
 
 ```bash
-bash tests/run_tests.sh          # check.sh 回归测试，15 项断言
+bash tests/run_tests.sh          # check.sh 回归测试，19 项断言
 bash tests/check_structure.sh    # skill 完整性、六处版本号、Markdown 死链
 ```

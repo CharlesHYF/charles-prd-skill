@@ -96,6 +96,32 @@ INNER
 INNER
 
 	echo "# Scope" > "${dir}/versions/1.0/scope.md"
+
+	cat > "${dir}/versions/1.0/tasks.md" <<'INNER'
+# Tasks 1.0
+
+## Task-001：任务一
+
+**关联需求**：REQ-1.0-001
+
+### 任务内容
+实现内容。
+
+### 交互规格
+
+| 字段 | 内容 |
+| --- | --- |
+| 触发 | 点击按钮 |
+| 前置条件 | 已勾选对象 |
+| 正常路径 | 执行并刷新列表 |
+| 边界情况 | 未勾选时提示"请先选择" |
+| 错误处理 | 失败提示"操作失败，请重试" |
+| 兜底行为 | 部分失败时列出失败项 |
+| 显示规则 | 执行中按钮置灰 |
+
+### 验收
+- 点击后列表刷新
+INNER
 }
 
 run_check() {
@@ -171,6 +197,44 @@ expect_contains "${CHECK_OUTPUT}" "versions/1.1/ 缺少 changes.md" "检查三:m
 echo "# 1.1 变更" > "${MINOR_DIR}/versions/1.1/changes.md"
 run_check "${MINOR_DIR}"
 expect_not_contains "${CHECK_OUTPUT}" "versions/1.1/ 缺少" "检查三:minor 有 changes.md 即放行"
+
+echo "=== 场景七：任务与交互规格 ==="
+TASK_DIR="$(mktemp -d)/docs/prd"
+make_prd "${TASK_DIR}"
+
+# 编号重复、缺字段、引用不存在的需求
+cat >> "${TASK_DIR}/versions/1.0/tasks.md" <<'INNER'
+
+## Task-001：编号重复的任务
+
+**关联需求**：REQ-1.0-999
+
+### 任务内容
+实现内容。
+
+### 交互规格
+
+| 字段 | 内容 |
+| --- | --- |
+| 触发 | 点击按钮 |
+| 前置条件 | 无 |
+| 正常路径 | 执行 |
+
+### 验收
+- 能执行
+INNER
+
+run_check "${TASK_DIR}"
+expect_contains "${CHECK_OUTPUT}" "任务编号重复" "检查八:任务编号重复被拦"
+expect_contains "${CHECK_OUTPUT}" "边界情况" "检查八:缺交互规格字段被拦"
+expect_contains "${CHECK_OUTPUT}" "不存在的需求编号" "检查八:引用不存在的需求被拦"
+
+NOREQ_TASK_DIR="$(mktemp -d)/docs/prd"
+make_prd "${NOREQ_TASK_DIR}"
+grep -v '关联需求' "${NOREQ_TASK_DIR}/versions/1.0/tasks.md" > "${NOREQ_TASK_DIR}/versions/1.0/tasks.tmp"
+mv "${NOREQ_TASK_DIR}/versions/1.0/tasks.tmp" "${NOREQ_TASK_DIR}/versions/1.0/tasks.md"
+run_check "${NOREQ_TASK_DIR}"
+expect_contains "${CHECK_OUTPUT}" "没有任何关联需求编号" "检查八:任务缺关联需求被拦"
 
 echo "=== 场景六：仓库自带模板必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-template"

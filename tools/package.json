@@ -1,0 +1,11 @@
+{
+	"name": "charles-prd-export",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"description": "PRD 导出工具的依赖声明",
+	"dependencies": {
+		"markdown-it": "^14.1.0",
+		"puppeteer-core": "^23.0.0"
+	}
+}

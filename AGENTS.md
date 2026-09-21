@@ -8,7 +8,7 @@
 
 | skill | 作用 |
 | --- | --- |
-| `skills/charles-prd-standards/` | 规范本体：目录结构、版本管理、原型定位、图、信息落点边界 |
+| `skills/charles-prd-standards/` | 规范本体：目录结构、版本管理、任务与交互规格、原型、图、文字表达、导出交付、协作格式 |
 | `skills/charles-new-product/` | 从零定义新产品的短循环工作流 |
 | `skills/charles-prd-review/` | PRD 评审，找内容矛盾 |
 
@@ -32,6 +32,8 @@
 ## 硬约束（本仓自身适用）
 
 - 文档用中文，`Non-goals`、`Release Criteria`、`In Scope` 这类没有稳定中文对应的正式术语保留英文
+- 分析、提方案、报告问题时用编号列表，每条按问题描述、存在的隐患、解决方案三段写
+- 导出产物不进 Git，`tools/node_modules/` 与 `export/` 已在 `.gitignore`
 - Shell 缩进用 Tab，行尾 LF
 - 禁用 Unicode 弯引号、破折号、Emoji，统一半角与 `--`
 - 文件头描述只写核心职责，不用 `--` 追加功能罗列
@@ -46,4 +48,5 @@ bash tools/check.sh templates/prd-template   # 校验本仓自带模板
 bash tests/run_tests.sh               # check.sh 回归测试
 bash tests/check_structure.sh         # skill 完整性、版本号与链接
 bash tools/install-skills.sh          # 软链安装到 ~/.claude/skills
+bash tools/export-pdf.sh <md...> --title 标题 --version 1.0   # 导出 PDF
 ```
