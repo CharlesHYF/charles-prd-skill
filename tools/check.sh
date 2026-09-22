@@ -272,7 +272,7 @@ check_annotations() {
 			report "${json} 的 page 指向的原型页面不存在：${page}"
 		fi
 
-	done < <(find "${PRD_ROOT}" -type d -name 'annotations' -exec find {} -name '*.svg' \; 2>/dev/null)
+	done < <(find "${PRD_ROOT}" -type d -name 'diagrams' -exec find {} -name '*.svg' \; 2>/dev/null)
 
 	# tasks.md 引用的标注图必须真的存在
 	local doc ref dir
@@ -285,7 +285,7 @@ check_annotations() {
 				report "${doc} 引用了不存在的标注图：${ref}"
 			fi
 
-		done < <(grep -oE '\]\(annotations/[^)]+\.svg\)' "${doc}" 2>/dev/null | sed -E 's/^\]\(//; s/\)$//')
+		done < <(grep -oE '\]\(diagrams/[^)]+\.svg\)' "${doc}" 2>/dev/null | sed -E 's/^\]\(//; s/\)$//')
 
 	done < <(find "${PRD_ROOT}" -type f -name 'tasks.md' 2>/dev/null)
 }

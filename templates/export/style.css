@@ -307,17 +307,17 @@ p:has(> img:only-child) + p {
 	margin: 12mm;
 }
 
-p:has(> img[src*="/annotations/"]) {
+p:has(> img[src*="/diagrams/"][src$=".svg"]) {
 	page: wide;
 	break-before: page;
 }
 
-p:has(> img[src*="/annotations/"]) + p {
+p:has(> img[src*="/diagrams/"][src$=".svg"]) + p {
 	page: wide;
 	break-after: page;
 }
 
-p:has(> img[src*="/annotations/"]) > img {
+p:has(> img[src*="/diagrams/"][src$=".svg"]) > img {
 	width: 100%;
 	border: none;
 }

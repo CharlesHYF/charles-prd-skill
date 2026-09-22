@@ -84,12 +84,12 @@ if (!chrome) {
 	process.exit(2);
 }
 
-// 中文按一个字宽计，ASCII 按半个字宽计，估够就行不必精确
+// 中文与全角标点按一个字宽计，ASCII 按 0.62 字宽计，宁可估宽也不要估窄撑出画布
 const textWidth = (text) => {
 	let width = 0;
 
 	for (const char of text) {
-		width += char.charCodeAt(0) > 0x2e80 ? TEXT_SIZE : TEXT_SIZE * 0.55;
+		width += char.charCodeAt(0) > 0x2e80 ? TEXT_SIZE : TEXT_SIZE * 0.62;
 	}
 
 	return width;
@@ -98,13 +98,15 @@ const textWidth = (text) => {
 // 这些标点不能出现在行首，超宽也要跟着上一行走
 const NO_LINE_START = "。，、；：？！）》」』%”’.,;:?!)]}";
 
-const wrap = (text, maxWidth) => {
+// firstWidth 给首行单独的可用宽度，步骤的 "1. " 前缀要占掉一截
+const wrap = (text, maxWidth, firstWidth = maxWidth) => {
 	const lines = [];
 	let current = "";
 
 	for (const char of text) {
+		const limit = lines.length === 0 ? firstWidth : maxWidth;
 
-		if (textWidth(current + char) > maxWidth && current && !NO_LINE_START.includes(char)) {
+		if (textWidth(current + char) > limit && current && !NO_LINE_START.includes(char)) {
 			lines.push(current);
 			current = char;
 			continue;
@@ -205,7 +207,7 @@ const shot = await page.screenshot({ encoding: "base64", fullPage: true });
 await browser.close();
 
 const textX = pageSize.w + NUM_OFFSET + 42;
-const maxTextWidth = GUTTER - (textX - pageSize.w) - 20;
+const maxTextWidth = GUTTER - (textX - pageSize.w) - 32;
 
 // 先算每条说明占多高，再按元素位置从上到下排，避免标签重叠与引线交叉
 const labels = spec.marks.map((mark, index) => {
@@ -218,9 +220,10 @@ const labels = spec.marks.map((mark, index) => {
 
 	if (Array.isArray(mark.steps)) {
 		mark.steps.forEach((step, stepIndex) => {
-			const wrapped = wrap(step, maxTextWidth - STEP_INDENT);
+			const prefix = `${stepIndex + 1}. `;
+			const wrapped = wrap(step, maxTextWidth - STEP_INDENT, maxTextWidth - textWidth(prefix));
 			wrapped.forEach((line, lineIndex) => lines.push({
-				text: lineIndex === 0 ? `${stepIndex + 1}. ${line}` : line,
+				text: lineIndex === 0 ? `${prefix}${line}` : line,
 				indent: lineIndex === 0 ? 0 : STEP_INDENT,
 			}));
 		});

@@ -12,11 +12,11 @@
 
 ### 界面
 
-![订单列表页界面标注](annotations/list.svg)
+![订单列表页界面标注](diagrams/list.svg)
 
-图注：标注图由 `annotations/list.json` 生成，框选位置从原型 DOM 实时取得。原型改动后重跑 `node tools/annotate.mjs <清单>.json` 即可，不要手改 SVG。
+图注：标注图由 `diagrams/list.json` 生成，框选位置从原型 DOM 实时取得。原型改动后重跑 `node tools/annotate.mjs <清单>.json` 即可，不要手改 SVG。
 
-![批量作废确认弹窗界面标注](annotations/list-delete-modal.svg)
+![批量作废确认弹窗界面标注](diagrams/list-delete-modal.svg)
 
 图注：弹窗这类需要先触发才出现的界面，在清单的 `setup` 里写触发选择器。
 

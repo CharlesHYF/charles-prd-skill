@@ -11,7 +11,7 @@
 
 ### 界面
 
-![文件列表页界面标注](../prd-template/versions/1.0/annotations/list.svg)
+![文件列表页界面标注](../prd-template/versions/1.0/diagrams/list.svg)
 
 图注：操作区在列表右上角，删除与重命名、新建文件夹、下载到本地同一组。
 

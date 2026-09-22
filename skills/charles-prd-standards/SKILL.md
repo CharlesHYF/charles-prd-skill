@@ -56,8 +56,7 @@ project/docs/prd/
     │   ├── tasks.md       任务与交互规格，带界面图
     │   ├── notes.md       临时想法与待验证问题
     │   ├── prototype/     可点击的 HTML 原型
-    │   ├── annotations/   界面标注清单与生成的标注图
-    │   └── diagrams/      外部导入的位图与来源说明
+    │   └── diagrams/      界面标注清单与标注图，外部导入的位图与来源说明
     ├── 2.0/
     └── 3.0/
 ```
