@@ -1,0 +1,164 @@
+<!--
+列表页原型，示范筛选、表格、批量操作、分页、状态标签与四态切换
+创建日期：2026-09-22
+修改日期：2026-09-22
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>订单列表 - 原型</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body data-state="success" data-role="operator">
+
+<div class="topbar">
+	<div class="topbar__brand">示例系统 <span style="color:#6b7280;font-weight:400;font-size:13px;">1.0 原型</span></div>
+	<nav class="topbar__nav">
+		<a href="../index.html">工作台</a>
+		<a href="list.html" class="is-active">订单列表</a>
+		<a href="dashboard.html">经营看板</a>
+	</nav>
+	<select id="roleSelect">
+		<option value="operator">张操作（操作岗）</option>
+		<option value="manager">李经理（审批岗）</option>
+	</select>
+</div>
+
+<div class="statebar">
+	<strong>原型状态</strong>
+	<button data-state-btn="success">Success 正常</button>
+	<button data-state-btn="empty">Empty 空</button>
+	<button data-state-btn="loading">Loading 加载中</button>
+	<button data-state-btn="error">Error 失败</button>
+	<span class="statebar__hint">切换状态查看同一页面的四种表现。原型不含真实后端。</span>
+</div>
+
+<div class="page">
+	<div class="page__head"><h1>订单列表</h1><span class="tag tag--muted">Task-001</span></div>
+	<div class="page__crumb">工作台 / 订单列表</div>
+
+	<div class="card">
+		<div class="filters">
+			<div class="field">
+				<label>订单号</label>
+				<input type="text" placeholder="支持前缀匹配">
+			</div>
+			<div class="field">
+				<label>状态</label>
+				<select>
+					<option>全部</option>
+					<option>待审批</option>
+					<option>处理中</option>
+					<option>已完成</option>
+					<option>已驳回</option>
+				</select>
+			</div>
+			<div class="field">
+				<label>创建日期</label>
+				<input type="date" value="2026-09-01">
+			</div>
+			<button class="btn btn--primary">查询</button>
+			<button class="btn">重置</button>
+		</div>
+	</div>
+
+	<div class="card">
+		<div class="card__head">
+			<h2>共 47 条</h2>
+			<div>
+				<button class="btn" data-open-modal="batchModal">批量导出</button>
+				<button class="btn btn--danger" data-open-modal="deleteModal">批量作废</button>
+				<button class="btn btn--primary" data-todo="Task-002">新建订单</button>
+			</div>
+		</div>
+
+		<div data-show-state="success">
+			<table>
+				<thead>
+					<tr>
+						<th style="width:36px"><input type="checkbox"></th>
+						<th>订单号</th>
+						<th>供应商</th>
+						<th>金额</th>
+						<th>创建日期</th>
+						<th>状态</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr><td><input type="checkbox"></td><td>PO-2026-0917-001</td><td>东莞盛华</td><td>¥ 186,400</td><td>2026-09-17</td><td><span class="tag tag--warn">待审批</span></td><td><a href="#" data-todo="Task-003">详情</a></td></tr>
+					<tr><td><input type="checkbox"></td><td>PO-2026-0916-014</td><td>宁波瑞德</td><td>¥ 92,800</td><td>2026-09-16</td><td><span class="tag tag--success">已完成</span></td><td><a href="#" data-todo="Task-003">详情</a></td></tr>
+					<tr><td><input type="checkbox"></td><td>PO-2026-0916-009</td><td>佛山华兴</td><td>¥ 47,250</td><td>2026-09-16</td><td><span class="tag tag--danger">已驳回</span></td><td><a href="#" data-todo="Task-003">详情</a></td></tr>
+					<tr><td><input type="checkbox"></td><td>PO-2026-0915-022</td><td>东莞盛华</td><td>¥ 315,600</td><td>2026-09-15</td><td><span class="tag tag--success">处理中</span></td><td><a href="#" data-todo="Task-003">详情</a></td></tr>
+					<tr><td><input type="checkbox"></td><td>PO-2026-0915-008</td><td>深圳立信</td><td>¥ 8,900</td><td>2026-09-15</td><td><span class="tag tag--success">已完成</span></td><td><a href="#" data-todo="Task-003">详情</a></td></tr>
+					<tr><td><input type="checkbox"></td><td>PO-2026-0914-031</td><td>宁波瑞德</td><td>¥ 204,000</td><td>2026-09-14</td><td><span class="tag tag--warn">待审批</span></td><td><a href="#" data-todo="Task-003">详情</a></td></tr>
+					<tr><td><input type="checkbox"></td><td>PO-2026-0914-017</td><td>佛山华兴</td><td>¥ 61,350</td><td>2026-09-14</td><td><span class="tag tag--success">处理中</span></td><td><a href="#" data-todo="Task-003">详情</a></td></tr>
+					<tr><td><input type="checkbox"></td><td>PO-2026-0913-005</td><td>东莞盛华</td><td>¥ 128,700</td><td>2026-09-13</td><td><span class="tag tag--success">已完成</span></td><td><a href="#" data-todo="Task-003">详情</a></td></tr>
+					<tr><td><input type="checkbox"></td><td>PO-2026-0912-026</td><td>深圳立信</td><td>¥ 573,200</td><td>2026-09-12</td><td><span class="tag tag--muted">已作废</span></td><td><a href="#" data-todo="Task-003">详情</a></td></tr>
+					<tr><td><input type="checkbox"></td><td>PO-2026-0912-011</td><td>宁波瑞德</td><td>¥ 39,800</td><td>2026-09-12</td><td><span class="tag tag--success">已完成</span></td><td><a href="#" data-todo="Task-003">详情</a></td></tr>
+				</tbody>
+			</table>
+			<div class="pager">
+				<span>第 1 到 10 条，共 47 条</span>
+				<div class="pager__pages">
+					<button class="btn is-active">1</button>
+					<button class="btn">2</button>
+					<button class="btn">3</button>
+					<button class="btn">4</button>
+					<button class="btn">5</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="state-block" data-show-state="empty" hidden>
+			当前筛选条件下没有订单。可以调整日期范围或清空状态筛选。
+		</div>
+
+		<div class="state-block" data-show-state="loading" hidden>
+			加载中
+		</div>
+
+		<div class="state-block state-block--error" data-show-state="error" hidden>
+			订单列表加载失败，请重试。错误码 ORD-5031。
+		</div>
+	</div>
+
+	<p class="note">
+		对应需求 REQ-1.0-001、REQ-1.0-003。<br>
+		审批岗切换后可见「批量审批」按钮，操作岗不可见。未实现的页面点击后会提示所属 Task 编号。
+	</p>
+</div>
+
+<div class="mask" id="deleteModal" hidden>
+	<div class="modal">
+		<h3>确认作废选中的订单？</h3>
+		<div class="modal__body">已选中 3 条订单，作废后不可恢复，已付款的订单需要先走退款流程。</div>
+		<div class="modal__foot">
+			<button class="btn" data-close-modal="deleteModal">取消</button>
+			<button class="btn btn--danger" data-close-modal="deleteModal">确认作废</button>
+		</div>
+	</div>
+</div>
+
+<div class="mask" id="batchModal" hidden>
+	<div class="modal">
+		<h3>批量导出</h3>
+		<div class="modal__body">
+			<div class="field">
+				<label>导出范围</label>
+				<select><option>当前筛选结果（47 条）</option><option>选中项（3 条）</option></select>
+			</div>
+		</div>
+		<div class="modal__foot">
+			<button class="btn" data-close-modal="batchModal">取消</button>
+			<button class="btn btn--primary" data-close-modal="batchModal">开始导出</button>
+		</div>
+	</div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<script src="../app.js"></script>
+</body>
+</html>

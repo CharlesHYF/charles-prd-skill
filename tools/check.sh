@@ -7,7 +7,7 @@
 set -uo pipefail
 
 # 校验范围，与 README 同源，改这里要同步改那一处
-LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/版本状态/任务规格/字段类型'
+LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/版本状态/任务规格/字段类型/角色引用'
 
 # 违规计数：任意一项 > 0 则退出码非 0
 VIOLATIONS=0
@@ -21,7 +21,9 @@ VERSION_DIR_REGEX='^[0-9]+\.[0-9]+$'
 # 需求编号：REQ-<版本>-<三位序号>
 REQ_ID_REGEX='REQ-[0-9]+\.[0-9]+-[0-9]{3}'
 
-# 字段表里禁止出现的语言层类型，一律改用 SQL 类型
+# 行级豁免标记：正文里写上它，该行跳过角色引用检查
+# 泛指的"负责人"这类词会误报，用它放行
+LINE_IGNORE_MARK='check-ignore'
 # ENUM 单列：它虽然是 SQL 类型，但改值要 ALTER TABLE，跨库迁移也麻烦
 FORBIDDEN_FIELD_TYPES='String|Integer|Number|Boolean|Array|Object|Date|Float|Double|Long|Enum|ENUM'
 
@@ -78,7 +80,7 @@ report() {
 
 # 检查一：PRD 根目录下的必需文件
 check_required_files() {
-	echo "[1/8] 检查必需文件..."
+	echo "[1/9] 检查必需文件..."
 
 	local required
 	for required in "README.md" "product.md"; do
@@ -95,7 +97,7 @@ check_required_files() {
 
 # 检查二：版本目录命名，禁止 current / latest / new 这类会过期的名字
 check_version_dirs() {
-	echo "[2/8] 检查版本目录命名..."
+	echo "[2/9] 检查版本目录命名..."
 
 	if [ ! -d "${PRD_ROOT}/versions" ]; then
 		return
@@ -123,7 +125,7 @@ check_version_dirs() {
 
 # 检查三：major 版本必须有 prd.md 与 scope.md，minor 版本至少有 changes.md
 check_version_docs() {
-	echo "[3/8] 检查版本内必需文档..."
+	echo "[3/9] 检查版本内必需文档..."
 
 	if [ ! -d "${PRD_ROOT}/versions" ]; then
 		return
@@ -164,7 +166,7 @@ check_version_docs() {
 
 # 检查四：prd.md 的八个章节不增不减
 check_prd_sections() {
-	echo "[4/8] 检查 prd.md 章节完整性..."
+	echo "[4/9] 检查 prd.md 章节完整性..."
 
 	local prd_file section
 	while IFS= read -r prd_file; do
@@ -186,7 +188,7 @@ check_prd_sections() {
 # 规范本身要求交叉引用：失效需求指向替代编号、未解决问题标注影响的需求、
 # Later 指向后续版本需求，这些都会让同一编号在文中出现多次，但不构成重复分配。
 check_requirement_ids() {
-	echo "[5/8] 检查需求编号..."
+	echo "[5/9] 检查需求编号..."
 
 	local prd_file ids defined duplicated
 	while IFS= read -r prd_file; do
@@ -212,7 +214,7 @@ check_requirement_ids() {
 # Mermaid 图写进 diagrams/ 独立文件的话，正文与导出的 PDF 里都没有图，等于白画
 # 位图无法从文本复现，必须配同名说明记录来源
 check_diagram_notes() {
-	echo "[6/8] 检查图的位置与来源..."
+	echo "[6/9] 检查图的位置与来源..."
 
 	local diagram_file
 	while IFS= read -r diagram_file; do
@@ -250,7 +252,7 @@ check_field_types() {
 
 # 检查七：README 必须声明三个版本状态
 check_version_states() {
-	echo "[7/8] 检查版本状态声明..."
+	echo "[7/9] 检查版本状态声明..."
 
 	local readme="${PRD_ROOT}/README.md"
 
@@ -270,7 +272,7 @@ check_version_states() {
 # 检查八：任务编号、必需小节与交互规格字段
 # 图上的标注不能代替规格表，字段缺一项就意味着开发要回头问
 check_tasks() {
-	echo "[8/8] 检查任务与交互规格..."
+	echo "[8/9] 检查任务与交互规格..."
 
 	local task_file
 	while IFS= read -r task_file; do
@@ -355,6 +357,103 @@ check_tasks() {
 	done < <(find "${PRD_ROOT}" -type f -name 'tasks.md' 2>/dev/null)
 }
 
+# 检查九：角色与术语的交叉引用
+# prd.md 与 tasks.md 里出现的角色称谓，必须在 product.md 的角色表里存在。
+# 角色表与正文相隔几百行，这类不一致靠人工评审很难发现，交给脚本。
+# 用 python3 做中文分词判定：grep -E 没有中文词边界，会把「一人一岗」切成「一岗」误报。
+check_cross_reference() {
+	echo "[9/9] 检查角色与术语交叉引用..."
+
+	local product_file="${PRD_ROOT}/product.md"
+
+	if [ ! -f "${product_file}" ]; then
+		return
+	fi
+
+	if ! command -v python3 > /dev/null 2>&1; then
+		echo "  [SKIP] 未找到 python3，跳过交叉引用检查"
+		return
+	fi
+
+	local result
+	result=$(PRD_ROOT="${PRD_ROOT}" IGNORE_MARK="${LINE_IGNORE_MARK}" python3 <<'PYCHECK'
+import os, re, glob
+
+root = os.environ['PRD_ROOT']
+text_product = open(os.path.join(root, 'product.md'), encoding='utf-8').read()
+
+# 只查高区分度的职位后缀。
+# 「岗」不在其列：岗位名在 product.md 角色表中本就全量列出，且「一人一岗」「按岗配置」
+# 这类普通表述会大量误报，信噪比过低。
+SUFFIX = ('负责人', '管理员', '总监', '经理')
+HAN = re.compile(r'[一-龥]')
+MASK = '　'
+
+def candidates(text):
+    """从每个后缀出现位置向前取最长连续汉字片段（上限 8 字）"""
+    found = set()
+    for suf in SUFFIX:
+        for m in re.finditer(re.escape(suf), text):
+            end = m.end()
+            i = m.start()
+            while i > 0 and HAN.match(text[i - 1]) and text[i - 1] != MASK and end - i < 8:
+                i -= 1
+            found.add(text[i:end])
+    return found
+
+def declared(text):
+    """product.md 中声明的角色：表格第二列 + 全文出现的后缀词"""
+    d = set()
+    for row in re.findall(r'^\|[^|]*\|([^|]+)\|', text, re.M):
+        v = row.strip()
+        if v and HAN.search(v):
+            d.add(v)
+    d |= candidates(text)
+    return d
+
+defined = declared(text_product)
+
+def is_known(word):
+    """候选词的任一后缀子串命中已声明角色即视为合法引用。
+    这样「请联系数据与系统管理员」与其简称「管理员」都能通过，
+    前提是该简称已在 product.md 角色表中声明。"""
+    return any(word[i:] in defined for i in range(len(word)))
+
+problems = []
+docs = sorted(set(glob.glob(os.path.join(root, '**', 'prd.md'), recursive=True) +
+                  glob.glob(os.path.join(root, '**', 'tasks.md'), recursive=True)))
+ignore_mark = os.environ.get('IGNORE_MARK', '')
+
+for doc in docs:
+    lines = open(doc, encoding='utf-8').read().splitlines()
+    # 写了豁免标记的行跳过，用于放行泛指的「负责人」这类词
+    kept = [ln for ln in lines if not (ignore_mark and ignore_mark in ln)]
+    missing = sorted({w for w in candidates('\n'.join(kept)) if not is_known(w)})
+    if missing:
+        problems.append(f"{os.path.relpath(doc)}|{' '.join(missing)}")
+
+print('\n'.join(problems))
+PYCHECK
+)
+
+	if [ -z "${result}" ]; then
+		return
+	fi
+
+	local line doc roles
+	while IFS= read -r line; do
+
+		if [ -z "${line}" ]; then
+			continue
+		fi
+
+		doc="${line%%|*}"
+		roles="${line#*|}"
+		report "${doc} 使用了 product.md 角色表未定义的角色称谓：${roles}(片段含前文,以后缀词为准;在角色表中补充定义,或改用已定义的角色名,泛指词在该行加 check-ignore 豁免)"
+
+	done <<< "${result}"
+}
+
 if [ ! -d "${PRD_ROOT}" ]; then
 	echo "[NG] 找不到 PRD 目录：${PRD_ROOT}"
 	echo "用法: check.sh [PRD 根目录]  缺省为 docs/prd"
@@ -373,6 +472,7 @@ check_requirement_ids
 check_diagram_notes
 check_version_states
 check_tasks
+check_cross_reference
 
 echo "==============================="
 

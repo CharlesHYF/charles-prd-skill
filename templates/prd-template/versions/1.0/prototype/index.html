@@ -1,81 +1,77 @@
 <!--
-产品原型入口，演示核心 Journey 与四种关键状态
-创建日期：2026-09-21
-修改日期：2026-09-21
+原型入口，工作台页面，示范导航、角色切换与快速入口
+创建日期：2026-09-22
+修改日期：2026-09-22
 -->
 <!DOCTYPE html>
-<html
-	lang="zh-CN"
->
+<html lang="zh-CN">
 <head>
-	<meta
-		charset="UTF-8"
-	>
-	<meta
-		name="viewport"
-		content="width=device-width, initial-scale=1.0"
-	>
-	<title>
-		产品原型
-	</title>
-	<link
-		rel="stylesheet"
-		href="style.css"
-	>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工作台 - 原型</title>
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
-	<header
-		class="app-header"
-	>
-		<h1>
-			产品名称
-		</h1>
+<body data-state="success" data-role="operator">
 
-		<nav
-			class="app-nav"
-		>
-			<button
-				type="button"
-				data-state="empty"
-			>
-				空状态
-			</button>
+<div class="topbar">
+	<div class="topbar__brand">示例系统 <span style="color:#6b7280;font-weight:400;font-size:13px;">1.0 原型</span></div>
+	<nav class="topbar__nav">
+		<a href="index.html" class="is-active">工作台</a>
+		<a href="pages/list.html">订单列表</a>
+		<a href="pages/dashboard.html">经营看板</a>
+	</nav>
+	<select id="roleSelect">
+		<option value="operator">张操作（操作岗）</option>
+		<option value="manager">李经理（审批岗）</option>
+	</select>
+</div>
 
-			<button
-				type="button"
-				data-state="loading"
-			>
-				加载中
-			</button>
+<div class="statebar">
+	<strong>原型状态</strong>
+	<button data-state-btn="success">Success 正常</button>
+	<button data-state-btn="empty">Empty 空</button>
+	<button data-state-btn="loading">Loading 加载中</button>
+	<button data-state-btn="error">Error 失败</button>
+	<span class="statebar__hint">原型不含真实后端，数据为固定样例。</span>
+</div>
 
-			<button
-				type="button"
-				data-state="success"
-			>
-				成功
-			</button>
+<div class="page">
+	<div class="page__head"><h1>工作台</h1></div>
+	<div class="page__crumb">张操作，今天有 5 项待办</div>
 
-			<button
-				type="button"
-				data-state="error"
-			>
-				错误
-			</button>
-		</nav>
-	</header>
+	<div class="card">
+		<div class="card__head"><h2>我的待办</h2></div>
+		<div data-show-state="success">
+			<table>
+				<thead><tr><th>类型</th><th>单据</th><th>提交人</th><th>等待时长</th><th>操作</th></tr></thead>
+				<tbody>
+					<tr><td>订单审批</td><td>PO-2026-0917-001</td><td>王采购</td><td><span class="tag tag--warn">2 天</span></td><td><a href="pages/list.html">处理</a></td></tr>
+					<tr><td>订单审批</td><td>PO-2026-0914-031</td><td>王采购</td><td><span class="tag tag--danger">5 天</span></td><td><a href="pages/list.html">处理</a></td></tr>
+					<tr><td>异常确认</td><td>EX-2026-0916-003</td><td>系统</td><td><span class="tag tag--muted">1 天</span></td><td><a href="#" data-todo="Task-012">处理</a></td></tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="state-block" data-show-state="empty" hidden>暂无待办，保持这个状态就好。</div>
+		<div class="state-block" data-show-state="loading" hidden>加载中</div>
+		<div class="state-block state-block--error" data-show-state="error" hidden>待办加载失败，请刷新重试。</div>
+	</div>
 
-	<main
-		class="app-main"
-	>
-		<section
-			class="state-panel"
-			id="statePanel"
-		>
-		</section>
-	</main>
+	<div class="card">
+		<div class="card__head"><h2>快速入口</h2></div>
+		<button class="btn" onclick="location.href='pages/list.html'">订单列表</button>
+		<button class="btn" onclick="location.href='pages/dashboard.html'">经营看板</button>
+		<button class="btn" data-todo="Task-002">新建订单</button>
+		<button class="btn" data-todo="Task-012">异常处理</button>
+		<button class="btn" data-role-only="manager" data-todo="Task-014">审批设置</button>
+	</div>
 
-	<script
-		src="app.js"
-	></script>
+	<p class="note">
+		切换角色到「李经理（审批岗）」可以看到多出来的「审批设置」入口。<br>
+		已实现的入口直接跳转，未实现的点击后提示所属 Task 编号，不做成点了没反应的死按钮。
+	</p>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<script src="app.js"></script>
 </body>
 </html>

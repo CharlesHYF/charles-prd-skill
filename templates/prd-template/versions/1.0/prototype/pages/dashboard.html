@@ -1,0 +1,132 @@
+<!--
+看板页原型，示范指标卡与内联 SVG 图表，图表是看板的必需项
+创建日期：2026-09-22
+修改日期：2026-09-22
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>经营看板 - 原型</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body data-state="success" data-role="manager">
+
+<div class="topbar">
+	<div class="topbar__brand">示例系统 <span style="color:#6b7280;font-weight:400;font-size:13px;">1.0 原型</span></div>
+	<nav class="topbar__nav">
+		<a href="../index.html">工作台</a>
+		<a href="list.html">订单列表</a>
+		<a href="dashboard.html" class="is-active">经营看板</a>
+	</nav>
+	<select id="roleSelect">
+		<option value="manager">李经理（审批岗）</option>
+		<option value="operator">张操作（操作岗）</option>
+	</select>
+</div>
+
+<div class="statebar">
+	<strong>原型状态</strong>
+	<button data-state-btn="success">Success 正常</button>
+	<button data-state-btn="loading">Loading 加载中</button>
+	<button data-state-btn="error">Error 失败</button>
+	<span class="statebar__hint">指标卡可点击下钻，未实现的下钻页会提示所属 Task。</span>
+</div>
+
+<div class="page">
+	<div class="page__head"><h1>经营看板</h1><span class="tag tag--muted">Task-011</span></div>
+	<div class="page__crumb">数据截至 2026-09-22 09:00</div>
+
+	<div data-show-state="success">
+		<div class="kpi-grid" style="margin-bottom:16px">
+			<div class="kpi" data-todo="Task-003">
+				<div class="kpi__label">本月订单数</div>
+				<div class="kpi__value">347</div>
+				<div class="kpi__hint">点击下钻至订单列表</div>
+			</div>
+			<div class="kpi" data-todo="Task-003">
+				<div class="kpi__label">待审批</div>
+				<div class="kpi__value">23</div>
+				<div class="kpi__hint">点击下钻至待办</div>
+			</div>
+			<div class="kpi" data-todo="Task-012">
+				<div class="kpi__label">延期风险订单</div>
+				<div class="kpi__value kpi__value--danger">6</div>
+				<div class="kpi__hint">点击下钻至异常清单</div>
+			</div>
+			<div class="kpi" data-todo="Task-013">
+				<div class="kpi__label">本月已付款</div>
+				<div class="kpi__value">¥ 1,847,200</div>
+				<div class="kpi__hint">点击下钻至付款明细</div>
+			</div>
+		</div>
+
+		<div class="chart-grid">
+			<div class="card">
+				<div class="card__head"><h2>近六个月订单量</h2></div>
+				<svg viewBox="0 0 520 220" role="img" aria-label="近六个月订单量柱状图">
+					<line x1="46" y1="180" x2="500" y2="180" stroke="#e2e4e9"></line>
+					<line x1="46" y1="130" x2="500" y2="130" stroke="#f0f1f4"></line>
+					<line x1="46" y1="80" x2="500" y2="80" stroke="#f0f1f4"></line>
+					<line x1="46" y1="30" x2="500" y2="30" stroke="#f0f1f4"></line>
+					<text x="38" y="184" text-anchor="end" font-size="11" fill="#6b7280">0</text>
+					<text x="38" y="134" text-anchor="end" font-size="11" fill="#6b7280">150</text>
+					<text x="38" y="84" text-anchor="end" font-size="11" fill="#6b7280">300</text>
+					<text x="38" y="34" text-anchor="end" font-size="11" fill="#6b7280">450</text>
+					<rect x="66" y="112" width="44" height="68" fill="#2563eb" rx="3"></rect>
+					<rect x="142" y="96" width="44" height="84" fill="#2563eb" rx="3"></rect>
+					<rect x="218" y="124" width="44" height="56" fill="#2563eb" rx="3"></rect>
+					<rect x="294" y="74" width="44" height="106" fill="#2563eb" rx="3"></rect>
+					<rect x="370" y="88" width="44" height="92" fill="#2563eb" rx="3"></rect>
+					<rect x="446" y="64" width="44" height="116" fill="#2563eb" rx="3"></rect>
+					<text x="88" y="198" text-anchor="middle" font-size="11" fill="#6b7280">4 月</text>
+					<text x="164" y="198" text-anchor="middle" font-size="11" fill="#6b7280">5 月</text>
+					<text x="240" y="198" text-anchor="middle" font-size="11" fill="#6b7280">6 月</text>
+					<text x="316" y="198" text-anchor="middle" font-size="11" fill="#6b7280">7 月</text>
+					<text x="392" y="198" text-anchor="middle" font-size="11" fill="#6b7280">8 月</text>
+					<text x="468" y="198" text-anchor="middle" font-size="11" fill="#6b7280">9 月</text>
+				</svg>
+			</div>
+
+			<div class="card">
+				<div class="card__head"><h2>准时交付率趋势</h2></div>
+				<svg viewBox="0 0 520 220" role="img" aria-label="准时交付率折线图">
+					<line x1="46" y1="180" x2="500" y2="180" stroke="#e2e4e9"></line>
+					<line x1="46" y1="120" x2="500" y2="120" stroke="#f0f1f4"></line>
+					<line x1="46" y1="60" x2="500" y2="60" stroke="#f0f1f4"></line>
+					<text x="38" y="184" text-anchor="end" font-size="11" fill="#6b7280">70%</text>
+					<text x="38" y="124" text-anchor="end" font-size="11" fill="#6b7280">85%</text>
+					<text x="38" y="64" text-anchor="end" font-size="11" fill="#6b7280">100%</text>
+					<polyline points="88,132 164,116 240,144 316,92 392,104 468,72" fill="none" stroke="#2e9e6b" stroke-width="2.5"></polyline>
+					<circle cx="88" cy="132" r="4" fill="#2e9e6b"></circle>
+					<circle cx="164" cy="116" r="4" fill="#2e9e6b"></circle>
+					<circle cx="240" cy="144" r="4" fill="#d93025"></circle>
+					<circle cx="316" cy="92" r="4" fill="#2e9e6b"></circle>
+					<circle cx="392" cy="104" r="4" fill="#2e9e6b"></circle>
+					<circle cx="468" cy="72" r="4" fill="#2e9e6b"></circle>
+					<text x="240" y="162" text-anchor="middle" font-size="11" fill="#d93025">6 月低点 82%</text>
+					<text x="88" y="198" text-anchor="middle" font-size="11" fill="#6b7280">4 月</text>
+					<text x="164" y="198" text-anchor="middle" font-size="11" fill="#6b7280">5 月</text>
+					<text x="240" y="198" text-anchor="middle" font-size="11" fill="#6b7280">6 月</text>
+					<text x="316" y="198" text-anchor="middle" font-size="11" fill="#6b7280">7 月</text>
+					<text x="392" y="198" text-anchor="middle" font-size="11" fill="#6b7280">8 月</text>
+					<text x="468" y="198" text-anchor="middle" font-size="11" fill="#6b7280">9 月</text>
+				</svg>
+			</div>
+		</div>
+	</div>
+
+	<div class="state-block" data-show-state="loading" hidden>指标加载中</div>
+	<div class="state-block state-block--error" data-show-state="error" hidden>指标服务不可用，显示的是 09:00 的缓存快照。</div>
+
+	<p class="note">
+		对应需求 REQ-1.0-020、REQ-1.0-021。<br>
+		看板必须有图表，指标卡只能表达当前值，趋势与异常要靠图看出来。图用内联 SVG 画，不引图表库。
+	</p>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<script src="../app.js"></script>
+</body>
+</html>

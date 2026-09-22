@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# check.sh 回归测试，用固定 fixture 断言七项检查该报的都报、不该报的不报
+# check.sh 回归测试，用固定 fixture 断言各项检查该报的都报、不该报的不报
 # 创建日期：2026-09-21
-# 修改日期：2026-09-21
+# 修改日期：2026-09-22
 
 set -uo pipefail
 
@@ -389,6 +389,42 @@ else
 fi
 
 rm -rf "${SVG_DIR}"
+
+echo "=== 场景九：角色必须能在 product.md 角色表里找到 ==="
+ROLE_DIR="$(mktemp -d)/docs/prd"
+make_prd "${ROLE_DIR}"
+cat > "${ROLE_DIR}/product.md" <<'INNER'
+# 产品定义
+
+## 角色
+
+| 角色 | 职责 | 可操作范围 |
+| --- | --- | --- |
+| 采购岗 | 创建与提交订单 | 自己创建的订单 |
+INNER
+printf '%s\n' "订单金额超过阈值时需要运营总监复核。" >> "${ROLE_DIR}/versions/1.0/prd.md"
+run_check "${ROLE_DIR}"
+expect_contains "${CHECK_OUTPUT}" "角色表未定义的角色称谓" "检查九:表外角色被拦"
+expect_contains "${CHECK_OUTPUT}" "运营总监" "检查九:报出具体角色名"
+
+printf '%s\n' "| 运营总监 | 大额订单复核 | 全部订单 |" >> "${ROLE_DIR}/product.md"
+run_check "${ROLE_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "角色表未定义的角色称谓" "检查九:补全角色表后放行"
+
+IGNORE_DIR="$(mktemp -d)/docs/prd"
+make_prd "${IGNORE_DIR}"
+cat > "${IGNORE_DIR}/product.md" <<'INNER'
+# 产品定义
+
+## 角色
+
+| 角色 | 职责 | 可操作范围 |
+| --- | --- | --- |
+| 采购岗 | 创建与提交订单 | 自己创建的订单 |
+INNER
+printf '%s\n' "对接方填对方团队的负责人。<!-- check-ignore -->" >> "${IGNORE_DIR}/versions/1.0/prd.md"
+run_check "${IGNORE_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "角色表未定义的角色称谓" "检查九:check-ignore 行被豁免"
 
 echo "=== 场景六：仓库自带模板必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-template"

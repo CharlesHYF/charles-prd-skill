@@ -1,66 +1,100 @@
 /**
- * 原型交互脚本，用 Mock 数据演示四种关键状态的切换
- * 创建日期：2026-09-21
- * 修改日期：2026-09-21
+ * 原型交互脚本，提供四态切换、角色切换、弹窗与占位提示
+ * 创建日期：2026-09-22
+ * 修改日期：2026-09-22
  */
 
-const LOADING_DELAY_MS = 600;
+const TOAST_DURATION_MS = 2000;
 
-const MOCK_ITEMS = [
-	{
-		id: 1,
-		title: "示例条目一",
-	},
-
-	{
-		id: 2,
-		title: "示例条目二",
-	},
-
-	{
-		id: 3,
-		title: "示例条目三",
-	},
-];
-
-const statePanel = document.getElementById("statePanel");
-
-const renderEmpty = () => {
-	statePanel.innerHTML = '<p class="state-empty">还没有任何内容，先创建一条试试</p>';
+const STATE_LABELS = {
+	success: "Success 正常",
+	empty: "Empty 空",
+	loading: "Loading 加载中",
+	error: "Error 失败",
 };
 
-const renderLoading = () => {
-	statePanel.innerHTML = '<p class="state-loading">加载中</p>';
+const currentState = () => document.body.dataset.state || "success";
+
+const applyState = (stateName) => {
+	document.body.dataset.state = stateName;
+
+	document.querySelectorAll("[data-state-btn]").forEach((button) => {
+		button.classList.toggle("is-active", button.dataset.stateBtn === stateName);
+	});
+
+	document.querySelectorAll("[data-show-state]").forEach((block) => {
+		block.hidden = block.dataset.showState !== stateName;
+	});
 };
 
-const renderSuccess = () => {
-	const items = MOCK_ITEMS.map((item) => `<li>${item.title}</li>`).join("");
-	statePanel.innerHTML = `<ul class="item-list">${items}</ul>`;
+const applyRole = (roleName) => {
+	document.body.dataset.role = roleName;
+
+	document.querySelectorAll("[data-role-only]").forEach((element) => {
+		element.hidden = !element.dataset.roleOnly.split(",").includes(roleName);
+	});
 };
 
-const renderError = () => {
-	statePanel.innerHTML = '<p class="state-error">加载失败，请稍后重试</p>';
-};
+const showToast = (text) => {
+	const toast = document.getElementById("toast");
 
-const renderers = {
-	empty: renderEmpty,
-	loading: renderLoading,
-	success: renderSuccess,
-	error: renderError,
-};
-
-const switchState = (stateName) => {
-	if (stateName === "success") {
-		renderLoading();
-		setTimeout(renderSuccess, LOADING_DELAY_MS);
+	if (!toast) {
 		return;
 	}
 
-	renderers[stateName]();
+	toast.textContent = text;
+	toast.hidden = false;
+	setTimeout(() => {
+		toast.hidden = true;
+	}, TOAST_DURATION_MS);
 };
 
-document.querySelectorAll("[data-state]").forEach((button) => {
-	button.addEventListener("click", () => switchState(button.dataset.state));
+const openModal = (modalId) => {
+	const modal = document.getElementById(modalId);
+
+	if (modal) {
+		modal.hidden = false;
+	}
+};
+
+const closeModal = (modalId) => {
+	const modal = document.getElementById(modalId);
+
+	if (modal) {
+		modal.hidden = true;
+	}
+};
+
+document.querySelectorAll("[data-state-btn]").forEach((button) => {
+	button.addEventListener("click", () => applyState(button.dataset.stateBtn));
 });
 
-renderEmpty();
+const roleSelect = document.getElementById("roleSelect");
+
+if (roleSelect) {
+	roleSelect.addEventListener("change", () => applyRole(roleSelect.value));
+}
+
+// 未实现的页面统一给出明确提示，不做成点了没反应的死按钮
+document.querySelectorAll("[data-todo]").forEach((element) => {
+	element.addEventListener("click", (event) => {
+		event.preventDefault();
+		showToast(`该页面在 ${element.dataset.todo} 中定义，原型尚未实现`);
+	});
+});
+
+document.querySelectorAll("[data-open-modal]").forEach((element) => {
+	element.addEventListener("click", () => openModal(element.dataset.openModal));
+});
+
+document.querySelectorAll("[data-close-modal]").forEach((element) => {
+	element.addEventListener("click", () => closeModal(element.dataset.closeModal));
+});
+
+applyState(currentState());
+
+if (roleSelect) {
+	applyRole(roleSelect.value);
+}
+
+window.prototypeHelpers = { showToast, openModal, closeModal, STATE_LABELS };
