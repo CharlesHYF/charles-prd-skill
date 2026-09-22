@@ -64,7 +64,7 @@
 	<text class="mk-no" x="1231.0" y="272.3">7</text>
 	<circle class="mk-bg" cx="1502.0" cy="857.9" r="15"/>
 	<text class="mk-no" x="1502.0" y="864.2">7</text>
-	<text class="mk-t" x="1546.0" y="866.5"><tspan x="1546.0" dy="0">1. 仅审批岗可见，操作岗不渲染该按钮</tspan><tspan x="1546.0" dy="38">2. 未勾选任何行时置灰，悬停提示先选择订单</tspan><tspan x="1546.0" dy="38">3. 点击后弹二次确认，列出将作废的订单号与总金额</tspan><tspan x="1546.0" dy="38">4. 确认后逐条提交，全部成功弹 toast 并刷新列表</tspan><tspan x="1546.0" dy="38">5. 部分失败则保留失败清单不关弹窗，让人能重试</tspan></text>
+	<text class="mk-t" x="1546.0" y="866.5"><tspan x="1546.0" dy="0">1. 仅审批岗可见，采购岗不渲染该按钮</tspan><tspan x="1546.0" dy="38">2. 未勾选任何行时置灰，悬停提示先选择订单</tspan><tspan x="1546.0" dy="38">3. 点击后弹二次确认，列出将作废的订单号与总金额</tspan><tspan x="1546.0" dy="38">4. 确认后逐条提交，全部成功弹 toast 并刷新列表</tspan><tspan x="1546.0" dy="38">5. 部分失败则保留失败清单不关弹窗，让人能重试</tspan></text>
 	<rect class="mk-box" x="1332.0" y="280.0" width="88.0" height="40.0" rx="3"/>
 	<circle class="mk-bg" cx="1318.0" cy="266.0" r="15"/>
 	<text class="mk-no" x="1318.0" y="272.3">8</text>
