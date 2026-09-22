@@ -462,6 +462,18 @@ PYINNER
 run_check "${ANN_DIR}"
 expect_not_contains "${CHECK_OUTPUT}" "标记块是空的" "检查七:标注齐备后放行"
 
+echo "=== 场景十一：已定义任务不能还挂占位 ==="
+TODO_DIR="$(mktemp -d)/docs/prd"
+make_prd "${TODO_DIR}"
+mkdir -p "${TODO_DIR}/versions/1.0/prototype"
+printf '<button data-todo="Task-001">新建</button>\n' > "${TODO_DIR}/versions/1.0/prototype/index.html"
+run_check "${TODO_DIR}"
+expect_contains "${CHECK_OUTPUT}" "原型里却还挂着 data-todo 占位" "检查八:已定义任务留占位被拦"
+
+printf '<button data-todo="Task-099">新建</button>\n' > "${TODO_DIR}/versions/1.0/prototype/index.html"
+run_check "${TODO_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "原型里却还挂着 data-todo 占位" "检查八:未定义任务的占位放行"
+
 echo "=== 场景六：仓库自带模板必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-template"
 expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "模板通过自身校验"

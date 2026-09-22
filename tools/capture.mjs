@@ -31,7 +31,9 @@ const usage = `用法: capture.mjs <截图清单.json...>
   "title": "订单列表页",
   "role": "manager",
   "state": "success",
-  "setup": ["[data-open-modal=deleteModal]"]
+  "setup": ["[data-open-modal=deleteModal]"],
+  "crop": ".modal",
+  "cropPad": 60
 }
 
 产出同目录下的 <shot>.png、<shot>.md 来源说明，以及 _coords.json 里的一个条目。`;
@@ -212,8 +214,50 @@ for (const arg of args) {
 	await new Promise((done) => setTimeout(done, 300));
 
 	const measured = await page.evaluate(`(${COLLECT})()`);
-	await page.screenshot({ path: join(dir, `${shot}.png`), fullPage: true });
+
+	// 弹窗这类只占页面中间一小块的界面，整页截完在 A4 上小到读不出文案，裁到它周边
+	let clip = null;
+
+	if (spec.crop) {
+		clip = await page.evaluate((selector, pad) => {
+			const el = document.querySelector(selector);
+
+			if (!el) {
+				return null;
+			}
+
+			const rect = el.getBoundingClientRect();
+			const left = Math.max(0, rect.x - pad);
+			const top = Math.max(0, rect.y + window.scrollY - pad);
+			return {
+				x: Math.round(left),
+				y: Math.round(top),
+				width: Math.round(Math.min(document.documentElement.scrollWidth - left, rect.width + pad * 2)),
+				height: Math.round(Math.min(document.documentElement.scrollHeight - top, rect.height + pad * 2)),
+			};
+		}, spec.crop, spec.cropPad ?? 60);
+
+		if (!clip) {
+			console.error(`[NG] ${shot}: crop 选择器找不到元素 ${spec.crop}`);
+			await page.close();
+			failed += 1;
+			continue;
+		}
+	}
+
+	await page.screenshot(clip
+		? { path: join(dir, `${shot}.png`), clip }
+		: { path: join(dir, `${shot}.png`), fullPage: true });
 	await page.close();
+
+	// 裁剪后坐标要跟着平移，落在裁剪区外的元素标不到，直接剔掉
+	if (clip) {
+		measured.w = clip.width;
+		measured.h = clip.height;
+		measured.els = measured.els
+			.map((el) => ({ ...el, x: el.x - clip.x, y: el.y - clip.y }))
+			.filter((el) => el.x + el.w > 0 && el.y + el.h > 0 && el.x < clip.width && el.y < clip.height);
+	}
 
 	const coordsFile = join(dir, COORDS_NAME);
 	const coords = existsSync(coordsFile) ? JSON.parse(readFileSync(coordsFile, "utf8")) : {};
@@ -225,7 +269,7 @@ for (const arg of args) {
 
 **来源**：本版原型 \`${spec.page}\`，由 \`tools/capture.mjs\` 自动截取。
 **获取日期**：${today}
-**视口**：${VIEWPORT_WIDTH} 宽，deviceScaleFactor ${SCALE}，截图前移除原型状态切换条。
+**视口**：${VIEWPORT_WIDTH} 宽，deviceScaleFactor ${SCALE}，截图前移除原型状态切换条。${spec.crop ? `\n**裁剪**：裁到 \`${spec.crop}\` 周边 ${spec.cropPad ?? 60}px。` : ""}
 **用途**：\`tasks.md\` 界面小节的标注底图。
 
 截图时同步量取元素坐标写入 \`${COORDS_NAME}\`，标注框位置由该文件生成，不手写坐标。

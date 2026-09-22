@@ -277,8 +277,14 @@ svg.annotation {
 	display: block;
 	width: 100%;
 	height: auto;
-	margin: 5mm 0 2mm;
+	margin: 7mm 0 2mm;
 	page-break-inside: avoid;
+}
+
+svg.annotation + p {
+	margin-bottom: 7mm;
+	color: var(--color-muted);
+	font-size: 9pt;
 }
 
 img {

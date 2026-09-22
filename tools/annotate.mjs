@@ -21,6 +21,10 @@ const LABEL_TOP = 52;
 // 截图四周留一圈边，并描一道浅灰框把截图与白底分开
 const PAD = 18;
 
+// 图区固定这么宽，裁剪过的小截图等比放大填满，否则它在画布里占比太低反而更小
+const SHOT_WIDTH = 1440;
+const MAX_ZOOM = 2.6;
+
 // 序号圆点的半径与它到正文左边的距离
 const NUM_RADIUS = 15;
 const NUM_TEXT_SIZE = 18;
@@ -129,7 +133,10 @@ const pick = (els, mark, shot) => {
 };
 
 const buildSvg = (spec, coords, shot, imageHref) => {
-	const { w: pageW, h: pageH, els } = coords;
+	const { els } = coords;
+	const zoom = Math.min(MAX_ZOOM, Math.max(1, SHOT_WIDTH / coords.w));
+	const pageW = Math.round(coords.w * zoom);
+	const pageH = Math.round(coords.h * zoom);
 	const textX = PAD + pageW + NUM_OFFSET + 44;
 	const maxTextWidth = GUTTER - (textX - PAD - pageW) - 36;
 
@@ -152,12 +159,19 @@ const buildSvg = (spec, coords, shot, imageHref) => {
 			});
 		}
 
+		const scaled = {
+			x: box.x * zoom + PAD,
+			y: box.y * zoom + PAD,
+			w: box.w * zoom,
+			h: box.h * zoom,
+		};
+
 		return {
 			index,
-			box: { x: box.x + PAD, y: box.y + PAD, w: box.w, h: box.h },
+			box: scaled,
 			lines,
 			height: lines.length * LINE_HEIGHT,
-			anchorY: box.y + PAD + box.h / 2,
+			anchorY: scaled.y + scaled.h / 2,
 		};
 	});
 

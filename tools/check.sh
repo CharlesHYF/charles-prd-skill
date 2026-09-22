@@ -7,7 +7,7 @@
 set -uo pipefail
 
 # 校验范围，与 README 同源，改这里要同步改那一处
-LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/角色引用'
+LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/占位残留/角色引用'
 
 # 违规计数：任意一项 > 0 则退出码非 0
 VIOLATIONS=0
@@ -426,6 +426,34 @@ check_tasks() {
 	done < <(find "${PRD_ROOT}" -type f -name 'tasks.md' 2>/dev/null)
 }
 
+# 检查八之二：已定义任务的页面不能还挂着未实现占位
+# data-todo 是原型分批做时的中间态提示，任务都写进 tasks.md 了页面就该真做出来
+check_todo_leftovers() {
+	local proto doc defined leftover value
+
+	while IFS= read -r doc; do
+		defined=$(grep -oE '^##[[:space:]]+Task-[0-9]+' "${doc}" | grep -oE 'Task-[0-9]+' | sort -u)
+
+		if [ -z "${defined}" ]; then
+			continue
+		fi
+
+		while IFS= read -r value; do
+
+			if [ -z "${value}" ]; then
+				continue
+			fi
+
+			if printf '%s\n' "${defined}" | grep -qx "${value}"; then
+				leftover=$(grep -rl "data-todo=\"${value}\"" "$(dirname "${doc}")/prototype" 2>/dev/null | head -3 | tr '\n' ' ')
+				report "${value} 已经写进 tasks.md，原型里却还挂着 data-todo 占位：${leftover}(交付前把页面真做出来并配 Mock 数据,PDF 里写尚未实现对开发没有价值)"
+			fi
+
+		done < <(grep -rhoE 'data-todo="Task-[0-9]+"' "$(dirname "${doc}")/prototype" 2>/dev/null | grep -oE 'Task-[0-9]+' | sort -u)
+
+	done < <(find "${PRD_ROOT}" -type f -name 'tasks.md' 2>/dev/null)
+}
+
 # 检查九：角色与术语的交叉引用
 # prd.md 与 tasks.md 里出现的角色称谓，必须在 product.md 的角色表里存在。
 # 角色表与正文相隔几百行，这类不一致靠人工评审很难发现，交给脚本。
@@ -542,6 +570,7 @@ check_diagram_notes
 check_annotations
 check_version_states
 check_tasks
+check_todo_leftovers
 check_cross_reference
 
 echo "==============================="

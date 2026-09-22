@@ -3,6 +3,7 @@
 **来源**：本版原型 `../prototype/pages/list.html`，由 `tools/capture.mjs` 自动截取。
 **获取日期**：2026-09-22
 **视口**：1440 宽，deviceScaleFactor 2，截图前移除原型状态切换条。
+**裁剪**：裁到 `.modal` 周边 70px。
 **用途**：`tasks.md` 界面小节的标注底图。
 
 截图时同步量取元素坐标写入 `_coords.json`，标注框位置由该文件生成，不手写坐标。

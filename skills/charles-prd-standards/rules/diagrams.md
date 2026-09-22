@@ -180,6 +180,7 @@ node tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks.json
 | `page` | 截图清单 | 原型页面路径，相对清单文件 |
 | `role` / `state` | 截图清单 | 截图前切到哪个角色、哪个状态 |
 | `setup` | 截图清单 | 截图前依次点击的选择器，用来截弹窗这类要先触发的界面 |
+| `crop` / `cropPad` | 截图清单 | 裁到某个元素及其周边，弹窗整页截完在 A4 上小到读不出文案 |
 | `inject` / `mark` | 标注清单 | 写进哪个文档的哪对标记之间 |
 | `marks[].el` | 标注清单 | 元素文案，按包含匹配 |
 | `marks[].kind` | 标注清单 | 限定类型：btn / link / menu / field / th / kpi / box |
@@ -195,6 +196,7 @@ node tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks.json
 - **不要手写坐标，也不要手改生成的 SVG**，改了下次重跑就没了。要改内容改标注清单
 - **原型改动后先重跑 `capture.mjs` 再重跑 `annotate.mjs`**，只跑后者会拿旧坐标画新说明
 - 弹窗、空态、失败态各自出一张图，用 `setup` 与 `state` 区分
+- **弹窗要配 `crop`**，整页截完弹窗只占中间一小块，缩到正文宽度后里面的文案读不出来。裁过的小截图会被等比放大填满图区，不用担心变小
 - PNG 与 `_coords.json` 都要进 Git，评审的人不必装 Node 也能看
 
 标注图在导出时占满正文版心，与段落、表格左右对齐，不单独开横向页——横向页的版心是 273mm，正文是 174mm，两者放在一起左右边界对不上。
