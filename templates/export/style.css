@@ -302,21 +302,6 @@ p:has(> img:only-child) + p {
 	text-align: center;
 }
 
-@page wide {
-	size: A4 landscape;
-	margin: 12mm;
-}
-
-p:has(> img[src*="/diagrams/"][src$=".svg"]) {
-	page: wide;
-	break-before: page;
-}
-
-p:has(> img[src*="/diagrams/"][src$=".svg"]) + p {
-	page: wide;
-	break-after: page;
-}
-
 p:has(> img[src*="/diagrams/"][src$=".svg"]) > img {
 	width: 100%;
 	border: none;
