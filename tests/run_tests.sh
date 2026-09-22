@@ -125,6 +125,14 @@ flowchart LR
 - REQ-1.0-001 需求一
 - REQ-1.0-002 需求二
 
+#### 字段定义
+
+| 字段 | 类型 | 必填 | 约束 | 默认值 | 说明 |
+| --- | --- | --- | --- | --- | --- |
+| itemId | BIGINT | 是 | 主键 | 无 | 标识 |
+| itemName | VARCHAR(60) | 是 | 非空 | 无 | 名称 |
+| status | TINYINT | 是 | 1 生效 / 2 停用 | 1 | 状态 |
+
 #### 流程
 
 ```mermaid
@@ -231,6 +239,7 @@ expect_contains "${CHECK_OUTPUT}" "版本目录名不是明确版本号：versio
 expect_contains "${CHECK_OUTPUT}" "versions/1.0/ 缺少 scope.md" "检查三:major 缺 scope.md"
 expect_contains "${CHECK_OUTPUT}" "versions/2.0/ 缺少 prd.md" "检查三:空版本目录缺 prd.md"
 expect_contains "${CHECK_OUTPUT}" "需求编号重复" "检查五:需求编号重复被拦"
+
 expect_contains "${CHECK_OUTPUT}" "缺少同名来源说明" "检查六:位图缺来源说明被拦"
 expect_contains "${CHECK_OUTPUT}" "把 Mermaid 图写进了 diagrams/ 独立文件" "检查六:Mermaid 写错位置被拦"
 
@@ -239,6 +248,19 @@ if [ "${CHECK_EXIT}" -ne 0 ]; then
 else
 	fail "违规 PRD 退出码应非 0，实际 0"
 fi
+
+echo "=== 场景二之二：字段类型必须是 SQL 类型 ==="
+TYPE_DIR="$(mktemp -d)/docs/prd"
+make_prd "${TYPE_DIR}"
+sed -i '' 's@| itemName | VARCHAR(60) |@| itemName | String |@' "${TYPE_DIR}/versions/1.0/prd.md"
+run_check "${TYPE_DIR}"
+expect_contains "${CHECK_OUTPUT}" "字段表用了语言层类型" "检查四:语言层类型被拦"
+
+ENUM_DIR="$(mktemp -d)/docs/prd"
+make_prd "${ENUM_DIR}"
+sed -i '' 's@| status | TINYINT |@| status | Enum |@' "${ENUM_DIR}/versions/1.0/prd.md"
+run_check "${ENUM_DIR}"
+expect_contains "${CHECK_OUTPUT}" "字段表用了语言层类型" "检查四:Enum 被拦"
 
 echo "=== 场景三：章节与版本状态 ==="
 SECTION_DIR="$(mktemp -d)/docs/prd"

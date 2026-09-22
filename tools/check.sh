@@ -7,7 +7,7 @@
 set -uo pipefail
 
 # 校验范围，与 README 同源，改这里要同步改那一处
-LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/版本状态/任务规格'
+LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/版本状态/任务规格/字段类型'
 
 # 违规计数：任意一项 > 0 则退出码非 0
 VIOLATIONS=0
@@ -20,6 +20,10 @@ VERSION_DIR_REGEX='^[0-9]+\.[0-9]+$'
 
 # 需求编号：REQ-<版本>-<三位序号>
 REQ_ID_REGEX='REQ-[0-9]+\.[0-9]+-[0-9]{3}'
+
+# 字段表里禁止出现的语言层类型，一律改用 SQL 类型
+# ENUM 单列：它虽然是 SQL 类型，但改值要 ALTER TABLE，跨库迁移也麻烦
+FORBIDDEN_FIELD_TYPES='String|Integer|Number|Boolean|Array|Object|Date|Float|Double|Long|Enum|ENUM'
 
 # 任务编号：Task-<三位序号>，在单个版本内唯一
 TASK_ID_REGEX='Task-[0-9]{3}'
@@ -172,14 +176,19 @@ check_prd_sections() {
 			fi
 		done
 
+		check_field_types "${prd_file}"
+
 	done < <(find "${PRD_ROOT}" -type f -name 'prd.md' 2>/dev/null)
 }
 
-# 检查五：需求条目必须带编号，且同一版本内不重复
+# 检查五：需求条目必须带编号，且同一版本内不重复分配
+# 重复检测只看定义行（形如「- REQ-1.0-001 ...」），不看正文引用。
+# 规范本身要求交叉引用：失效需求指向替代编号、未解决问题标注影响的需求、
+# Later 指向后续版本需求，这些都会让同一编号在文中出现多次，但不构成重复分配。
 check_requirement_ids() {
 	echo "[5/8] 检查需求编号..."
 
-	local prd_file ids duplicated
+	local prd_file ids defined duplicated
 	while IFS= read -r prd_file; do
 		ids=$(grep -oE "${REQ_ID_REGEX}" "${prd_file}" || true)
 
@@ -188,10 +197,12 @@ check_requirement_ids() {
 			continue
 		fi
 
-		duplicated=$(printf '%s\n' "${ids}" | sort | uniq -d)
+		# 定义行：行首为列表符号后紧跟编号
+		defined=$(grep -oE "^[-*] ${REQ_ID_REGEX}" "${prd_file}" | grep -oE "${REQ_ID_REGEX}" || true)
+		duplicated=$(printf '%s\n' "${defined}" | grep -v '^$' | sort | uniq -d)
 
 		if [ -n "${duplicated}" ]; then
-			report "${prd_file} 需求编号重复：$(printf '%s' "${duplicated}" | tr '\n' ' ')"
+			report "${prd_file} 需求编号重复分配：$(printf '%s' "${duplicated}" | tr '\n' ' ')"
 		fi
 
 	done < <(find "${PRD_ROOT}" -type f -name 'prd.md' 2>/dev/null)
@@ -221,6 +232,20 @@ check_diagram_notes() {
 		fi
 
 	done < <(find "${PRD_ROOT}" -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.webp' \) 2>/dev/null)
+}
+
+# 字段定义表的类型列必须写 SQL 类型
+# 表格行形如 | 字段名 | 类型 | 必填 | ...，取第二列判断
+check_field_types() {
+	local doc_file="$1"
+	local hits
+
+	hits=$(grep -nE "^\|[^|]+\| *(${FORBIDDEN_FIELD_TYPES}) *\|" "${doc_file}" || true)
+
+	if [ -n "${hits}" ]; then
+		report "${doc_file} 字段表用了语言层类型(改用 VARCHAR/TINYINT/DECIMAL 等 SQL 类型,枚举用 TINYINT 并在约束列列出取值):"
+		echo "${hits}" | sed 's/^/         /'
+	fi
 }
 
 # 检查七：README 必须声明三个版本状态
