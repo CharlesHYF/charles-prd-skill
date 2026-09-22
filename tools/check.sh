@@ -429,7 +429,7 @@ check_tasks() {
 # 检查八之二：已定义任务的页面不能还挂着未实现占位
 # data-todo 是原型分批做时的中间态提示，任务都写进 tasks.md 了页面就该真做出来
 check_todo_leftovers() {
-	local proto doc defined leftover value
+	local doc defined leftover value
 
 	while IFS= read -r doc; do
 		defined=$(grep -oE '^##[[:space:]]+Task-[0-9]+' "${doc}" | grep -oE 'Task-[0-9]+' | sort -u)
