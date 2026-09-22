@@ -27,6 +27,7 @@ TASK_ID_REGEX='Task-[0-9]{3}'
 # 每个任务必须齐全的小节
 REQUIRED_TASK_SECTIONS=(
 	"### 任务内容"
+	"### 流程"
 	"### 交互规格"
 	"### 验收"
 )
@@ -280,6 +281,15 @@ check_tasks() {
 				report "${task_file} 有 ${task_count} 个任务，但交互规格里只有 ${field_count} 处「${field}」字段"
 			fi
 		done
+
+		# 流程小节要么画了图，要么写明单一路径无分支
+		local flow_diagrams flow_declared
+		flow_diagrams=$(grep -c '^```mermaid' "${task_file}" || true)
+		flow_declared=$(grep -c '单一路径，无分支' "${task_file}" || true)
+
+		if [ "$((flow_diagrams + flow_declared))" -lt "${task_count}" ]; then
+			report "${task_file} 有 ${task_count} 个任务，但流程小节只有 ${flow_diagrams} 张图与 ${flow_declared} 处无分支声明(有分支的操作必须画流程图)"
+		fi
 
 		# 关联需求必须存在，且引用的需求编号要能在同版本 prd.md 里找到
 		local version_dir prd_file referenced missing

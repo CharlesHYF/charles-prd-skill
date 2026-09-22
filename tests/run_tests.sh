@@ -107,6 +107,15 @@ INNER
 ### 任务内容
 实现内容。
 
+### 流程
+
+```mermaid
+flowchart TD
+	A[点击按钮] --> B{已勾选}
+	B -- 否 --> C[提示请先选择]
+	B -- 是 --> D[执行并刷新]
+```
+
 ### 交互规格
 
 | 字段 | 内容 |
@@ -214,6 +223,10 @@ cat >> "${TASK_DIR}/versions/1.0/tasks.md" <<'INNER'
 ### 任务内容
 实现内容。
 
+### 流程
+
+单一路径，无分支。
+
 ### 交互规格
 
 | 字段 | 内容 |
@@ -237,6 +250,18 @@ grep -v '关联需求' "${NOREQ_TASK_DIR}/versions/1.0/tasks.md" > "${NOREQ_TASK
 mv "${NOREQ_TASK_DIR}/versions/1.0/tasks.tmp" "${NOREQ_TASK_DIR}/versions/1.0/tasks.md"
 run_check "${NOREQ_TASK_DIR}"
 expect_contains "${CHECK_OUTPUT}" "没有任何关联需求编号" "检查八:任务缺关联需求被拦"
+
+NOFLOW_DIR="$(mktemp -d)/docs/prd"
+make_prd "${NOFLOW_DIR}"
+python3 - "${NOFLOW_DIR}/versions/1.0/tasks.md" <<'PYINNER'
+import pathlib, re, sys
+p = pathlib.Path(sys.argv[1])
+t = p.read_text(encoding="utf-8")
+t = re.sub(r"### 流程\n\n```mermaid[\s\S]*?```\n\n", "", t)
+p.write_text(t, encoding="utf-8")
+PYINNER
+run_check "${NOFLOW_DIR}"
+expect_contains "${CHECK_OUTPUT}" "流程小节只有" "检查八:任务缺流程图被拦"
 
 echo "=== 场景八：内联 SVG 不被 Markdown 截断 ==="
 SVG_DIR="$(mktemp -d)"
