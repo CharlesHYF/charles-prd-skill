@@ -77,6 +77,8 @@ metadata:
 
 同时按 [charles-new-product](../charles-new-product/SKILL.md) 的七类必答项检查缺口——代码能告诉你"做了什么"，告诉不了你"为什么做、边界在哪、关键数值的依据"。这些一并问。
 
+**提问方式与状态管理同样适用**：交互卡片一次最多四个，超过就分批问且每批等到回答；"未回答"不等于"不知道"，前者必须重新问不能开写。细则见 [charles-new-product](../charles-new-product/SKILL.md) 的第 0 步。
+
 ### 5. 产出完整 PRD 包
 确认完毕后一次产出：
 

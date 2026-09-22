@@ -1,6 +1,6 @@
 ---
 name: charles-new-product
-description: Use when starting a brand-new product from zero for Charles, including when he asks to produce the whole PRD package in one go - asks all blocking questions first in a single round, then produces product definition, PRD, scope, tasks with interaction specs, diagrams, prototype and both PDFs together. Not for adding a feature to an existing product.
+description: Use when starting a brand-new product from zero for Charles, including when he asks to produce the whole PRD package in one go - asks all blocking questions first in batches of four and waits for every answer before writing anything, then produces product definition, PRD, scope, tasks with interaction specs, diagrams, prototype and both PDFs together. Not for adding a feature to an existing product.
 metadata:
   version: "1.0.0"
   author: Charles <w1400214654@outlook.com>
@@ -33,15 +33,34 @@ metadata:
 | 关键数值 | 有效期、阈值、频率、容量、超时、重试次数 | 只能推算，上线后大面积返工 |
 | 合规与硬约束 | 哪些是不能降级的、失败时能不能放行 | 降级策略可能违反合规要求 |
 
-提问方式：
+#### 提问方式
 
-- **一次性提出全部问题**，按阻塞程度排序，不要挤牙膏式一个个问
-- 每个问题给出**两到四个具体选项与推荐项**，降低回答成本；Charles 可以直接选，也可以给别的答案
+- **交互卡片一次最多四个问题，超过四个就分批问**。按阻塞程度排序，先问最阻塞的四个
+- **每批必须等到回答，才问下一批**。不允许把剩下的问题写成文本列表然后当作"已经问过"
+- 每个问题给出两到四个具体选项与推荐项，降低回答成本；Charles 可以直接选，也可以给别的答案
 - 回答后如果引出新的必问项，再问一轮，并说明为什么需要第二轮
-- **确实问不出来的**（对方也不知道）记入 `notes.md`，同时写清"这条不定会导致什么后果、影响哪些需求"
-- 关键数值一律问，问不到就在需求条目里就地标注"待确认"，见 [writing](../charles-prd-standards/rules/writing.md)
 
-判据：**还有问题的答案会改变已经写下的需求吗？** 会就继续问，不会才开写。
+#### 三种状态要分清
+> 这是最容易出错的地方：**"对方没回答"不等于"对方不知道"**。
+
+| 状态 | 含义 | 处理 |
+| --- | --- | --- |
+| 已确认 | Charles 给了明确答案 | 写进 PRD，不加待确认标记 |
+| 明确不知道 | Charles 说了"这个我也不清楚"或"你按默认写" | 按默认值写并就地标注待确认，记入 `notes.md` |
+| **未回答** | 这个问题 Charles 根本没有回应过 | **必须重新问，不能开写** |
+
+把"未回答"当成"不知道"处理，等于自己替 Charles 做了决定，然后在交付说明里写"这些我问了但你没回答"——问题是他可能压根没看到那条问题。
+
+#### 开写前的状态自检
+产出任何文件之前，先把全部必问项列一遍，逐项标注状态。**只要还有一项是"未回答"，就不能开写**，要明确告诉 Charles：
+
+> 还有 N 个问题没有答案，需要你回答后我才开始产出。要么回答它们，要么明确说「按你的默认值写，标注待确认」。
+
+后半句是给 Charles 的逃生口——他可以主动授权按默认值写，但这是**他给的明确授权**，不是 Agent 自己决定的。
+
+关键数值一律问，拿到"按默认写"的授权后才在需求条目里就地标注待确认，见 [writing](../charles-prd-standards/rules/writing.md)。
+
+判据：**每一项必问都有状态吗？状态里还有"未回答"吗？** 有就继续问，全部落到"已确认"或"明确不知道"才开写。
 
 ### 1. 写 product.md
 长期稳定的产品定义：产品是什么、目标用户是谁、他们的核心问题、为什么这个产品值得使用、三条产品原则。
