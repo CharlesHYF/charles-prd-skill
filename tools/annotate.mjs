@@ -1,24 +1,14 @@
 /**
- * 在原型页面上自动生成界面标注图
- * 框选位置由 CSS 选择器查 DOM 得到，原型改了重跑即可，不用手写坐标
+ * 用 capture.mjs 量好的坐标生成界面标注图，并写回 tasks.md 的界面小节
+ * 标注清单只写元素文案与说明，坐标来自 _coords.json，不手写也不重跑浏览器
  * 创建日期：2026-09-22
  * 修改日期：2026-09-22
  */
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { dirname, resolve, basename } from "node:path";
-import puppeteer from "puppeteer-core";
+import { dirname, resolve, relative, join } from "node:path";
 
-const CHROME_CANDIDATES = [
-	"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-	"/Applications/Chromium.app/Contents/MacOS/Chromium",
-	"/usr/bin/google-chrome",
-	"/usr/bin/chromium",
-];
-
-const VIEWPORT_WIDTH = 1440;
-const VIEWPORT_HEIGHT = 900;
-const SCALE = 2;
+const COORDS_NAME = "_coords.json";
 
 // 图在 PDF 里被缩到正文版心宽度，所以说明区要宽、字号要大，缩完才看得清
 const GUTTER = 1000;
@@ -37,55 +27,36 @@ const NUM_TEXT_SIZE = 18;
 const NUM_OFFSET = 44;
 
 // 元素小于这个尺寸时编号角标放到框外，否则角标会把元素本身盖住
-const SMALL_BOX = 34;
+const SMALL_BOX = 42;
 
 // 末行只剩这么少的字就并回上一行，避免一两个字孤零零占一行
 const ORPHAN_LIMIT = 2;
 
-const usage = `用法: annotate.mjs <标注清单.json> [--output <输出.svg>]
+// 这些标点不能出现在行首，超宽也要跟着上一行走
+const NO_LINE_START = "。，、；：？！）》」』%”’.,;:?!)]}";
 
-标注清单格式：
+const usage = `用法: annotate.mjs <标注清单.json...>
+
+标注清单与截图清单同目录，按元素文案挑要标的东西，不写坐标也不写选择器：
+
 {
-  "page": "prototype/pages/list.html",
-  "title": "订单列表页",
-  "setup": ["[data-open-modal=deleteModal]"],
+  "shot": "list",
+  "inject": "../tasks.md",
+  "mark": "list",
   "marks": [
-    { "selector": ".filters", "note": "筛选条，订单号支持前缀匹配" },
-    { "selector": ".btn--danger", "steps": ["勾选至少一行", "点击后弹二次确认", "确认后逐条作废"] }
+    { "el": "筛选条", "note": "订单号支持前缀匹配。" },
+    { "el": "批量作废", "kind": "btn", "steps": ["未勾选时置灰", "点击后弹二次确认"] }
   ]
 }
 
-selector 找不到元素时直接报错退出，避免生成一张框错位置的图。`;
+先跑 capture.mjs 量坐标，本脚本只读 _coords.json，不再打开浏览器。
+生成的 SVG 写进 inject 指向文档里 <!--annotation:mark--> 与 <!--/annotation--> 之间。`;
 
 const args = process.argv.slice(2);
 
 if (args.length === 0 || args.includes("--help")) {
 	console.log(usage);
 	process.exit(args.length === 0 ? 2 : 0);
-}
-
-const listFile = resolve(args[0]);
-const outIndex = args.indexOf("--output");
-const outFile = outIndex >= 0 ? resolve(args[outIndex + 1]) : listFile.replace(/\.json$/, ".svg");
-
-if (!existsSync(listFile)) {
-	console.error(`[NG] 找不到标注清单：${listFile}`);
-	process.exit(2);
-}
-
-const spec = JSON.parse(readFileSync(listFile, "utf8"));
-const pageFile = resolve(dirname(listFile), spec.page);
-
-if (!existsSync(pageFile)) {
-	console.error(`[NG] 标注清单里的 page 不存在：${pageFile}`);
-	process.exit(2);
-}
-
-const chrome = CHROME_CANDIDATES.find((path) => existsSync(path));
-
-if (!chrome) {
-	console.error("[NG] 没找到可用的 Chrome，请安装 Google Chrome 或 Chromium");
-	process.exit(2);
 }
 
 // 中文与全角标点按一个字宽计，ASCII 按 0.62 字宽计，宁可估宽也不要估窄撑出画布
@@ -98,9 +69,6 @@ const textWidth = (text) => {
 
 	return width;
 };
-
-// 这些标点不能出现在行首，超宽也要跟着上一行走
-const NO_LINE_START = "。，、；：？！）》」』%”’.,;:?!)]}";
 
 // firstWidth 给首行单独的可用宽度，步骤的 "1. " 前缀要占掉一截
 const wrap = (text, maxWidth, firstWidth = maxWidth) => {
@@ -123,10 +91,8 @@ const wrap = (text, maxWidth, firstWidth = maxWidth) => {
 		lines.push(current);
 	}
 
-	// 末行是孤字时并回上一行，宁可稍微超宽也不留一个字单独一行
 	if (lines.length > 1 && [...lines[lines.length - 1]].length <= ORPHAN_LIMIT) {
-		const orphan = lines.pop();
-		lines[lines.length - 1] += orphan;
+		lines[lines.length - 2] += lines.pop();
 	}
 
 	return lines;
@@ -137,164 +103,190 @@ const escape = (text) => text
 	.replace(/</g, "&lt;")
 	.replace(/>/g, "&gt;");
 
-const browser = await puppeteer.launch({ executablePath: chrome, headless: "new", args: ["--no-sandbox"] });
-const page = await browser.newPage();
-await page.setViewport({ width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT, deviceScaleFactor: SCALE });
-await page.goto(`file://${pageFile}`, { waitUntil: "networkidle0" });
+// 按文案挑元素：kind 可选，同名多个时用 index 指定第几个
+const pick = (els, mark, shot) => {
+	const candidates = els.filter((el) => {
 
-if (spec.state) {
-	await page.evaluate((state) => {
-		document.querySelector(`[data-state-btn="${state}"]`)?.click();
-	}, spec.state);
-}
-
-if (spec.role) {
-	await page.evaluate((role) => {
-		const select = document.querySelector("#roleSelect");
-
-		if (select) {
-			select.value = role;
-			select.dispatchEvent(new Event("change"));
-		}
-	}, spec.role);
-}
-
-// setup 按顺序点击，用来标注弹窗这类需要先触发才出现的界面
-for (const selector of spec.setup ?? []) {
-	const clicked = await page.evaluate((target) => {
-		const element = document.querySelector(target);
-
-		if (!element) {
+		if (mark.kind && el.kind !== mark.kind) {
 			return false;
 		}
 
-		element.click();
-		return true;
-	}, selector);
+		return el.txt === mark.el || el.txt.includes(mark.el);
+	});
 
-	if (!clicked) {
-		await browser.close();
-		console.error(`[NG] setup 里的选择器找不到元素：${selector}`);
-		process.exit(1);
+	if (candidates.length === 0) {
+		const hint = els.map((el) => `${el.kind}:${el.txt}`).slice(0, 40).join("  ");
+		throw new Error(`${shot} 里找不到元素「${mark.el}」${mark.kind ? `(kind=${mark.kind})` : ""}\n     可选元素：${hint}`);
 	}
 
-	await new Promise((done) => setTimeout(done, 200));
+	const index = mark.index ?? 0;
+
+	if (index >= candidates.length) {
+		throw new Error(`${shot} 的「${mark.el}」只有 ${candidates.length} 个，取不到第 ${index + 1} 个`);
+	}
+
+	return candidates[index];
+};
+
+const buildSvg = (spec, coords, shot, imageHref) => {
+	const { w: pageW, h: pageH, els } = coords;
+	const textX = PAD + pageW + NUM_OFFSET + 44;
+	const maxTextWidth = GUTTER - (textX - PAD - pageW) - 36;
+
+	const labels = spec.marks.map((mark, index) => {
+		const box = pick(els, mark, shot);
+		const lines = [];
+
+		if (mark.note) {
+			wrap(mark.note, maxTextWidth).forEach((line) => lines.push({ text: line, indent: 0 }));
+		}
+
+		if (Array.isArray(mark.steps)) {
+			mark.steps.forEach((step, stepIndex) => {
+				const prefix = `${stepIndex + 1}. `;
+				const wrapped = wrap(step, maxTextWidth - STEP_INDENT, maxTextWidth - textWidth(prefix));
+				wrapped.forEach((line, lineIndex) => lines.push({
+					text: lineIndex === 0 ? `${prefix}${line}` : line,
+					indent: lineIndex === 0 ? 0 : STEP_INDENT,
+				}));
+			});
+		}
+
+		return {
+			index,
+			box: { x: box.x + PAD, y: box.y + PAD, w: box.w, h: box.h },
+			lines,
+			height: lines.length * LINE_HEIGHT,
+			anchorY: box.y + PAD + box.h / 2,
+		};
+	});
+
+	labels.sort((a, b) => a.anchorY - b.anchorY);
+
+	let cursor = LABEL_TOP;
+
+	for (const label of labels) {
+		label.top = Math.max(cursor, label.anchorY - label.height / 2);
+		cursor = label.top + label.height + LABEL_GAP;
+	}
+
+	const canvasWidth = PAD + pageW + GUTTER;
+	const canvasHeight = Math.round(Math.max(pageH + PAD * 2, cursor + LABEL_TOP));
+
+	const layer = labels.map((label, order) => {
+		const number = order + 1;
+		const box = label.box;
+		const labelY = label.top + LINE_HEIGHT * 0.75;
+		const numX = textX - NUM_OFFSET;
+		const text = label.lines
+			.map((line, lineIndex) => `<tspan x="${(textX + line.indent).toFixed(1)}" dy="${lineIndex === 0 ? 0 : LINE_HEIGHT}">${escape(line.text)}</tspan>`)
+			.join("");
+
+		// 引线横穿界面会把内容盖住，多条还会交叉，改成两处相同编号对应
+		const small = box.w < SMALL_BOX || box.h < SMALL_BOX;
+		const badgeX = small ? box.x - NUM_RADIUS - 2 : box.x;
+		const badgeY = small ? box.y - NUM_RADIUS - 2 : box.y;
+		const numY = labelY - TEXT_SIZE * 0.32;
+
+		return `	<rect class="mk-box" x="${(box.x - 3).toFixed(1)}" y="${(box.y - 3).toFixed(1)}" width="${(box.w + 6).toFixed(1)}" height="${(box.h + 6).toFixed(1)}" rx="3"/>
+	<circle class="mk-bg" cx="${badgeX.toFixed(1)}" cy="${badgeY.toFixed(1)}" r="${NUM_RADIUS}"/>
+	<text class="mk-no" x="${badgeX.toFixed(1)}" y="${(badgeY + NUM_TEXT_SIZE * 0.35).toFixed(1)}">${number}</text>
+	<circle class="mk-bg" cx="${numX.toFixed(1)}" cy="${numY.toFixed(1)}" r="${NUM_RADIUS}"/>
+	<text class="mk-no" x="${numX.toFixed(1)}" y="${(numY + NUM_TEXT_SIZE * 0.35).toFixed(1)}">${number}</text>
+	<text class="mk-t" x="${textX.toFixed(1)}" y="${labelY.toFixed(1)}">${text}</text>`;
+	}).join("\n");
+
+	const title = spec.title ?? shot;
+
+	return `<svg class="annotation" viewBox="0 0 ${canvasWidth} ${canvasHeight}" role="img" aria-label="${escape(title)}界面标注">
+	<style>
+		.annotation .mk-box { fill: none; stroke: #d93025; stroke-width: 3; }
+		.annotation .mk-bg { fill: #d93025; stroke: #ffffff; stroke-width: 1.5; }
+		.annotation .mk-no { font-size: ${NUM_TEXT_SIZE}px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+		.annotation .mk-t { font-size: ${TEXT_SIZE}px; fill: #d93025; }
+		.annotation .shot-b { fill: none; stroke: #dfe3ea; stroke-width: 1; }
+	</style>
+	<image href="${imageHref}" x="${PAD}" y="${PAD}" width="${pageW}" height="${pageH}"/>
+	<rect class="shot-b" x="${PAD}" y="${PAD}" width="${pageW}" height="${pageH}"/>
+${layer}
+</svg>`;
+};
+
+let failed = 0;
+
+for (const arg of args) {
+	const specFile = resolve(arg);
+
+	if (!existsSync(specFile)) {
+		console.error(`[NG] 找不到标注清单：${specFile}`);
+		failed += 1;
+		continue;
+	}
+
+	const spec = JSON.parse(readFileSync(specFile, "utf8"));
+	const dir = dirname(specFile);
+	const shot = spec.shot;
+	const coordsFile = join(dir, COORDS_NAME);
+
+	if (!existsSync(coordsFile)) {
+		console.error(`[NG] ${shot}: 还没有 ${COORDS_NAME}，先跑 capture.mjs`);
+		failed += 1;
+		continue;
+	}
+
+	const all = JSON.parse(readFileSync(coordsFile, "utf8"));
+
+	if (!all[shot]) {
+		console.error(`[NG] ${COORDS_NAME} 里没有 ${shot} 的坐标，先跑 capture.mjs ${shot}.json`);
+		failed += 1;
+		continue;
+	}
+
+	if (!spec.inject) {
+		console.error(`[NG] ${shot}: 清单缺 inject，不知道要写进哪个文档`);
+		failed += 1;
+		continue;
+	}
+
+	const docFile = resolve(dir, spec.inject);
+
+	if (!existsSync(docFile)) {
+		console.error(`[NG] ${shot}: inject 指向的文档不存在 ${docFile}`);
+		failed += 1;
+		continue;
+	}
+
+	const mark = spec.mark ?? shot;
+	const imageHref = relative(dirname(docFile), join(dir, `${shot}.png`));
+
+	let svg;
+
+	try {
+		svg = buildSvg(spec, all[shot], shot, imageHref);
+	} catch (error) {
+		console.error(`[NG] ${error.message}`);
+		failed += 1;
+		continue;
+	}
+
+	const doc = readFileSync(docFile, "utf8");
+	const open = `<!--annotation:${mark}-->`;
+	const close = "<!--/annotation-->";
+	const start = doc.indexOf(open);
+	const end = doc.indexOf(close, start);
+
+	if (start < 0 || end < 0) {
+		console.error(`[NG] ${shot}: ${spec.inject} 里找不到 ${open} 与 ${close} 这对标记`);
+		failed += 1;
+		continue;
+	}
+
+	const updated = `${doc.slice(0, start + open.length)}\n${svg}\n${doc.slice(end)}`;
+	writeFileSync(docFile, updated, "utf8");
+	console.log(`[OK] ${shot} 标注 ${spec.marks.length} 处，已写进 ${spec.inject} 的 ${mark} 标记块`);
 }
 
-await new Promise((done) => setTimeout(done, 300));
-
-const boxes = await page.evaluate((selectors) => selectors.map((selector) => {
-	const element = document.querySelector(selector);
-
-	if (!element) {
-		return null;
-	}
-
-	const rect = element.getBoundingClientRect();
-	return { x: rect.x, y: rect.y + window.scrollY, w: rect.width, h: rect.height };
-}), spec.marks.map((mark) => mark.selector));
-
-const missing = spec.marks.filter((mark, index) => boxes[index] === null);
-
-if (missing.length > 0) {
-	await browser.close();
-	console.error("[NG] 以下选择器在原型页里找不到元素，标注图未生成：");
-	missing.forEach((mark) => console.error(`     ${mark.selector}`));
+if (failed > 0) {
+	console.error(`[NG] ${failed} 份清单未完成`);
 	process.exit(1);
 }
-
-const pageSize = await page.evaluate(() => ({
-	w: document.documentElement.scrollWidth,
-	h: document.documentElement.scrollHeight,
-}));
-const shot = await page.screenshot({ encoding: "base64", fullPage: true });
-await browser.close();
-
-const textX = PAD + pageSize.w + NUM_OFFSET + 44;
-const maxTextWidth = GUTTER - (textX - PAD - pageSize.w) - 36;
-
-// 先算每条说明占多高，再按元素位置从上到下排，避免标签重叠与引线交叉
-const labels = spec.marks.map((mark, index) => {
-	const box = boxes[index];
-	const lines = [];
-
-	if (mark.note) {
-		wrap(mark.note, maxTextWidth).forEach((line) => lines.push({ text: line, indent: 0 }));
-	}
-
-	if (Array.isArray(mark.steps)) {
-		mark.steps.forEach((step, stepIndex) => {
-			const prefix = `${stepIndex + 1}. `;
-			const wrapped = wrap(step, maxTextWidth - STEP_INDENT, maxTextWidth - textWidth(prefix));
-			wrapped.forEach((line, lineIndex) => lines.push({
-				text: lineIndex === 0 ? `${prefix}${line}` : line,
-				indent: lineIndex === 0 ? 0 : STEP_INDENT,
-			}));
-		});
-	}
-
-	return {
-		index,
-		box: { x: box.x + PAD, y: box.y + PAD, w: box.w, h: box.h },
-		lines,
-		height: lines.length * LINE_HEIGHT,
-		anchorY: box.y + PAD + box.h / 2,
-	};
-});
-
-labels.sort((a, b) => a.anchorY - b.anchorY);
-
-let cursor = LABEL_TOP;
-
-for (const label of labels) {
-	label.top = Math.max(cursor, label.anchorY - label.height / 2);
-	cursor = label.top + label.height + LABEL_GAP;
-}
-
-const canvasWidth = PAD + pageSize.w + GUTTER;
-const canvasHeight = Math.max(pageSize.h + PAD * 2, cursor + LABEL_TOP);
-
-const layer = labels.map((label, order) => {
-	const number = order + 1;
-	const box = label.box;
-	const labelY = label.top + LINE_HEIGHT * 0.75;
-	const numX = textX - NUM_OFFSET;
-	const text = label.lines
-		.map((line, lineIndex) => `<tspan x="${(textX + line.indent).toFixed(1)}" dy="${lineIndex === 0 ? 0 : LINE_HEIGHT}">${escape(line.text)}</tspan>`)
-		.join("");
-
-	// 引线横穿界面会把内容盖住，多条还会交叉，改成两处相同编号对应
-	const small = box.w < SMALL_BOX || box.h < SMALL_BOX;
-	const badgeX = small ? box.x - NUM_RADIUS - 2 : box.x;
-	const badgeY = small ? box.y - NUM_RADIUS - 2 : box.y;
-
-	return `	<g>
-		<rect class="box-mark" x="${(box.x - 3).toFixed(1)}" y="${(box.y - 3).toFixed(1)}" width="${(box.w + 6).toFixed(1)}" height="${(box.h + 6).toFixed(1)}" rx="4"/>
-		<circle class="num-bg" cx="${badgeX.toFixed(1)}" cy="${badgeY.toFixed(1)}" r="${NUM_RADIUS}"/>
-		<text class="num-text" x="${badgeX.toFixed(1)}" y="${(badgeY + NUM_TEXT_SIZE * 0.35).toFixed(1)}">${number}</text>
-		<circle class="num-bg" cx="${numX.toFixed(1)}" cy="${(labelY - TEXT_SIZE * 0.32).toFixed(1)}" r="${NUM_RADIUS}"/>
-		<text class="num-text" x="${numX.toFixed(1)}" y="${(labelY - TEXT_SIZE * 0.32 + NUM_TEXT_SIZE * 0.35).toFixed(1)}">${number}</text>
-		<text class="mark" x="${textX.toFixed(1)}" y="${labelY.toFixed(1)}">${text}</text>
-	</g>`;
-}).join("\n");
-
-const label = spec.title ? `${spec.title}界面标注` : `${basename(pageFile)} 界面标注`;
-
-const svg = `<svg class="annotation" viewBox="0 0 ${canvasWidth} ${canvasHeight.toFixed(0)}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escape(label)}">
-	<style>
-		.annotation .box-mark { fill: none; stroke: #d93025; stroke-width: 3; }
-		.annotation .shot-edge { fill: none; stroke: #dfe3ea; stroke-width: 1; }
-		.annotation .mark { font-size: ${TEXT_SIZE}px; fill: #d93025; font-family: -apple-system, "PingFang SC", sans-serif; }
-		.annotation .num-bg { fill: #d93025; stroke: #ffffff; stroke-width: 1.5; }
-		.annotation .num-text { font-size: ${NUM_TEXT_SIZE}px; font-weight: 700; fill: #ffffff; text-anchor: middle; font-family: -apple-system, "PingFang SC", sans-serif; }
-	</style>
-	<rect x="0" y="0" width="${canvasWidth}" height="${canvasHeight.toFixed(0)}" fill="#ffffff"/>
-	<image x="${PAD}" y="${PAD}" width="${pageSize.w}" height="${pageSize.h}" href="data:image/png;base64,${shot}"/>
-	<rect class="shot-edge" x="${PAD}" y="${PAD}" width="${pageSize.w}" height="${pageSize.h}"/>
-${layer}
-</svg>
-`;
-
-writeFileSync(outFile, svg, "utf8");
-console.log(`[OK] ${outFile}`);
-console.log(`     标注 ${spec.marks.length} 处，画布 ${canvasWidth}x${canvasHeight.toFixed(0)}，体积 ${(svg.length / 1024).toFixed(0)} KB`);

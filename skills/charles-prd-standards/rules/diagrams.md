@@ -113,18 +113,41 @@ flowchart LR
 ## 界面标注图
 > **界面标注图标注的是原型本身，不是另画一个界面示意。** 手画的界面和原型必然对不上，原型一改标注就过期。
 
-标注清单与生成的标注图都放 `versions/<版本>/diagrams/`，只写选择器和说明，不写坐标：
+分两步：先截图并量坐标，再按元素文案写标注。截图与坐标在同一时刻产出，严格对应。
+
+### 第一步：截图清单
+`versions/<版本>/diagrams/<截图名>.json`，说清截哪个页面、什么角色、什么状态：
 
 ```json
 {
+	"shot": "list",
 	"page": "../prototype/pages/list.html",
 	"title": "订单列表页",
 	"role": "manager",
-	"setup": ["[data-open-modal=deleteModal]"],
+	"state": "success",
+	"setup": ["[data-open-modal=deleteModal]"]
+}
+```
+
+```bash
+node tools/capture.mjs docs/prd/versions/1.0/diagrams/list.json
+```
+
+产出 `list.png`、`list.md`（位图来源说明）与 `_coords.json` 里的一个条目。截图前会自动移除原型的状态切换条，那是调试工具不是产品界面。
+
+### 第二步：标注清单
+`versions/<版本>/diagrams/<截图名>.marks.json`，**按元素文案挑，不写坐标也不写 CSS 选择器**：
+
+```json
+{
+	"shot": "list",
+	"inject": "../tasks.md",
+	"mark": "list",
 	"marks": [
-		{ "selector": ".filters input[type=text]", "note": "订单号。支持前缀匹配，不做模糊匹配。" },
+		{ "el": "筛选条", "kind": "box", "note": "订单号支持前缀匹配。" },
 		{
-			"selector": ".btn--danger",
+			"el": "批量作废",
+			"kind": "btn",
 			"steps": [
 				"未勾选任何行时置灰，悬停提示先选择订单",
 				"点击后弹二次确认，列出将作废的订单号与总金额",
@@ -135,37 +158,44 @@ flowchart LR
 }
 ```
 
-生成：
-
 ```bash
-node tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.json
+node tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks.json
 ```
 
-脚本打开原型页、读每个元素的 `getBoundingClientRect`、截全页图当底图，输出同名 `.svg`。在 `tasks.md` 里用图片引用它：
+生成的 SVG 写进 `inject` 指向文档里这对标记之间，重跑覆盖，不会追加：
 
 ```markdown
-![订单列表页界面标注](diagrams/list.svg)
+### 界面
+
+<!--annotation:list-->
+<!--/annotation-->
+
+图注：底图为原型真实截图，标注框坐标取自截图时的 DOM 量测。
 ```
 
 ### 清单字段
-| 字段 | 作用 |
-| --- | --- |
-| `page` | 原型页面路径，相对清单文件 |
-| `title` | 图的无障碍标题 |
-| `role` | 截图前把角色切到谁，用来标注只有某个角色能看到的元素 |
-| `state` | 截图前切到哪个状态，缺省是 success |
-| `setup` | 截图前依次点击的选择器，用来标注弹窗这类要先触发才出现的界面 |
-| `marks[].selector` | 要框选的元素，CSS 选择器 |
-| `marks[].note` | 一句话说明 |
-| `marks[].steps` | 多步骤说明，按 1. 2. 3. 编号排版 |
+| 字段 | 在哪份 | 作用 |
+| --- | --- | --- |
+| `shot` | 两份都有 | 截图名，两份靠它对应 |
+| `page` | 截图清单 | 原型页面路径，相对清单文件 |
+| `role` / `state` | 截图清单 | 截图前切到哪个角色、哪个状态 |
+| `setup` | 截图清单 | 截图前依次点击的选择器，用来截弹窗这类要先触发的界面 |
+| `inject` / `mark` | 标注清单 | 写进哪个文档的哪对标记之间 |
+| `marks[].el` | 标注清单 | 元素文案，按包含匹配 |
+| `marks[].kind` | 标注清单 | 限定类型：btn / link / menu / field / th / kpi / box |
+| `marks[].index` | 标注清单 | 同名元素有多个时取第几个，从 0 开始 |
+| `marks[].note` | 标注清单 | 一句话说明 |
+| `marks[].steps` | 标注清单 | 多步骤说明，按 1. 2. 3. 编号排版 |
+
+`_coords.json` 里列出了页面上所有可标注元素的 `kind` 与 `txt`，写标注清单时照着挑。找不到元素时脚本会把候选列出来。
 
 ### 几条硬要求
 - **按钮逐个标注。** 页面上每个按钮、每个筛选控件、每个可点击的链接都要有一条，漏掉的就是没想清楚的
 - **点击后有多步行为的写 `steps` 不写 `note`。** 置灰条件、二次确认、成功与失败各自的界面反应，分步写清楚
-- **选择器找不到元素时脚本直接报错退出**，不会生成一张框错位置的图
-- **不要手改生成的 `.svg`**，改了下次重跑就没了。要改内容改清单
+- **不要手写坐标，也不要手改生成的 SVG**，改了下次重跑就没了。要改内容改标注清单
+- **原型改动后先重跑 `capture.mjs` 再重跑 `annotate.mjs`**，只跑后者会拿旧坐标画新说明
 - 弹窗、空态、失败态各自出一张图，用 `setup` 与 `state` 区分
-- 生成的 `.svg` 是脚本产物但要进 Git，评审的人不必装 Node 也能看
+- PNG 与 `_coords.json` 都要进 Git，评审的人不必装 Node 也能看
 
 标注图在导出时占满正文版心，与段落、表格左右对齐，不单独开横向页——横向页的版心是 273mm，正文是 174mm，两者放在一起左右边界对不上。
 

@@ -56,7 +56,7 @@ project/docs/prd/
     │   ├── tasks.md       任务与交互规格，带界面图
     │   ├── notes.md       临时想法与待验证问题
     │   ├── prototype/     可点击的 HTML 原型
-    │   └── diagrams/      界面标注清单与标注图，外部导入的位图与来源说明
+    │   └── diagrams/      原型截图与坐标、标注清单，外部导入的位图与来源说明
     ├── 2.0/
     └── 3.0/
 ```
@@ -69,7 +69,7 @@ project/docs/prd/
 | 产品定义、需求、边界 | Markdown |
 | 页面布局、按钮、弹窗、状态、完整操作流程 | HTML Prototype |
 | 复杂流程的解释、系统模块关系与数据流 | Mermaid 手绘风格图，写在 Markdown 里 |
-| 界面元素位置与标注 | `tools/annotate.mjs` 从原型生成的标注图 |
+| 界面元素位置与标注 | `capture.mjs` 截原型并量坐标，`annotate.mjs` 生成标注图 |
 | 视觉风格探索、组件细节、Design Tokens | Penpot（可选，需要设计画布时才引入） |
 
 工具能力与价格会变，长期稳定的事实来源放在 Git 里。

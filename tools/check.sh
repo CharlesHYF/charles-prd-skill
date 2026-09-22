@@ -250,42 +250,71 @@ check_field_types() {
 	fi
 }
 
-# 检查六之二：界面标注图必须由清单生成
-# 手画的标注图与原型必然对不上，这里拦的是 tasks.md 引用了没有清单的标注图
+# 检查六之二：界面标注图必须由截图与坐标生成
+# 拦的是手画标注、标注清单指向没截过的页面、以及标记块留空忘了跑生成
 check_annotations() {
 	echo "[7/10] 检查界面标注图..."
 
-	local svg json page
+	local coords marks shot doc mark note inject
 
-	while IFS= read -r svg; do
-		json="${svg%.svg}.json"
+	while IFS= read -r coords; do
+		note="$(dirname "${coords}")/_coords.md"
 
-		if [ ! -f "${json}" ]; then
-			report "${svg} 没有对应的标注清单 ${json##*/}(标注图要用 tools/annotate.mjs 从原型生成,不要手画)"
+		if [ ! -f "${note}" ]; then
+			report "${coords} 缺少同名来源说明 _coords.md(坐标是量出来的,要记录来源与日期)"
+		fi
+
+	done < <(find "${PRD_ROOT}" -type f -name '_coords.json' 2>/dev/null)
+
+	while IFS= read -r marks; do
+		shot=$(grep -oE '"shot"[[:space:]]*:[[:space:]]*"[^"]+"' "${marks}" | head -1 | sed -E 's/.*"([^"]+)"$/\1/')
+		coords="$(dirname "${marks}")/_coords.json"
+
+		if [ ! -f "${coords}" ]; then
+			report "${marks} 所在目录没有 _coords.json(先跑 tools/capture.mjs 截图并量坐标)"
 			continue
 		fi
 
-		# 清单里的 page 必须指向真实存在的原型页面
-		page=$(grep -oE '"page"[[:space:]]*:[[:space:]]*"[^"]+"' "${json}" | head -1 | sed -E 's/.*"([^"]+)"$/\1/')
-
-		if [ -n "${page}" ] && [ ! -f "$(cd "$(dirname "${json}")" && cd "$(dirname "${page}")" 2>/dev/null && pwd)/$(basename "${page}")" ]; then
-			report "${json} 的 page 指向的原型页面不存在：${page}"
+		if ! grep -q "\"${shot}\"" "${coords}"; then
+			report "${marks} 的 shot=${shot} 在 _coords.json 里没有坐标(先跑 tools/capture.mjs ${shot}.json)"
 		fi
 
-	done < <(find "${PRD_ROOT}" -type d -name 'diagrams' -exec find {} -name '*.svg' \; 2>/dev/null)
+		if [ ! -f "$(dirname "${marks}")/${shot}.png" ]; then
+			report "${marks} 的 shot=${shot} 没有对应截图 ${shot}.png(先跑 tools/capture.mjs)"
+		fi
 
-	# tasks.md 引用的标注图必须真的存在
-	local doc ref dir
+		# inject 指向的文档里必须有对应标记，否则生成时无处可写
+		inject=$(grep -oE '"inject"[[:space:]]*:[[:space:]]*"[^"]+"' "${marks}" | head -1 | sed -E 's/.*"([^"]+)"$/\1/')
+		mark=$(grep -oE '"mark"[[:space:]]*:[[:space:]]*"[^"]+"' "${marks}" | head -1 | sed -E 's/.*"([^"]+)"$/\1/')
+		mark="${mark:-${shot}}"
+
+		if [ -n "${inject}" ]; then
+			doc="$(cd "$(dirname "${marks}")" && cd "$(dirname "${inject}")" 2>/dev/null && pwd)/$(basename "${inject}")"
+
+			if [ ! -f "${doc}" ]; then
+				report "${marks} 的 inject 指向的文档不存在：${inject}"
+			elif ! grep -q "<!--annotation:${mark}-->" "${doc}"; then
+				report "${marks} 的 inject 文档里没有 <!--annotation:${mark}--> 标记"
+			fi
+		fi
+
+	done < <(find "${PRD_ROOT}" -type f -name '*.marks.json' 2>/dev/null)
+
+	# 文档里的标记块必须成对且非空，空的说明忘了跑 annotate.mjs
 	while IFS= read -r doc; do
-		dir=$(dirname "${doc}")
 
-		while IFS= read -r ref; do
+		while IFS= read -r mark; do
 
-			if [ -n "${ref}" ] && [ ! -f "${dir}/${ref}" ]; then
-				report "${doc} 引用了不存在的标注图：${ref}"
+			if ! grep -q '<!--/annotation-->' "${doc}"; then
+				report "${doc} 的 <!--annotation:${mark}--> 没有配对的 <!--/annotation-->"
+				continue
 			fi
 
-		done < <(grep -oE '\]\(diagrams/[^)]+\.svg\)' "${doc}" 2>/dev/null | sed -E 's/^\]\(//; s/\)$//')
+			if grep -A 1 "<!--annotation:${mark}-->" "${doc}" | grep -q '<!--/annotation-->'; then
+				report "${doc} 的 ${mark} 标记块是空的(跑 node tools/annotate.mjs <清单>.marks.json 生成标注图)"
+			fi
+
+		done < <(grep -oE '<!--annotation:[^>]+-->' "${doc}" 2>/dev/null | sed -E 's/<!--annotation:(.*)-->/\1/')
 
 	done < <(find "${PRD_ROOT}" -type f -name 'tasks.md' 2>/dev/null)
 }

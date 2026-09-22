@@ -426,29 +426,41 @@ printf '%s\n' "对接方填对方团队的负责人。<!-- check-ignore -->" >> 
 run_check "${IGNORE_DIR}"
 expect_not_contains "${CHECK_OUTPUT}" "角色表未定义的角色称谓" "检查九:check-ignore 行被豁免"
 
-echo "=== 场景十：界面标注图必须由清单生成 ==="
+echo "=== 场景十：界面标注图必须由截图与坐标生成 ==="
 ANN_DIR="$(mktemp -d)/docs/prd"
 make_prd "${ANN_DIR}"
 mkdir -p "${ANN_DIR}/versions/1.0/diagrams"
-printf '<svg></svg>\n' > "${ANN_DIR}/versions/1.0/diagrams/list.svg"
-run_check "${ANN_DIR}"
-expect_contains "${CHECK_OUTPUT}" "没有对应的标注清单" "检查七:手画标注图被拦"
-
-cat > "${ANN_DIR}/versions/1.0/diagrams/list.json" <<'INNER'
-{ "page": "../prototype/pages/list.html", "marks": [] }
+cat > "${ANN_DIR}/versions/1.0/diagrams/list.marks.json" <<'INNER'
+{ "shot": "list", "inject": "../tasks.md", "mark": "list", "marks": [] }
 INNER
 run_check "${ANN_DIR}"
-expect_contains "${CHECK_OUTPUT}" "page 指向的原型页面不存在" "检查七:清单指向的原型不存在被拦"
+expect_contains "${CHECK_OUTPUT}" "没有 _coords.json" "检查七:没截图就写标注被拦"
 
-mkdir -p "${ANN_DIR}/versions/1.0/prototype/pages"
-printf '<html></html>\n' > "${ANN_DIR}/versions/1.0/prototype/pages/list.html"
-printf '\n![界面标注](diagrams/nope.svg)\n' >> "${ANN_DIR}/versions/1.0/tasks.md"
+printf '{ "other": { "w": 1, "h": 1, "els": [] } }\n' > "${ANN_DIR}/versions/1.0/diagrams/_coords.json"
 run_check "${ANN_DIR}"
-expect_contains "${CHECK_OUTPUT}" "引用了不存在的标注图" "检查七:引用不存在的标注图被拦"
+expect_contains "${CHECK_OUTPUT}" "在 _coords.json 里没有坐标" "检查七:坐标缺该截图被拦"
+expect_contains "${CHECK_OUTPUT}" "缺少同名来源说明 _coords.md" "检查七:坐标缺来源说明被拦"
 
-sed -i '' 's@diagrams/nope.svg@diagrams/list.svg@' "${ANN_DIR}/versions/1.0/tasks.md"
+printf '{ "list": { "w": 1, "h": 1, "els": [] } }\n' > "${ANN_DIR}/versions/1.0/diagrams/_coords.json"
+printf '# 坐标\n' > "${ANN_DIR}/versions/1.0/diagrams/_coords.md"
 run_check "${ANN_DIR}"
-expect_not_contains "${CHECK_OUTPUT}" "没有对应的标注清单" "检查七:清单与图齐备后放行"
+expect_contains "${CHECK_OUTPUT}" "没有对应截图 list.png" "检查七:缺截图被拦"
+
+printf 'x' > "${ANN_DIR}/versions/1.0/diagrams/list.png"
+printf '# list 截图\n' > "${ANN_DIR}/versions/1.0/diagrams/list.md"
+printf '\n<!--annotation:list-->\n<!--/annotation-->\n' >> "${ANN_DIR}/versions/1.0/tasks.md"
+run_check "${ANN_DIR}"
+expect_contains "${CHECK_OUTPUT}" "标记块是空的" "检查七:标记块留空被拦"
+
+python3 - "${ANN_DIR}/versions/1.0/tasks.md" <<'PYINNER'
+import pathlib, sys
+p = pathlib.Path(sys.argv[1])
+p.write_text(p.read_text(encoding="utf-8").replace(
+	"<!--annotation:list-->\n<!--/annotation-->",
+	"<!--annotation:list-->\n<svg class=\"annotation\"></svg>\n<!--/annotation-->"), encoding="utf-8")
+PYINNER
+run_check "${ANN_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "标记块是空的" "检查七:标注齐备后放行"
 
 echo "=== 场景六：仓库自带模板必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-template"

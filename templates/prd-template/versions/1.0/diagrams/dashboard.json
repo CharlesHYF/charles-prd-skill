@@ -1,19 +1,5 @@
 {
+	"shot": "dashboard",
 	"page": "../prototype/pages/dashboard.html",
-	"title": "经营看板",
-	"marks": [
-		{
-			"selector": ".kpi-grid",
-			"note": "指标卡区。每张卡可点击下钻，延期风险订单数大于 0 时数字显示为红色。"
-		},
-		{
-			"selector": ".chart-grid .card:nth-child(2)",
-			"steps": [
-				"折线图取最近六个月的准时交付率",
-				"低于 85% 的月份数据点标红",
-				"鼠标悬停显示该月的准时单数与总单数",
-				"点击数据点下钻到该月的延期订单清单"
-			]
-		}
-	]
+	"title": "经营看板"
 }
