@@ -27,6 +27,10 @@ const TASK_ID_PATTERN = /\b(Task-\d{3})\b/g;
 const SVG_BLOCK_PATTERN = /<svg[\s\S]*?<\/svg>/g;
 const SVG_PLACEHOLDER_PATTERN = /<!--CHARLES-SVG-(\d+)-->/g;
 
+// 标题数达到这个量才生成目录页，短文档加目录只是浪费一页
+const TOC_MIN_HEADINGS = 8;
+const HEADING_PATTERN = /<(h[123])>([\s\S]*?)<\/\1>/g;
+
 const protectSvgBlocks = (markdownText, blocks) =>
 	markdownText.replace(SVG_BLOCK_PATTERN, (match) => {
 		blocks.push(match);
@@ -66,6 +70,32 @@ const escapeHtml = (text) =>
 		.replace(/&/g, "&amp;")
 		.replace(/</g, "&lt;")
 		.replace(/>/g, "&gt;");
+
+// 目录只列层级不带页码，页内跳转靠 PDF 书签
+const buildToc = (htmlBody) => {
+	const headings = [];
+	let match = HEADING_PATTERN.exec(htmlBody);
+
+	while (match !== null) {
+		headings.push({
+			level: Number(match[1].slice(1)),
+			text: match[2].replace(/<[^>]+>/g, "").trim(),
+		});
+		match = HEADING_PATTERN.exec(htmlBody);
+	}
+
+	HEADING_PATTERN.lastIndex = 0;
+
+	if (headings.length < TOC_MIN_HEADINGS) {
+		return "";
+	}
+
+	const items = headings
+		.map((heading) => `<li class="toc__item toc__item--${heading.level}">${heading.text}</li>`)
+		.join("\n");
+
+	return `<nav class="toc">\n<h2 class="toc__title">目录</h2>\n<ol class="toc__list">\n${items}\n</ol>\n</nav>`;
+};
 
 const buildCover = (options) => {
 	if (!options.title) {
@@ -142,6 +172,7 @@ ${style}
 </head>
 <body>
 ${buildCover(options)}
+${buildToc(body)}
 <div class="content">
 ${body}
 </div>

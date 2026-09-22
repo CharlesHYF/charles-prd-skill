@@ -51,7 +51,7 @@ project/docs/prd/
 ├── decisions.md           跨版本的不可逆决策
 └── versions/
     ├── 1.0/
-    │   ├── prd.md         这一版为什么做、做什么
+    │   ├── prd.md         版本历史、需求概述、产品描述、功能需求、非功能需求
     │   ├── scope.md       In Scope / Later / Out of Scope
     │   ├── tasks.md       任务与交互规格，带界面图
     │   ├── notes.md       临时想法与待验证问题
@@ -78,10 +78,12 @@ project/docs/prd/
 1. **产品定义只写一次**：`product.md` 是长期稳定的，版本相关的内容一律写进 `versions/<版本>/prd.md`
 2. **版本目录发布后冻结**，行为变更一律开新的 minor 目录，见 [versioning](rules/versioning.md)
 3. **需求条目必须编号**（`REQ-<版本>-<序号>`），测试用例引用该编号建立追溯
-4. **原型不受编码规范约束，但也不许被复制进 `src/`**，见 [prototype](rules/prototype.md)
-5. **Release Criteria 只写产品维度判据**，工程交付标准由项目自己的编码规范与交付闸门管，PRD 不重复定义
-6. **图用 Mermaid 或内联 SVG 写在 Markdown 里**，是文本不是位图；只有外部导入的截图才需要来源说明
-7. 文档用中文，`Non-goals`、`Release Criteria`、`In Scope` 这类没有稳定中文对应的正式术语保留英文
-8. **Markdown 是唯一源头**，PDF 是导出产物，不在 PDF 上改内容，见 [export](rules/export.md)
-9. **需求描述必须能写成测试用例**，出现"优化"、"提升体验"、"合理"这类无法判定的表述一律改写，见 [writing](rules/writing.md)
-10. **每个任务必须写全交互规格七个字段**（触发、前置条件、正常路径、边界情况、错误处理、兜底行为、显示规则），提示文案写完整原文，见 [tasks](rules/tasks.md)
+4. **功能需求按模块分组**，每个功能含场景描述、需求条目、字段定义、流程，不平铺成一长串条目
+5. **名词解释与字段定义是必需的**，第一次出现的非通用术语必须进表，涉及数据的功能必须有六列字段表
+6. **原型不受编码规范约束，但也不许被复制进 `src/`**，见 [prototype](rules/prototype.md)
+7. **Release Criteria 只写产品维度判据**，工程交付标准由项目自己的编码规范与交付闸门管，PRD 不重复定义
+8. **图用 Mermaid 或内联 SVG 写在 Markdown 里**，是文本不是位图；只有外部导入的截图才需要来源说明
+9. 文档用中文，`Non-goals`、`Release Criteria`、`In Scope` 这类没有稳定中文对应的正式术语保留英文
+10. **Markdown 是唯一源头**，PDF 是导出产物，不在 PDF 上改内容，见 [export](rules/export.md)
+11. **需求描述必须能写成测试用例**，出现"优化"、"提升体验"、"合理"这类无法判定的表述一律改写，见 [writing](rules/writing.md)
+12. **每个任务必须写全交互规格七个字段**（触发、前置条件、正常路径、边界情况、错误处理、兜底行为、显示规则），提示文案写完整原文，见 [tasks](rules/tasks.md)

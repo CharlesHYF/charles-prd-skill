@@ -91,7 +91,7 @@ bash tools/check.sh docs/prd
 | 一 | 必需文件（`README.md`、`product.md`、`versions/`） |
 | 二 | 版本目录命名（必须是明确版本号，禁止 current / latest / new） |
 | 三 | 版本内必需文档（major 要 `prd.md` 与 `scope.md`，minor 至少要 `changes.md`） |
-| 四 | `prd.md` 八个章节不增不减 |
+| 四 | `prd.md` 章节齐全：版本历史、需求概述、产品描述、名词解释、整体流程、功能清单、功能需求、非功能需求、Non-goals、Release Criteria、未解决问题 |
 | 五 | 需求编号存在且不重复 |
 | 六 | 每张图有同名生成说明 |
 | 七 | `README.md` 声明三个版本状态 |
@@ -116,7 +116,7 @@ bash tools/export-prd.sh 1.0 --title "订阅管理工具"
 
 分开的理由是读者不同、生命周期不同（PRD 发布即冻结、任务持续更新）、体量差三到五倍，以及错误文案与兜底策略属于内部细节不该对外承诺。
 
-流程是 Markdown 渲染成带打印样式的 HTML，再用本机 Chrome 打印为 PDF。图用 Mermaid 写在 Markdown 里，导出时渲染成矢量 SVG，手绘风格，全程离线。产出带封面页、页眉页脚页码、章节分页，需求编号与任务编号自动渲染成等宽高亮。排版样式在 [`templates/export/style.css`](templates/export/style.css)，两份样张见 [`templates/export/`](templates/export/)。
+流程是 Markdown 渲染成带打印样式的 HTML，再用本机 Chrome 打印为 PDF。图用 Mermaid 写在 Markdown 里，导出时渲染成矢量 SVG，手绘风格，全程离线。产出带封面页、目录页、PDF 书签、页眉页脚页码、章节分页，需求编号与任务编号自动渲染成等宽高亮。排版样式在 [`templates/export/style.css`](templates/export/style.css)，两份样张见 [`templates/export/`](templates/export/)。
 
 **Markdown 是唯一源头，PDF 只是产物。** 收到别人批注过的 PDF 时把改动搬回 Markdown，不接受 PDF 作为输入源。导出目录默认进 `.gitignore`，只有实际对外交付过的那一份才提交，文件名带日期与接收方。
 
@@ -129,6 +129,10 @@ bash tools/export-prd.sh 1.0 --title "订阅管理工具"
 | 产品定义 | `product.md` 只写一次，版本相关内容一律进 `versions/<版本>/prd.md` |
 | 版本目录 | 直接写明确版本号，发布后冻结，只允许修正笔误 |
 | 版本与 Git | 发布时打 tag，tag 名与目录名对应 |
+| PRD 结构 | 版本历史加七章；功能需求按模块分组，每个功能含场景描述、需求条目、字段定义、流程 |
+| 名词解释 | 第一次出现的非通用术语必须进表，写清定义、取值范围、谁定的 |
+| 字段定义 | 涉及数据的功能必须有六列字段表：字段名、类型、必填、约束、默认值、说明 |
+| 非功能需求 | 只写产品侧判据（权限可见性、数据留存、统计埋点、安全底线），工程指标归项目交付体系 |
 | 需求编号 | `REQ-<版本>-<三位序号>`，不复用，作废时标注失效 |
 | 任务编号 | `Task-<三位序号>`，版本内唯一，必须关联至少一个需求 |
 | 任务结构 | 六个固定小节：关联需求、任务内容、界面、流程、交互规格、验收 |

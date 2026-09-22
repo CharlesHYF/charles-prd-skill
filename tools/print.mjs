@@ -104,6 +104,9 @@ try {
 		path: options.output,
 		format: "A4",
 		printBackground: true,
+		// 侧边栏书签，按标题层级自动生成，长文档里比翻目录快
+		outline: true,
+		tagged: true,
 		margin: PAGE_MARGIN,
 		displayHeaderFooter: true,
 		headerTemplate: "<div></div>",

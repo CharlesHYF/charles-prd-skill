@@ -69,30 +69,93 @@ INNER
 	cat > "${dir}/versions/1.0/prd.md" <<'INNER'
 # Product 1.0
 
-## 背景
-为什么现在做这一版。
+## 版本历史
 
-## 目标用户与核心问题
-服务谁。
+| 版本 | 日期 | 变更内容 | 修订人 |
+| --- | --- | --- | --- |
+| 1.0 | 2026-09-22 | 初版 | Charles |
 
-## 这一版的目标
-最重要的结果。
+## 1. 需求概述
 
-## Non-goals
-不做什么。
+### 产品背景
+背景。
 
-## 核心用户流程
-主路径。
+### 本版目标
+目标。
 
-## 主要功能与行为
+### 价值点
+价值。
+
+### 涉及系统
+无外部依赖。
+
+### 风险说明
+暂无。
+
+## 2. 产品描述
+
+### 名词解释
+
+| 名词 | 定义 | 取值范围 | 定义来源 |
+| --- | --- | --- | --- |
+| 术语 | 定义 | 枚举 | 本文档 |
+
+### 整体流程
+
+```mermaid
+flowchart LR
+	A[入口] --> B[结果]
+```
+
+### 功能清单
+
+| 模块 | 功能 | 优先级 | 说明 |
+| --- | --- | --- | --- |
+| 模块 | 功能 | P0 | 说明 |
+
+## 3. 功能需求
+
+### 3.1 模块
+
+#### 场景描述
+场景。
+
+#### 需求条目
+
 - REQ-1.0-001 需求一
 - REQ-1.0-002 需求二
 
-## 成功标准 / Release Criteria
-核心流程能走通。
+#### 流程
 
-## 未解决问题
-暂无。
+```mermaid
+flowchart TD
+	A[触发] --> B[结果]
+```
+
+## 4. 非功能需求
+
+### 权限与可见性
+单人使用。
+
+### 数据留存
+永久保留。
+
+### 统计与埋点
+不埋点。
+
+### 安全底线
+不存凭证。
+
+## 5. Non-goals
+不做什么。
+
+## 6. 成功标准 / Release Criteria
+
+- 判据一
+
+## 7. 未解决问题
+
+1. 问题一
 INNER
 
 	echo "# Scope" > "${dir}/versions/1.0/scope.md"
@@ -180,13 +243,13 @@ fi
 echo "=== 场景三：章节与版本状态 ==="
 SECTION_DIR="$(mktemp -d)/docs/prd"
 make_prd "${SECTION_DIR}"
-grep -v '^## Non-goals$' "${SECTION_DIR}/versions/1.0/prd.md" > "${SECTION_DIR}/versions/1.0/prd.tmp"
+grep -v '^## 5. Non-goals$' "${SECTION_DIR}/versions/1.0/prd.md" > "${SECTION_DIR}/versions/1.0/prd.tmp"
 mv "${SECTION_DIR}/versions/1.0/prd.tmp" "${SECTION_DIR}/versions/1.0/prd.md"
 grep -v '^Next:' "${SECTION_DIR}/README.md" > "${SECTION_DIR}/README.tmp"
 mv "${SECTION_DIR}/README.tmp" "${SECTION_DIR}/README.md"
 
 run_check "${SECTION_DIR}"
-expect_contains "${CHECK_OUTPUT}" "缺少章节：## Non-goals" "检查四:缺章节被拦"
+expect_contains "${CHECK_OUTPUT}" "缺少章节：## 5. Non-goals" "检查四:缺章节被拦"
 expect_contains "${CHECK_OUTPUT}" "缺少版本状态声明：Next:" "检查七:缺版本状态被拦"
 
 echo "=== 场景四：需求编号缺失 ==="
