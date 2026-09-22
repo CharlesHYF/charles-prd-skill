@@ -1,12 +1,13 @@
 /**
  * 把 Markdown 渲染成带打印样式的单页 HTML
  * 创建日期：2026-09-21
- * 修改日期：2026-09-21
+ * 修改日期：2026-09-22
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, resolve } from "node:path";
+import { dirname, resolve, isAbsolute } from "node:path";
+import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import MarkdownIt from "markdown-it";
 
@@ -39,6 +40,32 @@ const protectSvgBlocks = (markdownText, blocks) =>
 
 const restoreSvgBlocks = (htmlText, blocks) =>
 	htmlText.replace(SVG_PLACEHOLDER_PATTERN, (match, index) => blocks[Number(index)] ?? match);
+
+// 图片相对路径按 Markdown 文件自身解析，转成绝对 file:// URL。
+// 导出的 HTML 落在 export/ 子目录，与源 Markdown 不同级，不转换会全部破图。
+// 覆盖 Markdown 的 ![](path) 与内联 SVG 的 <image href="path">。
+const IMG_SRC_PATTERN = /(<image\b[^>]*?\s(?:xlink:href|href)\s*=\s*")([^"]+)(")/gi;
+const MD_IMG_PATTERN = /(!\[[^\]]*\]\()([^)\s]+)(\s*(?:"[^"]*")?\))/g;
+
+const isExternal = (url) =>
+	/^(https?:|data:|file:|#|\/\/)/i.test(url) || isAbsolute(url);
+
+const toFileUrl = (baseDir, url) => {
+	if (isExternal(url)) {
+		return url;
+	}
+
+	const decoded = decodeURI(url);
+	return pathToFileURL(resolve(baseDir, decoded)).href;
+};
+
+const resolveAssetPaths = (markdownText, inputPath) => {
+	const baseDir = dirname(resolve(inputPath));
+
+	return markdownText
+		.replace(IMG_SRC_PATTERN, (match, head, url, tail) => `${head}${toFileUrl(baseDir, url)}${tail}`)
+		.replace(MD_IMG_PATTERN, (match, head, url, tail) => `${head}${toFileUrl(baseDir, url)}${tail}`);
+};
 
 const parseArgs = (argv) => {
 	const options = {
@@ -122,6 +149,11 @@ const markdown = new MarkdownIt({
 	typographer: false,
 });
 
+// markdown-it 默认把 file: 当不安全协议直接拒掉，图片会退化成字面文本。
+// resolveAssetPaths 正是要把相对路径转成 file:// 绝对路径，这里必须放行。
+const defaultValidateLink = markdown.validateLink.bind(markdown);
+markdown.validateLink = (url) => defaultValidateLink(url) || /^file:\/\//i.test(url);
+
 // mermaid 代码块交给浏览器端渲染成矢量 SVG，其余代码块走默认高亮
 const defaultFence = markdown.renderer.rules.fence;
 
@@ -145,7 +177,8 @@ if (options.inputs.length === 0 || !options.output) {
 const svgBlocks = [];
 
 const sections = options.inputs.map((inputPath) => {
-	const source = protectSvgBlocks(readFileSync(inputPath, "utf8"), svgBlocks);
+	const raw = resolveAssetPaths(readFileSync(inputPath, "utf8"), inputPath);
+	const source = protectSvgBlocks(raw, svgBlocks);
 	return markdown.render(source);
 });
 

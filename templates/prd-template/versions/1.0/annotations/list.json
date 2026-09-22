@@ -1,0 +1,67 @@
+{
+	"page": "../prototype/pages/list.html",
+	"title": "订单列表页",
+	"role": "manager",
+	"marks": [
+		{
+			"selector": ".filters input[type=text]",
+			"note": "订单号。支持前缀匹配，输入 PO-2026-09 可查出该月全部订单，不做模糊匹配。"
+		},
+		{
+			"selector": ".filters select",
+			"note": "状态。单选，默认全部，取值与表格状态列一致。"
+		},
+		{
+			"selector": ".filters input[type=date]",
+			"note": "创建日期。取单日不取区间，留空表示不限。"
+		},
+		{
+			"selector": ".filters .btn--primary",
+			"steps": [
+				"三个条件之间是且的关系，留空的条件不参与过滤",
+				"点击后表格进入 Loading 态，筛选条禁用",
+				"结果为空时表格区显示空态，保留筛选条让人能改条件",
+				"查询失败时保留上一次结果并在表格上方提示"
+			]
+		},
+		{
+			"selector": ".filters .btn:not(.btn--primary)",
+			"note": "重置。清空三个条件并立即重新查询，不需要再点查询。"
+		},
+		{
+			"selector": "[data-open-modal=batchModal]",
+			"steps": [
+				"未勾选时导出当前筛选条件下的全部数据",
+				"已勾选时只导出勾选的行",
+				"点击后弹窗选择导出字段与格式",
+				"导出量超过一万条时改为异步任务，完成后站内信通知"
+			]
+		},
+		{
+			"selector": ".btn--danger",
+			"steps": [
+				"仅审批岗可见，操作岗不渲染该按钮",
+				"未勾选任何行时置灰，悬停提示先选择订单",
+				"点击后弹二次确认，列出将作废的订单号与总金额",
+				"确认后逐条提交，全部成功弹 toast 并刷新列表",
+				"部分失败则保留失败清单不关弹窗，让人能重试"
+			]
+		},
+		{
+			"selector": "[data-todo=\"Task-002\"]",
+			"note": "新建订单。跳转到新建页，草稿在离开页面时自动保存。"
+		},
+		{
+			"selector": "thead input[type=checkbox]",
+			"note": "全选。只选中当前页的十行，翻页后不保留勾选状态。"
+		},
+		{
+			"selector": "tbody tr:first-child a",
+			"note": "详情。在当前页打开详情，返回时保留原筛选条件与页码。"
+		},
+		{
+			"selector": ".pager",
+			"note": "分页。每页 10 条，总页数超过 5 页时折叠中间页码。"
+		}
+	]
+}

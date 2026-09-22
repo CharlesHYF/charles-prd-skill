@@ -302,6 +302,26 @@ p:has(> img:only-child) + p {
 	text-align: center;
 }
 
+@page wide {
+	size: A4 landscape;
+	margin: 12mm;
+}
+
+p:has(> img[src*="/annotations/"]) {
+	page: wide;
+	break-before: page;
+}
+
+p:has(> img[src*="/annotations/"]) + p {
+	page: wide;
+	break-after: page;
+}
+
+p:has(> img[src*="/annotations/"]) > img {
+	width: 100%;
+	border: none;
+}
+
 table td:first-child {
 	width: 22%;
 	font-weight: 600;

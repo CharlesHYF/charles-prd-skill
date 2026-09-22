@@ -2,7 +2,7 @@
 <!--
 图的画法、类型选择、尺寸约束与界面标注图的做法
 创建日期：2026-09-21
-修改日期：2026-09-21
+修改日期：2026-09-22
 -->
 > **图用 Mermaid 写在 Markdown 里，导出时渲染成矢量 SVG 进 PDF。** 图是文本，改图就是改代码，Git 里有可读 diff，不依赖任何外部服务。
 
@@ -76,27 +76,63 @@ flowchart LR
 - **只画 PRD 里已定义的节点**，不自动补模块
 
 ## 界面标注图
-> 界面标注需要精确的元素位置、框选范围与引线，Mermaid 是自动布局画不了。**这类图直接在 Markdown 里内联 SVG。**
+> **界面标注图标注的是原型本身，不是另画一个界面示意。** 手画的界面和原型必然对不上，原型一改标注就过期。
 
-- 内联 SVG 同样是文本，进 Git 有 diff，导出时是矢量，放大不糊
-- 给 `<svg>` 加 `class="annotation"` 与 `viewBox`，尺寸由样式表控制
-- **SVG 内部的 `<style>` 会影响整个文档**，所有选择器必须加 `.annotation` 前缀限定
-- SVG 内部可以按可读性自由换行留空行。Markdown 的 HTML 块遇空行就结束，`render.mjs` 因此会在渲染前把整块 SVG 换成占位符、渲染后再放回，**不要移除这段保护逻辑**，否则空行后的内容会变成一堆源码输出到 PDF 里
-- 画法要点：界面元素用细边框矩形，标注框用 `#D93025` 红色描边，引线从标注框引到说明文字并以小圆点收尾，说明文字用红色
-- 标注内容写清元素位置与取值规则，**行为规格仍然写在交互规格表里**，图不替代表
+标注清单放 `versions/<版本>/annotations/<页面>.json`，只写选择器和说明，不写坐标：
 
-```html
-<svg class="annotation" viewBox="0 0 1600 900" role="img" aria-label="文件列表与操作区标注">
-	<style>
-		.annotation .ui { font-size: 19px; fill: #1f2430; }
-		.annotation .mark { font-size: 20px; fill: #d93025; }
-		.annotation .box-mark { fill: none; stroke: #d93025; stroke-width: 2.5; }
-	</style>
-	<!-- 界面元素与标注 -->
-</svg>
+```json
+{
+	"page": "../prototype/pages/list.html",
+	"title": "订单列表页",
+	"role": "manager",
+	"setup": ["[data-open-modal=deleteModal]"],
+	"marks": [
+		{ "selector": ".filters input[type=text]", "note": "订单号。支持前缀匹配，不做模糊匹配。" },
+		{
+			"selector": ".btn--danger",
+			"steps": [
+				"未勾选任何行时置灰，悬停提示先选择订单",
+				"点击后弹二次确认，列出将作废的订单号与总金额",
+				"部分失败则保留失败清单不关弹窗，让人能重试"
+			]
+		}
+	]
+}
 ```
 
-完整范例见 [`templates/export/sample-tasks.md`](../templates/export/sample-tasks.md) 里 Task-001 的界面一节。
+生成：
+
+```bash
+node tools/annotate.mjs docs/prd/versions/1.0/annotations/list.json
+```
+
+脚本打开原型页、读每个元素的 `getBoundingClientRect`、截全页图当底图，输出同名 `.svg`。在 `tasks.md` 里用图片引用它：
+
+```markdown
+![订单列表页界面标注](annotations/list.svg)
+```
+
+### 清单字段
+| 字段 | 作用 |
+| --- | --- |
+| `page` | 原型页面路径，相对清单文件 |
+| `title` | 图的无障碍标题 |
+| `role` | 截图前把角色切到谁，用来标注只有某个角色能看到的元素 |
+| `state` | 截图前切到哪个状态，缺省是 success |
+| `setup` | 截图前依次点击的选择器，用来标注弹窗这类要先触发才出现的界面 |
+| `marks[].selector` | 要框选的元素，CSS 选择器 |
+| `marks[].note` | 一句话说明 |
+| `marks[].steps` | 多步骤说明，按 1. 2. 3. 编号排版 |
+
+### 几条硬要求
+- **按钮逐个标注。** 页面上每个按钮、每个筛选控件、每个可点击的链接都要有一条，漏掉的就是没想清楚的
+- **点击后有多步行为的写 `steps` 不写 `note`。** 置灰条件、二次确认、成功与失败各自的界面反应，分步写清楚
+- **选择器找不到元素时脚本直接报错退出**，不会生成一张框错位置的图
+- **不要手改生成的 `.svg`**，改了下次重跑就没了。要改内容改清单
+- 弹窗、空态、失败态各自出一张图，用 `setup` 与 `state` 区分
+- 生成的 `.svg` 是脚本产物但要进 Git，评审的人不必装 Node 也能看
+
+标注图在导出时单独占一个横向页，由 `templates/export/style.css` 的 `@page wide` 控制，不需要在文档里做别的处理。
 
 ## 外部导入的位图
 截图、照片、第三方工具产出的 PNG 这类**位图**才需要配同名 `.md` 说明来源与日期，因为它们无法从文本复现：

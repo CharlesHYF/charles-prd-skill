@@ -426,6 +426,30 @@ printf '%s\n' "对接方填对方团队的负责人。<!-- check-ignore -->" >> 
 run_check "${IGNORE_DIR}"
 expect_not_contains "${CHECK_OUTPUT}" "角色表未定义的角色称谓" "检查九:check-ignore 行被豁免"
 
+echo "=== 场景十：界面标注图必须由清单生成 ==="
+ANN_DIR="$(mktemp -d)/docs/prd"
+make_prd "${ANN_DIR}"
+mkdir -p "${ANN_DIR}/versions/1.0/annotations"
+printf '<svg></svg>\n' > "${ANN_DIR}/versions/1.0/annotations/list.svg"
+run_check "${ANN_DIR}"
+expect_contains "${CHECK_OUTPUT}" "没有对应的标注清单" "检查七:手画标注图被拦"
+
+cat > "${ANN_DIR}/versions/1.0/annotations/list.json" <<'INNER'
+{ "page": "../prototype/pages/list.html", "marks": [] }
+INNER
+run_check "${ANN_DIR}"
+expect_contains "${CHECK_OUTPUT}" "page 指向的原型页面不存在" "检查七:清单指向的原型不存在被拦"
+
+mkdir -p "${ANN_DIR}/versions/1.0/prototype/pages"
+printf '<html></html>\n' > "${ANN_DIR}/versions/1.0/prototype/pages/list.html"
+printf '\n![界面标注](annotations/nope.svg)\n' >> "${ANN_DIR}/versions/1.0/tasks.md"
+run_check "${ANN_DIR}"
+expect_contains "${CHECK_OUTPUT}" "引用了不存在的标注图" "检查七:引用不存在的标注图被拦"
+
+sed -i '' 's@annotations/nope.svg@annotations/list.svg@' "${ANN_DIR}/versions/1.0/tasks.md"
+run_check "${ANN_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "没有对应的标注清单" "检查七:清单与图齐备后放行"
+
 echo "=== 场景六：仓库自带模板必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-template"
 expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "模板通过自身校验"
