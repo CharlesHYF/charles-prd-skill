@@ -474,6 +474,18 @@ printf '<button data-todo="Task-099">新建</button>\n' > "${TODO_DIR}/versions/
 run_check "${TODO_DIR}"
 expect_not_contains "${CHECK_OUTPUT}" "原型里却还挂着 data-todo 占位" "检查八:未定义任务的占位放行"
 
+echo "=== 场景十二：原型改过而没重新截图要拦住 ==="
+FRESH_DIR="$(mktemp -d)/docs/prd"
+mkdir -p "${FRESH_DIR}"
+cp -R "${REPO_ROOT}/templates/prd-template/." "${FRESH_DIR}/"
+run_check "${FRESH_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "原型之后改过" "检查七:未改动时不误报"
+
+printf '\n<!-- 动一行 -->\n' >> "${FRESH_DIR}/versions/1.0/prototype/pages/list.html"
+run_check "${FRESH_DIR}"
+expect_contains "${CHECK_OUTPUT}" "原型之后改过" "检查七:坐标过期被拦"
+expect_contains "${CHECK_OUTPUT}" "先重跑 tools/capture.mjs" "检查七:给出修复办法"
+
 echo "=== 场景六：仓库自带模板必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-template"
 expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "模板通过自身校验"

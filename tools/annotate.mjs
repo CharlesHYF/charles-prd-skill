@@ -7,6 +7,7 @@
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, resolve, relative, join } from "node:path";
+import { prototypeFingerprint, prototypeRootOf } from "./fingerprint.mjs";
 
 const COORDS_NAME = "_coords.json";
 
@@ -254,6 +255,21 @@ for (const arg of args) {
 		console.error(`[NG] ${COORDS_NAME} 里没有 ${shot} 的坐标，先跑 capture.mjs ${shot}.json`);
 		failed += 1;
 		continue;
+	}
+
+	// 原型改过而没重跑 capture 的话，坐标是旧的，画出来整体错位且看不出来
+	const shotSpec = join(dir, `${shot}.json`);
+
+	if (existsSync(shotSpec)) {
+		const page = resolve(dir, JSON.parse(readFileSync(shotSpec, "utf8")).page ?? "");
+		const protoRoot = prototypeRootOf(page);
+
+		if (existsSync(protoRoot) && all[shot].fingerprint && prototypeFingerprint(protoRoot) !== all[shot].fingerprint) {
+			console.error(`[NG] ${shot}: 原型自 ${all[shot].capturedAt ?? "上次截图"} 之后改过，坐标已过期`);
+			console.error(`     先重跑 node tools/capture.mjs ${shot}.json 再生成标注`);
+			failed += 1;
+			continue;
+		}
 	}
 
 	if (!spec.inject) {

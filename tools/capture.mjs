@@ -5,9 +5,10 @@
  * 修改日期：2026-09-22
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, resolve, join } from "node:path";
 import puppeteer from "puppeteer-core";
+import { prototypeFingerprint, prototypeRootOf } from "./fingerprint.mjs";
 
 const CHROME_CANDIDATES = [
 	"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -161,6 +162,8 @@ for (const arg of args) {
 		continue;
 	}
 
+	const protoRoot = prototypeRootOf(pageFile);
+
 	const page = await browser.newPage();
 	await page.setViewport({ width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT, deviceScaleFactor: SCALE });
 	await page.goto(`file://${pageFile}`, { waitUntil: "networkidle0" });
@@ -261,6 +264,8 @@ for (const arg of args) {
 
 	const coordsFile = join(dir, COORDS_NAME);
 	const coords = existsSync(coordsFile) ? JSON.parse(readFileSync(coordsFile, "utf8")) : {};
+	measured.fingerprint = prototypeFingerprint(protoRoot);
+	measured.capturedAt = new Date().toISOString().slice(0, 19).replace("T", " ");
 	coords[shot] = measured;
 	writeFileSync(coordsFile, `${JSON.stringify(coords, null, "\t")}\n`, "utf8");
 

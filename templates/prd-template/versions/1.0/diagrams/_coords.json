@@ -379,7 +379,9 @@
 				"w": 37,
 				"h": 31
 			}
-		]
+		],
+		"fingerprint": "2fb14d317784df3eefeb92647ced8a22260d8293bdde37d65e5923c0cd6f9e14",
+		"capturedAt": "2026-09-22 10:09:32"
 	},
 	"list-delete-modal": {
 		"w": 600,
@@ -441,7 +443,9 @@
 				"w": 82,
 				"h": 34
 			}
-		]
+		],
+		"fingerprint": "2fb14d317784df3eefeb92647ced8a22260d8293bdde37d65e5923c0cd6f9e14",
+		"capturedAt": "2026-09-22 10:09:33"
 	},
 	"dashboard": {
 		"w": 1440,
@@ -527,6 +531,8 @@
 				"w": 688,
 				"h": 349
 			}
-		]
+		],
+		"fingerprint": "2fb14d317784df3eefeb92647ced8a22260d8293bdde37d65e5923c0cd6f9e14",
+		"capturedAt": "2026-09-22 10:09:35"
 	}
 }

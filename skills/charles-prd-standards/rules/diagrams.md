@@ -188,13 +188,15 @@ node tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks.json
 | `marks[].note` | 标注清单 | 一句话说明 |
 | `marks[].steps` | 标注清单 | 多步骤说明，按 1. 2. 3. 编号排版 |
 
+`_coords.json` 里除了坐标还有 `fingerprint` 与 `capturedAt`，是 `capture.mjs` 自动写的，不要手改。指纹按内容算不按修改时间算，因为 `git checkout` 与 `cp` 都会改 mtime 但内容没变。
+
 `_coords.json` 里列出了页面上所有可标注元素的 `kind` 与 `txt`，写标注清单时照着挑。找不到元素时脚本会把候选列出来。
 
 ### 几条硬要求
 - **按钮逐个标注。** 页面上每个按钮、每个筛选控件、每个可点击的链接都要有一条，漏掉的就是没想清楚的
 - **点击后有多步行为的写 `steps` 不写 `note`。** 置灰条件、二次确认、成功与失败各自的界面反应，分步写清楚
 - **不要手写坐标，也不要手改生成的 SVG**，改了下次重跑就没了。要改内容改标注清单
-- **原型改动后先重跑 `capture.mjs` 再重跑 `annotate.mjs`**，只跑后者会拿旧坐标画新说明
+- **原型改动后先重跑 `capture.mjs` 再重跑 `annotate.mjs`**，只跑后者会拿旧坐标画新说明。这条不用靠自觉：`capture.mjs` 把原型目录的内容指纹写进 `_coords.json`，`annotate.mjs` 与 `check.sh` 都会比对，对不上直接拒绝出图
 - 弹窗、空态、失败态各自出一张图，用 `setup` 与 `state` 区分
 - **弹窗要配 `crop`**，整页截完弹窗只占中间一小块，缩到正文宽度后里面的文案读不出来。裁过的小截图会被等比放大填满图区，不用担心变小
 - PNG 与 `_coords.json` 都要进 Git，评审的人不必装 Node 也能看

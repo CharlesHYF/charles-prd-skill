@@ -250,6 +250,87 @@ check_field_types() {
 	fi
 }
 
+# 原型改过而没重新截图的话，标注框会整体错位，而且从文档上看不出来
+# 指纹算法与 tools/fingerprint.mjs 一致：路径与文件内容各自 sha256 后再整体 sha256
+check_coords_freshness() {
+	local coords_file="$1"
+
+	if ! command -v python3 > /dev/null 2>&1; then
+		return
+	fi
+
+	local stale
+	stale=$(COORDS="${coords_file}" python3 <<'PYFRESH'
+import hashlib, json, os, sys
+
+coords_file = os.environ['COORDS']
+base = os.path.dirname(coords_file)
+
+try:
+    coords = json.load(open(coords_file, encoding='utf-8'))
+except Exception:
+    print('_coords.json 不是合法 JSON')
+    sys.exit(0)
+
+
+def fingerprint(root):
+    parts = []
+    for cur, dirs, files in os.walk(root):
+        dirs[:] = sorted(d for d in dirs if not d.startswith('.'))
+        for name in sorted(f for f in files if not f.startswith('.')):
+            full = os.path.join(cur, name)
+            with open(full, 'rb') as fh:
+                digest = hashlib.sha256(fh.read()).hexdigest()
+            parts.append(f"{os.path.relpath(full, root)}\0{digest}")
+    parts.sort()
+    return hashlib.sha256('\n'.join(parts).encode()).hexdigest()
+
+
+cache = {}
+
+for shot, data in coords.items():
+    want = data.get('fingerprint')
+
+    if not want:
+        continue
+
+    spec_file = os.path.join(base, f'{shot}.json')
+
+    if not os.path.isfile(spec_file):
+        continue
+
+    page = json.load(open(spec_file, encoding='utf-8')).get('page', '')
+    page_path = os.path.normpath(os.path.join(base, page))
+    root = os.path.dirname(page_path)
+
+    if '/pages/' in page_path.replace(os.sep, '/'):
+        root = os.path.dirname(root)
+
+    if not os.path.isdir(root):
+        continue
+
+    if root not in cache:
+        cache[root] = fingerprint(root)
+
+    if cache[root] != want:
+        print(f"{shot} 的坐标是 {data.get('capturedAt', '早前')} 量的，原型之后改过")
+PYFRESH
+)
+
+	if [ -z "${stale}" ]; then
+		return
+	fi
+
+	local line
+	while IFS= read -r line; do
+
+		if [ -n "${line}" ]; then
+			report "${line}(标注框会整体错位,先重跑 tools/capture.mjs 再重跑 tools/annotate.mjs)"
+		fi
+
+	done <<< "${stale}"
+}
+
 # 检查六之二：界面标注图必须由截图与坐标生成
 # 拦的是手画标注、标注清单指向没截过的页面、以及标记块留空忘了跑生成
 check_annotations() {
@@ -263,6 +344,8 @@ check_annotations() {
 		if [ ! -f "${note}" ]; then
 			report "${coords} 缺少同名来源说明 _coords.md(坐标是量出来的,要记录来源与日期)"
 		fi
+
+		check_coords_freshness "${coords}"
 
 	done < <(find "${PRD_ROOT}" -type f -name '_coords.json' 2>/dev/null)
 
