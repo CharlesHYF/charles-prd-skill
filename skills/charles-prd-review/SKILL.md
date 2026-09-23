@@ -13,10 +13,11 @@ metadata:
 ## 前置阅读
 - [目录结构](../charles-prd-standards/rules/structure.md)
 - [信息落点边界](../charles-prd-standards/rules/boundaries.md)
+- 命令里的 `<skill 目录>` 见 [主规范](../charles-prd-standards/SKILL.md) 的工具与模板路径
 
 ## 先跑结构校验
 ```bash
-bash tools/check.sh docs/prd
+bash <skill 目录>/tools/check.sh docs/prd
 ```
 结构问题以脚本结论为准，不逐条肉眼找。脚本红的先改完再进入内容评审，否则意见会被格式问题淹没。
 

@@ -130,7 +130,7 @@ flowchart LR
 ```
 
 ```bash
-node tools/capture.mjs docs/prd/versions/1.0/diagrams/list.json
+node <skill 目录>/tools/capture.mjs docs/prd/versions/1.0/diagrams/list.json
 ```
 
 产出 `list.png`、`list.md`（位图来源说明）与 `_coords.json` 里的一个条目。截图前会自动移除原型的状态切换条，那是调试工具不是产品界面。
@@ -159,7 +159,7 @@ node tools/capture.mjs docs/prd/versions/1.0/diagrams/list.json
 ```
 
 ```bash
-node tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks.json
+node <skill 目录>/tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks.json
 ```
 
 生成的 SVG 写进 `inject` 指向文档里这对标记之间，重跑覆盖，不会追加：

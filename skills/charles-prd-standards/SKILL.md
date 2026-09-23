@@ -63,6 +63,11 @@ project/docs/prd/
 
 模板在 [`templates/prd-template/`](templates/prd-template/)，直接复制为起点。
 
+## 工具与模板路径
+- 文中的 `tools/`、`templates/` 指 `<skill 目录>` 下的同名目录，不在产品仓里
+- `<skill 目录>` 是当前加载的 SKILL.md 所在目录；四个 skill 各自带 `tools` 与 `templates` 软链，加载哪个就用哪个的目录
+- 命令一律在产品仓根目录执行，如 `bash <skill 目录>/tools/check.sh docs/prd`
+
 ## 工具选择
 | 内容 | 用什么 |
 | --- | --- |

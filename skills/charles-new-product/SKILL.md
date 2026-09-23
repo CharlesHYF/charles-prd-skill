@@ -13,6 +13,7 @@ metadata:
 ## 前置阅读
 - [目录结构](../charles-prd-standards/rules/structure.md)
 - [与编码规范的边界](../charles-prd-standards/rules/boundaries.md)
+- 命令里的 `<skill 目录>` 见 [主规范](../charles-prd-standards/SKILL.md) 的工具与模板路径
 
 ## 短循环
 不要把 PRD、设计、原型、开发拆成很多正式阶段，保持一个短循环。
@@ -114,12 +115,12 @@ metadata:
 | `versions/1.0/tasks.md` | 任务与交互规格，**界面标注图内联 SVG** |
 | `versions/1.0/notes.md` | 问不出来的待验证问题与影响范围 |
 | `versions/1.0/prototype/` | 核心 Journey 的可点击原型，含四种状态 |
-| 两份 PDF | 用 `tools/export-prd.sh` 产出，产品需求对外、任务规格内部 |
+| 两份 PDF | 用 `<skill 目录>/tools/export-prd.sh` 产出，产品需求对外、任务规格内部 |
 
 产出后自己跑一遍校验与评审再交付：
 
 ```bash
-bash tools/check.sh docs/prd
+bash <skill 目录>/tools/check.sh docs/prd
 ```
 
 再按 [charles-prd-review](../charles-prd-review/SKILL.md) 的八类清单自评审，发现的矛盾直接改掉，改不了的列进交付说明。

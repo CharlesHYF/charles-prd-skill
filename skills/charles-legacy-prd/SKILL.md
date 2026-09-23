@@ -24,6 +24,7 @@ metadata:
 ## 前置阅读
 - [目录结构](../charles-prd-standards/rules/structure.md)
 - [任务与交互规格](../charles-prd-standards/rules/tasks.md)
+- 命令里的 `<skill 目录>` 见 [主规范](../charles-prd-standards/SKILL.md) 的工具与模板路径
 
 ## 五步
 
@@ -90,7 +91,7 @@ metadata:
 | `versions/<线上版本>/tasks.md` | **只为 `[新增]` 与需要改的功能写任务**，已实现且不动的不写交互规格 |
 | `versions/<线上版本>/notes.md` | 技术债清单、文档与代码不一致处、问不出来的项 |
 | `decisions.md` | 第 4 步问出来的设计约束与理由 |
-| 两份 PDF | 用 `tools/export-prd.sh` 产出 |
+| 两份 PDF | 用 `<skill 目录>/tools/export-prd.sh` 产出 |
 
 **不要为已实现且不打算改的功能写界面标注图与交互规格**，那是纯消耗。任务文档只覆盖接下来要动的部分。
 
@@ -99,5 +100,5 @@ metadata:
 - 所有 `[已实现·待确认]` 已转成 `[已实现]` 或 `[遗留]`
 - 行为描述与代码一致，不一致处已记进 `notes.md`
 - 版本号对应当前线上版本
-- `bash tools/check.sh docs/prd` 全绿
+- `bash <skill 目录>/tools/check.sh docs/prd` 全绿
 - 按 [charles-prd-review](../charles-prd-review/SKILL.md) 的八类清单自评审完毕

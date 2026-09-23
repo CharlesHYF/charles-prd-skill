@@ -34,7 +34,7 @@ Markdown 渲染成带打印样式的 HTML，再用本机 Chrome 打印为 PDF。
 一条命令产出该版本的两份 PDF：
 
 ```bash
-bash tools/export-prd.sh 1.0 --title "产品名称"
+bash <skill 目录>/tools/export-prd.sh 1.0 --title "产品名称"
 ```
 
 产物落在 `docs/prd/versions/1.0/export/` 下：`prd-1.0.pdf` 与 `tasks-1.0.pdf`。标题缺省从 `docs/prd/README.md` 的一级标题取。只要其中一份时加 `--prd-only` 或 `--tasks-only`。
@@ -42,7 +42,7 @@ bash tools/export-prd.sh 1.0 --title "产品名称"
 需要自定义组合时用底层命令：
 
 ```bash
-bash tools/export-pdf.sh \
+bash <skill 目录>/tools/export-pdf.sh \
 	docs/prd/product.md \
 	docs/prd/versions/1.0/prd.md \
 	--title "产品名称" \
@@ -58,12 +58,7 @@ bash tools/export-pdf.sh \
 - 首次运行会安装渲染依赖，之后离线可用
 
 ## 工具从 skill 调用，不复制进产品仓
-> skill 目录内有 `tools` 与 `templates` 软链，直接调用即可，**不要把它们复制到产品仓库里**。
-
-```bash
-# 软链安装的路径，其它工具按各自的 skills 目录替换
-bash ~/.claude/skills/charles-prd-standards/tools/export-prd.sh 1.0 --title "产品名称"
-```
+> skill 目录内有 `tools` 与 `templates` 软链，按 `<skill 目录>/tools/...` 直接调用即可，**不要把它们复制到产品仓库里**。`<skill 目录>` 的含义见 [主规范](../SKILL.md) 的工具与模板路径。
 
 - 复制过去会让每个产品仓多背上百 MB 的渲染依赖
 - 更麻烦的是 `check.sh`、`style.css`、`mermaid-theme.json` 变成散落各处的拷贝，skill 更新后不会同步，同一条规则在不同项目里表现不一样
