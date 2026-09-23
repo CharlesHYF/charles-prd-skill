@@ -1,87 +1,87 @@
 {
-	"look": "handDrawn",
-	"theme": "base",
-	"fontFamily": "\"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", system-ui, sans-serif",
-	"themeVariables": {
-		"primaryColor": "#E8F0FE",
-		"primaryTextColor": "#1F2430",
-		"primaryBorderColor": "#2563EB",
-		"lineColor": "#3D4657",
-		"secondaryColor": "#FEF6E4",
-		"secondaryBorderColor": "#D99A2B",
-		"tertiaryColor": "#E7F6EF",
-		"tertiaryBorderColor": "#2E9E6B",
-		"background": "#FDFDFB",
-		"mainBkg": "#E8F0FE",
-		"nodeBorder": "#2563EB",
-		"clusterBkg": "#F7F9FC",
-		"clusterBorder": "#C7D2E0",
-		"titleColor": "#1F2430",
-		"edgeLabelBackground": "#FDFDFB",
-		"actorBkg": "#E8F0FE",
-		"actorBorder": "#2563EB",
-		"actorTextColor": "#1F2430",
-		"activationBkgColor": "#FEF6E4",
-		"signalColor": "#3D4657",
-		"signalTextColor": "#1F2430",
-		"labelBoxBkgColor": "#E7F6EF",
-		"labelBoxBorderColor": "#2E9E6B",
-		"noteBkgColor": "#FEF6E4",
-		"noteBorderColor": "#D99A2B",
-		"sectionBkgColor": "#E8F0FE",
-		"altSectionBkgColor": "#FDFDFB",
-		"sectionBkgColor2": "#E7F6EF",
-		"taskBkgColor": "#E8F0FE",
-		"taskBorderColor": "#2563EB",
-		"activeTaskBkgColor": "#FEF6E4",
-		"activeTaskBorderColor": "#D99A2B",
-		"doneTaskBkgColor": "#E7F6EF",
-		"doneTaskBorderColor": "#2E9E6B",
-		"critBkgColor": "#FBE4E2",
-		"critBorderColor": "#D93025",
-		"attributeBackgroundColorOdd": "#FDFDFB",
-		"attributeBackgroundColorEven": "#F7F9FC",
-		"pie1": "#2563EB",
-		"pie2": "#D99A2B",
-		"pie3": "#2E9E6B",
-		"pie4": "#D93025",
-		"pie5": "#7C5CBF",
-		"fontSize": "15px"
-	},
-	"flowchart": {
-		"useMaxWidth": false,
-		"htmlLabels": true,
-		"nodeSpacing": 30,
-		"rankSpacing": 45
-	},
-	"sequence": {
-		"useMaxWidth": false
-	},
-	"state": {
-		"useMaxWidth": false
-	},
-	"er": {
-		"useMaxWidth": false
-	},
-	"gantt": {
-		"useMaxWidth": false
-	},
-	"journey": {
-		"useMaxWidth": false
-	},
-	"quadrantChart": {
-		"useMaxWidth": false
-	},
-	"timeline": {
-		"useMaxWidth": false
-	},
-	"architecture": {
-		"useMaxWidth": false
-	},
-	"class": {
-		"useMaxWidth": false
-	},
-	"pie": {
-		"useMaxWidth": false
-	}
+  "look": "handDrawn",
+  "theme": "base",
+  "fontFamily": "\"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", system-ui, sans-serif",
+  "themeVariables": {
+    "primaryColor": "#E8F0FE",
+    "primaryTextColor": "#1F2430",
+    "primaryBorderColor": "#2563EB",
+    "lineColor": "#3D4657",
+    "secondaryColor": "#FEF6E4",
+    "secondaryBorderColor": "#D99A2B",
+    "tertiaryColor": "#E7F6EF",
+    "tertiaryBorderColor": "#2E9E6B",
+    "background": "#FDFDFB",
+    "mainBkg": "#E8F0FE",
+    "nodeBorder": "#2563EB",
+    "clusterBkg": "#F7F9FC",
+    "clusterBorder": "#C7D2E0",
+    "titleColor": "#1F2430",
+    "edgeLabelBackground": "#FDFDFB",
+    "actorBkg": "#E8F0FE",
+    "actorBorder": "#2563EB",
+    "actorTextColor": "#1F2430",
+    "activationBkgColor": "#FEF6E4",
+    "signalColor": "#3D4657",
+    "signalTextColor": "#1F2430",
+    "labelBoxBkgColor": "#E7F6EF",
+    "labelBoxBorderColor": "#2E9E6B",
+    "noteBkgColor": "#FEF6E4",
+    "noteBorderColor": "#D99A2B",
+    "sectionBkgColor": "#E8F0FE",
+    "altSectionBkgColor": "#FDFDFB",
+    "sectionBkgColor2": "#E7F6EF",
+    "taskBkgColor": "#E8F0FE",
+    "taskBorderColor": "#2563EB",
+    "activeTaskBkgColor": "#FEF6E4",
+    "activeTaskBorderColor": "#D99A2B",
+    "doneTaskBkgColor": "#E7F6EF",
+    "doneTaskBorderColor": "#2E9E6B",
+    "critBkgColor": "#FBE4E2",
+    "critBorderColor": "#D93025",
+    "attributeBackgroundColorOdd": "#FDFDFB",
+    "attributeBackgroundColorEven": "#F7F9FC",
+    "pie1": "#2563EB",
+    "pie2": "#D99A2B",
+    "pie3": "#2E9E6B",
+    "pie4": "#D93025",
+    "pie5": "#7C5CBF",
+    "fontSize": "15px"
+  },
+  "flowchart": {
+    "useMaxWidth": false,
+    "htmlLabels": true,
+    "nodeSpacing": 30,
+    "rankSpacing": 45
+  },
+  "sequence": {
+    "useMaxWidth": false
+  },
+  "state": {
+    "useMaxWidth": false
+  },
+  "er": {
+    "useMaxWidth": false
+  },
+  "gantt": {
+    "useMaxWidth": false
+  },
+  "journey": {
+    "useMaxWidth": false
+  },
+  "quadrantChart": {
+    "useMaxWidth": false
+  },
+  "timeline": {
+    "useMaxWidth": false
+  },
+  "architecture": {
+    "useMaxWidth": false
+  },
+  "class": {
+    "useMaxWidth": false
+  },
+  "pie": {
+    "useMaxWidth": false
+  }
 }

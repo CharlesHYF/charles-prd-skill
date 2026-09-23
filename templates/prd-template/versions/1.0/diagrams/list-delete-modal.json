@@ -1,11 +1,11 @@
 {
-	"shot": "list-delete-modal",
-	"page": "../prototype/pages/list.html",
-	"title": "批量作废确认弹窗",
-	"role": "manager",
-	"setup": [
-		"[data-open-modal=deleteModal]"
-	],
-	"crop": ".modal",
-	"cropPad": 70
+  "shot": "list-delete-modal",
+  "page": "../prototype/pages/list.html",
+  "title": "批量作废确认弹窗",
+  "role": "manager",
+  "setup": [
+    "[data-open-modal=deleteModal]"
+  ],
+  "crop": ".modal",
+  "cropPad": 70
 }

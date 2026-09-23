@@ -1,6 +1,6 @@
 {
-	"shot": "list",
-	"page": "../prototype/pages/list.html",
-	"title": "订单列表页",
-	"role": "manager"
+  "shot": "list",
+  "page": "../prototype/pages/list.html",
+  "title": "订单列表页",
+  "role": "manager"
 }

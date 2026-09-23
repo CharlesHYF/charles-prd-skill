@@ -1,5 +1,5 @@
 {
-	"shot": "dashboard",
-	"page": "../prototype/pages/dashboard.html",
-	"title": "经营看板"
+  "shot": "dashboard",
+  "page": "../prototype/pages/dashboard.html",
+  "title": "经营看板"
 }
