@@ -529,12 +529,32 @@ expect_contains "${SCAN_OUTPUT}" "U+1F600：emoji.md:1" "扫描:Emoji 被拦"
 expect_not_contains "${SCAN_OUTPUT}" "shot.png" "扫描:二进制文件跳过"
 expect_not_contains "${SCAN_OUTPUT}" "linked.md" "扫描:软链跳过"
 
+echo "=== 场景十四：骨架里的 [待填] 必须替换 ==="
+FILL_DIR="$(mktemp -d)/docs/prd"
+make_prd "${FILL_DIR}"
+run_check "${FILL_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "还留着 [待填] 占位" "检查十一:没有待填时不误报"
+
+printf '%s\n' "- [待填] 这一版明确不做什么" >> "${FILL_DIR}/versions/1.0/prd.md"
+printf '%s\n' "<div>[待填] 页面内容</div>" > "${FILL_DIR}/versions/1.0/prototype/index.html"
+FILL_LINE=$(grep -nF "[待填]" "${FILL_DIR}/versions/1.0/prd.md" | cut -d: -f1)
+run_check "${FILL_DIR}"
+expect_contains "${CHECK_OUTPUT}" "versions/1.0/prd.md:${FILL_LINE} 还留着 [待填] 占位" "检查十一:文档里的待填被拦并报出行号"
+expect_contains "${CHECK_OUTPUT}" "prototype/index.html:1 还留着 [待填] 占位" "检查十一:原型里的待填被拦"
+
 echo "=== 场景六：仓库自带样例与骨架必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-example"
 expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "样例通过自身校验"
 
 run_check "${REPO_ROOT}/templates/prd-template"
-expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "骨架通过自身校验"
+SKELETON_FAILS=$(printf '%s\n' "${CHECK_OUTPUT}" | grep -cF "[FAIL]")
+SKELETON_FILL_FAILS=$(printf '%s\n' "${CHECK_OUTPUT}" | grep -F "[FAIL]" | grep -cF "还留着 [待填] 占位")
+
+if [ "${SKELETON_FAILS}" -gt 0 ] && [ "${SKELETON_FAILS}" -eq "${SKELETON_FILL_FAILS}" ]; then
+	pass "骨架只报 [待填] 残留，共 ${SKELETON_FAILS} 处"
+else
+	fail "骨架应只报 [待填] 残留：FAIL ${SKELETON_FAILS} 处，其中待填 ${SKELETON_FILL_FAILS} 处"
+fi
 
 echo "==============================="
 echo "通过 ${PASS_COUNT} 项，失败 ${FAIL_COUNT} 项"

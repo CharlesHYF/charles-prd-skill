@@ -20,7 +20,7 @@
    bash tests/check_structure.sh
    find tools tests -name '*.sh' -not -path '*/node_modules/*' -print0 | xargs -0 shellcheck --severity=warning
    ```
-2. 改了规则文本，检查 `templates/prd-example/` 与 `templates/prd-template/` 是否仍然通过 `tools/check.sh`；样例改了内容要重新导出 `templates/export/` 下的样张
+2. 改了规则文本，检查 `templates/prd-example/` 是否仍然通过 `tools/check.sh`，`templates/prd-template/` 是否只报 `[待填]` 残留；样例改了内容要重新导出 `templates/export/` 下的样张
 3. 新增规则时优先考虑能否被 `tools/check.sh` 机器验证，不能验证的放进 `charles-prd-review` 的内容评审清单
 4. 版本号必须同步：每个 SKILL.md 的 metadata、各 plugin 配置与 `gemini-extension.json`，以主 skill 为准，`tests/check_structure.sh` 会比对
 
@@ -120,7 +120,7 @@
 ```bash
 bash tools/check.sh docs/prd          # 校验某个项目的 PRD 结构
 bash tools/check.sh templates/prd-example    # 校验样例
-bash tools/check.sh templates/prd-template   # 校验骨架
+bash tools/check.sh templates/prd-template   # 校验骨架，只应报 [待填] 残留
 bash tools/export-prd.sh 1.0 --root templates/prd-example --title 示例产品   # 重新导出样张，产物移到 templates/export/
 bash tests/run_tests.sh               # check.sh 回归测试
 bash tests/check_structure.sh         # skill 完整性、版本号、链接与禁用字符

@@ -7,7 +7,13 @@
 set -uo pipefail
 
 # 校验范围，与 README 同源，改这里要同步改那一处
-LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/占位残留/角色引用'
+LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/占位残留/角色引用/待填残留'
+
+# 检查步骤总数，新增检查时同步加一
+TOTAL_STEPS=11
+
+# 骨架里要填的位置统一用这个前缀，交付前必须全部替换
+FILL_MARK='[待填]'
 
 # 违规计数：任意一项 > 0 则退出码非 0
 VIOLATIONS=0
@@ -80,7 +86,7 @@ report() {
 
 # 检查一：PRD 根目录下的必需文件
 check_required_files() {
-	echo "[1/10] 检查必需文件..."
+	echo "[1/${TOTAL_STEPS}] 检查必需文件..."
 
 	local required
 	for required in "README.md" "product.md"; do
@@ -97,7 +103,7 @@ check_required_files() {
 
 # 检查二：版本目录命名，禁止 current / latest / new 这类会过期的名字
 check_version_dirs() {
-	echo "[2/10] 检查版本目录命名..."
+	echo "[2/${TOTAL_STEPS}] 检查版本目录命名..."
 
 	if [ ! -d "${PRD_ROOT}/versions" ]; then
 		return
@@ -125,7 +131,7 @@ check_version_dirs() {
 
 # 检查三：major 版本必须有 prd.md 与 scope.md，minor 版本至少有 changes.md
 check_version_docs() {
-	echo "[3/10] 检查版本内必需文档..."
+	echo "[3/${TOTAL_STEPS}] 检查版本内必需文档..."
 
 	if [ ! -d "${PRD_ROOT}/versions" ]; then
 		return
@@ -166,7 +172,7 @@ check_version_docs() {
 
 # 检查四：prd.md 的八个章节不增不减
 check_prd_sections() {
-	echo "[4/10] 检查 prd.md 章节完整性..."
+	echo "[4/${TOTAL_STEPS}] 检查 prd.md 章节完整性..."
 
 	local prd_file section
 	while IFS= read -r prd_file; do
@@ -188,7 +194,7 @@ check_prd_sections() {
 # 规范本身要求交叉引用：失效需求指向替代编号、未解决问题标注影响的需求、
 # Later 指向后续版本需求，这些都会让同一编号在文中出现多次，但不构成重复分配。
 check_requirement_ids() {
-	echo "[5/10] 检查需求编号..."
+	echo "[5/${TOTAL_STEPS}] 检查需求编号..."
 
 	local prd_file ids defined duplicated
 	while IFS= read -r prd_file; do
@@ -214,7 +220,7 @@ check_requirement_ids() {
 # Mermaid 图写进 diagrams/ 独立文件的话，正文与导出的 PDF 里都没有图，等于白画
 # 位图无法从文本复现，必须配同名说明记录来源
 check_diagram_notes() {
-	echo "[6/10] 检查图的位置与来源..."
+	echo "[6/${TOTAL_STEPS}] 检查图的位置与来源..."
 
 	local diagram_file
 	while IFS= read -r diagram_file; do
@@ -335,7 +341,7 @@ PYFRESH
 # 检查六之二：界面标注图必须由截图与坐标生成
 # 拦的是手画标注、标注清单指向没截过的页面、以及标记块留空忘了跑生成
 check_annotations() {
-	echo "[7/10] 检查界面标注图..."
+	echo "[7/${TOTAL_STEPS}] 检查界面标注图..."
 
 	local coords marks shot doc mark note inject
 
@@ -405,7 +411,7 @@ check_annotations() {
 
 # 检查七：README 必须声明三个版本状态
 check_version_states() {
-	echo "[8/10] 检查版本状态声明..."
+	echo "[8/${TOTAL_STEPS}] 检查版本状态声明..."
 
 	local readme="${PRD_ROOT}/README.md"
 
@@ -425,7 +431,7 @@ check_version_states() {
 # 检查八：任务编号、必需小节与交互规格字段
 # 图上的标注不能代替规格表，字段缺一项就意味着开发要回头问
 check_tasks() {
-	echo "[9/10] 检查任务与交互规格..."
+	echo "[9/${TOTAL_STEPS}] 检查任务与交互规格..."
 
 	local task_file
 	while IFS= read -r task_file; do
@@ -543,7 +549,7 @@ check_todo_leftovers() {
 # 角色表与正文相隔几百行，这类不一致靠人工评审很难发现，交给脚本。
 # 用 python3 做中文分词判定：grep -E 没有中文词边界，会把"一人一岗"切成"一岗"误报。
 check_cross_reference() {
-	echo "[10/10] 检查角色与术语交叉引用..."
+	echo "[10/${TOTAL_STEPS}] 检查角色与术语交叉引用..."
 
 	local product_file="${PRD_ROOT}/product.md"
 
@@ -635,6 +641,17 @@ PYCHECK
 	done <<< "${result}"
 }
 
+# 检查十一：骨架复制后没替换的 [待填]
+# 结构检查全绿不代表内容已经写了，骨架的每个待填位置都带固定前缀，靠它拦住没写完就交付
+check_fill_placeholders() {
+	echo "[11/${TOTAL_STEPS}] 检查 [待填] 残留..."
+
+	local hit
+	while IFS= read -r hit; do
+		report "${hit} 还留着 ${FILL_MARK} 占位(骨架复制后要逐项替换成真实内容,不适用的整节删掉或写暂无)"
+	done < <(grep -rnF --include='*.md' --include='*.html' --exclude-dir=export --exclude-dir=node_modules -- "${FILL_MARK}" "${PRD_ROOT}" 2>/dev/null | cut -d: -f1,2)
+}
+
 if [ ! -d "${PRD_ROOT}" ]; then
 	echo "[NG] 找不到 PRD 目录：${PRD_ROOT}"
 	echo "用法: check.sh [PRD 根目录]  缺省为 docs/prd"
@@ -656,6 +673,7 @@ check_version_states
 check_tasks
 check_todo_leftovers
 check_cross_reference
+check_fill_placeholders
 
 echo "==============================="
 
