@@ -1,6 +1,6 @@
 ---
 name: charles-new-product
-description: Use when starting a brand-new product from zero for Charles, including when he asks to produce the whole PRD package in one go - asks all blocking questions first in batches of four and waits for every answer before writing anything, then produces product definition, PRD, scope, tasks with interaction specs, diagrams, prototype and both PDFs together. Not for adding a feature to an existing product.
+description: Use when starting a brand-new product from zero for Charles, including requests to produce the whole PRD package in one go. Not for adding a feature to an existing product, and not for documenting a product whose code is already running.
 metadata:
   version: "1.0.0"
   author: Charles <w1400214654@outlook.com>

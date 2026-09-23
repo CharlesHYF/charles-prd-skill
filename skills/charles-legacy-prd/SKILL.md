@@ -1,6 +1,6 @@
 ---
 name: charles-legacy-prd
-description: Use when an existing codebase needs product documentation written after the fact for Charles - scanning the implementation to inventory what the product actually does, marking which requirements came from code versus business confirmation, and producing a full PRD package for a project that is already running. Not for defining a brand-new product.
+description: Use when a project that is already running needs product documentation written after the fact for Charles, including when its PRD is missing or no longer matches the code. Not for defining a brand-new product.
 metadata:
   version: "1.0.0"
   author: Charles <w1400214654@outlook.com>
