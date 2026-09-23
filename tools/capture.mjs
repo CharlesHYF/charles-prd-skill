@@ -2,7 +2,7 @@
  * 截原型页面并同时量取元素坐标
  * 截图与坐标在同一时刻产出，严格对应，之后生成标注图不需要再跑浏览器
  * 创建日期：2026-09-22
- * 修改日期：2026-09-22
+ * 修改日期：2026-09-23
  */
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -21,6 +21,7 @@ const VIEWPORT_WIDTH = 1440;
 const VIEWPORT_HEIGHT = 900;
 const SCALE = 2;
 const COORDS_NAME = "_coords.json";
+const JSON_INDENT = 2;
 
 const usage = `用法: capture.mjs <截图清单.json...>
 
@@ -267,7 +268,7 @@ for (const arg of args) {
 	measured.fingerprint = prototypeFingerprint(protoRoot);
 	measured.capturedAt = new Date().toISOString().slice(0, 19).replace("T", " ");
 	coords[shot] = measured;
-	writeFileSync(coordsFile, `${JSON.stringify(coords, null, "\t")}\n`, "utf8");
+	writeFileSync(coordsFile, `${JSON.stringify(coords, null, JSON_INDENT)}\n`, "utf8");
 
 	const today = new Date().toISOString().slice(0, 10);
 	writeFileSync(join(dir, `${shot}.md`), `# ${shot} 原型截图

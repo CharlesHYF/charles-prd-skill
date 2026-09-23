@@ -120,12 +120,12 @@ flowchart LR
 
 ```json
 {
-	"shot": "list",
-	"page": "../prototype/pages/list.html",
-	"title": "订单列表页",
-	"role": "manager",
-	"state": "success",
-	"setup": ["[data-open-modal=deleteModal]"]
+  "shot": "list",
+  "page": "../prototype/pages/list.html",
+  "title": "订单列表页",
+  "role": "manager",
+  "state": "success",
+  "setup": ["[data-open-modal=deleteModal]"]
 }
 ```
 
@@ -140,21 +140,21 @@ node <skill 目录>/tools/capture.mjs docs/prd/versions/1.0/diagrams/list.json
 
 ```json
 {
-	"shot": "list",
-	"inject": "../tasks.md",
-	"mark": "list",
-	"marks": [
-		{ "el": "筛选条", "kind": "box", "note": "订单号支持前缀匹配。" },
-		{
-			"el": "批量作废",
-			"kind": "btn",
-			"steps": [
-				"未勾选任何行时置灰，悬停提示先选择订单",
-				"点击后弹二次确认，列出将作废的订单号与总金额",
-				"部分失败则保留失败清单不关弹窗，让人能重试"
-			]
-		}
-	]
+  "shot": "list",
+  "inject": "../tasks.md",
+  "mark": "list",
+  "marks": [
+    { "el": "筛选条", "kind": "box", "note": "订单号支持前缀匹配。" },
+    {
+      "el": "批量作废",
+      "kind": "btn",
+      "steps": [
+        "未勾选任何行时置灰，悬停提示先选择订单",
+        "点击后弹二次确认，列出将作废的订单号与总金额",
+        "部分失败则保留失败清单不关弹窗，让人能重试"
+      ]
+    }
+  ]
 }
 ```
 
