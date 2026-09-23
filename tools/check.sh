@@ -7,13 +7,20 @@
 set -uo pipefail
 
 # 校验范围，与 README 同源，改这里要同步改那一处
-LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/占位残留/角色引用/待填残留'
+LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/占位残留/角色引用/待填残留/产品形态'
 
 # 检查步骤总数，新增检查时同步加一
-TOTAL_STEPS=11
+TOTAL_STEPS=12
 
 # 骨架里要填的位置统一用这个前缀，交付前必须全部替换
 FILL_MARK='[待填]'
+
+# 产品形态的合法取值，用于报错提示
+ALLOWED_FORMS='后台管理系统、Web 应用、App、小程序'
+
+# 形态检查的结论，供截图视口检查使用
+HAS_WEB_FORM=0
+MOBILE_ADAPT=""
 
 # 违规计数：任意一项 > 0 则退出码非 0
 VIOLATIONS=0
@@ -652,6 +659,79 @@ check_fill_placeholders() {
 	done < <(grep -rnF --include='*.md' --include='*.html' --exclude-dir=export --exclude-dir=node_modules -- "${FILL_MARK}" "${PRD_ROOT}" 2>/dev/null | cut -d: -f1,2)
 }
 
+# 检查十二：product.md 声明产品形态与移动端适配
+# 原型覆盖表与截图视口都按形态区分，形态不写清，后面的截图校验无从判断
+check_product_form() {
+	echo "[12/${TOTAL_STEPS}] 检查产品形态声明..."
+
+	local product="${PRD_ROOT}/product.md"
+
+	if [ ! -f "${product}" ]; then
+		return
+	fi
+
+	if ! grep -qx '## 产品形态' "${product}"; then
+		report "${product} 缺少\"产品形态\"一节(固定两行：- 形态：${ALLOWED_FORMS} 之一或多个，- 移动端适配：是 / 否 / 不适用)"
+		return
+	fi
+
+	local form_line adapt_line
+	form_line=$(grep -m1 '^- 形态：' "${product}" || true)
+	adapt_line=$(grep -m1 '^- 移动端适配：' "${product}" || true)
+
+	if [ -z "${form_line}" ]; then
+		report "${product} 的产品形态一节缺少\"- 形态：\"一行"
+	fi
+
+	if [ -z "${adapt_line}" ]; then
+		report "${product} 的产品形态一节缺少\"- 移动端适配：\"一行"
+	fi
+
+	if [ -z "${form_line}" ] || [ -z "${adapt_line}" ]; then
+		return
+	fi
+
+	# 还是骨架占位时只由待填检查报，不重复报取值非法
+	if printf '%s\n%s\n' "${form_line}" "${adapt_line}" | grep -qF -- "${FILL_MARK}"; then
+		return
+	fi
+
+	local form has_mobile_app=0
+	while IFS= read -r form; do
+
+		case "${form}" in
+			"后台管理系统" | "Web 应用")
+				HAS_WEB_FORM=1
+				;;
+			"App" | "小程序")
+				has_mobile_app=1
+				;;
+			*)
+				report "${product} 的形态取值不合法：${form}(可选 ${ALLOWED_FORMS}，多种形态用顿号分隔)"
+				;;
+		esac
+	done < <(printf '%s\n' "${form_line#- 形态：}" | awk -F'、' '{ for (i = 1; i <= NF; i++) { gsub(/^ +| +$/, "", $i); print $i } }')
+
+	MOBILE_ADAPT="${adapt_line#- 移动端适配：}"
+
+	case "${MOBILE_ADAPT}" in
+		"是" | "否" | "不适用")
+			;;
+		*)
+			report "${product} 的移动端适配取值不合法：${MOBILE_ADAPT}(可选 是 / 否 / 不适用)"
+			return
+			;;
+	esac
+
+	if [ "${HAS_WEB_FORM}" -eq 1 ] && [ "${MOBILE_ADAPT}" = "不适用" ]; then
+		report "${product} 的形态含后台管理系统或 Web 应用，移动端适配要写是或否"
+	fi
+
+	if [ "${HAS_WEB_FORM}" -eq 0 ] && [ "${has_mobile_app}" -eq 1 ] && [ "${MOBILE_ADAPT}" != "不适用" ]; then
+		report "${product} 的形态只含 App 或小程序，移动端适配写不适用"
+	fi
+}
+
 if [ ! -d "${PRD_ROOT}" ]; then
 	echo "[NG] 找不到 PRD 目录：${PRD_ROOT}"
 	echo "用法: check.sh [PRD 根目录]  缺省为 docs/prd"
@@ -674,6 +754,7 @@ check_tasks
 check_todo_leftovers
 check_cross_reference
 check_fill_placeholders
+check_product_form
 
 echo "==============================="
 

@@ -64,7 +64,7 @@ Development: -
 Next: -
 INNER
 
-	echo "# 产品定义" > "${dir}/product.md"
+	printf '%s\n' "# 产品定义" "" "## 产品形态" "- 形态：后台管理系统" "- 移动端适配：否" > "${dir}/product.md"
 
 	cat > "${dir}/versions/1.0/prd.md" <<'INNER'
 # Product 1.0
@@ -541,6 +541,37 @@ FILL_LINE=$(grep -nF "[待填]" "${FILL_DIR}/versions/1.0/prd.md" | cut -d: -f1)
 run_check "${FILL_DIR}"
 expect_contains "${CHECK_OUTPUT}" "versions/1.0/prd.md:${FILL_LINE} 还留着 [待填] 占位" "检查十一:文档里的待填被拦并报出行号"
 expect_contains "${CHECK_OUTPUT}" "prototype/index.html:1 还留着 [待填] 占位" "检查十一:原型里的待填被拦"
+
+echo "=== 场景十五：product.md 必须声明产品形态 ==="
+FORM_DIR="$(mktemp -d)/docs/prd"
+make_prd "${FORM_DIR}"
+run_check "${FORM_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "检查十二:合规声明不误报"
+
+write_form() {
+	printf '%s\n' "# 产品定义" "" "## 产品形态" "- 形态：$1" "- 移动端适配：$2" > "${FORM_DIR}/product.md"
+	run_check "${FORM_DIR}"
+}
+
+echo "# 产品定义" > "${FORM_DIR}/product.md"
+run_check "${FORM_DIR}"
+expect_contains "${CHECK_OUTPUT}" "缺少\"产品形态\"一节" "检查十二:缺少形态一节被拦"
+
+write_form "后台管理系统、桌面客户端" "否"
+expect_contains "${CHECK_OUTPUT}" "形态取值不合法：桌面客户端" "检查十二:非法形态被拦并报出取值"
+
+write_form "Web 应用" "不适用"
+expect_contains "${CHECK_OUTPUT}" "移动端适配要写是或否" "检查十二:Web 形态必须写是否适配"
+
+write_form "App、小程序" "是"
+expect_contains "${CHECK_OUTPUT}" "移动端适配写不适用" "检查十二:纯移动形态写不适用"
+
+write_form "后台管理系统、小程序" "是"
+expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "检查十二:多形态合规声明放行"
+
+write_form "[待填] 后台管理系统" "[待填] 否"
+expect_not_contains "${CHECK_OUTPUT}" "取值不合法" "检查十二:待填占位不重复报取值"
+expect_contains "${CHECK_OUTPUT}" "还留着 [待填] 占位" "检查十二:待填占位由待填检查报"
 
 echo "=== 场景六：仓库自带样例与骨架必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-example"
