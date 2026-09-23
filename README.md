@@ -83,7 +83,7 @@ project/docs/prd/
 `tools/check.sh` 把确定性规则变成会 fail 的检查，共八项：
 
 ```bash
-bash tools/check.sh docs/prd
+bash ~/charles-prd-skill/tools/check.sh docs/prd
 ```
 
 | 检查 | 内容 |
@@ -106,7 +106,7 @@ bash tools/check.sh docs/prd
 产品需求与任务规格**分开导出两份**，一条命令产出：
 
 ```bash
-bash tools/export-prd.sh 1.0 --title "订阅管理工具"
+bash ~/charles-prd-skill/tools/export-prd.sh 1.0 --title "订阅管理工具"
 ```
 
 | 产物 | 内容 | 读者 | 对外 |
