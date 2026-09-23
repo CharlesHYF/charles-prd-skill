@@ -76,8 +76,8 @@ metadata:
 
 `scope.md` 三段式：In Scope / Later / Out of Scope。**Out of Scope 比 In Scope 更重要**，它是后面拒绝范围蔓延的依据。
 
-### 3. 先做核心 HTML Prototype
-先做核心 Journey 那一条路径，不要一上来做完整页面集。原型只需要能点、能表达 Empty / Loading / Success / Error 四种状态。
+### 3. 做全 HTML Prototype
+按 `product.md` 的产品形态，照 [prototype](../charles-prd-standards/rules/prototype.md) 的覆盖表一次做全：覆盖表里的每类界面、PRD 与 `tasks.md` 涉及的全部页面、Empty / Loading / Success / Error 四种状态；适配移动端时手机视口同样做全。做完再交给 Charles 看，不分批交付半成品。
 
 这一步经常反过来改第 2 步：画出来才发现流程不通。改 PRD 再改原型，不要只改原型。
 
@@ -117,7 +117,7 @@ metadata:
 | `versions/1.0/scope.md` | In Scope / Later / Out of Scope |
 | `versions/1.0/tasks.md` | 任务与交互规格，**界面标注图内联 SVG** |
 | `versions/1.0/notes.md` | 问不出来的待验证问题与影响范围 |
-| `versions/1.0/prototype/` | 核心 Journey 的可点击原型，含四种状态 |
+| `versions/1.0/prototype/` | 按产品形态覆盖表做全的可点击原型，含四种状态；适配移动端时手机视口同样做全 |
 | 两份 PDF | 用 `<skill 目录>/tools/export-prd.sh` 产出，产品需求对外、任务规格内部 |
 
 产出后自己跑一遍校验与评审再交付：
@@ -131,7 +131,7 @@ bash <skill 目录>/tools/check.sh docs/prd
 ## 交付闸门
 - `product.md`、`versions/1.0/prd.md`、`scope.md` 三个文件齐全
 - 需求条目全部带编号
-- 原型能走通核心 Journey，四种状态齐全
+- 原型覆盖所选形态的覆盖表与全部任务页面，四种状态齐全
 - 外部导入的位图有同名来源说明
 - `docs/prd/**/prototype/` 已加进项目的规范校验排除清单
 - 发布时 tag 已打、版本目录已冻结、README 状态已更新
