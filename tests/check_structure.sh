@@ -183,6 +183,23 @@ else
 	fail "存在死链:${BROKEN_LINKS}"
 fi
 
+# 五、禁用字符：全部跟踪的文本文件不含弯引号、角引号、破折号与 Emoji
+SCAN_OUTPUT=$(bash "${REPO_ROOT}/tests/scan_forbidden_chars.sh" "${REPO_ROOT}")
+SCAN_STATUS=$?
+
+case "${SCAN_STATUS}" in
+	0)
+		pass "禁用字符扫描未发现违规"
+		;;
+	2)
+		echo "${SCAN_OUTPUT}"
+		;;
+	*)
+		echo "${SCAN_OUTPUT}"
+		fail "禁用字符扫描发现违规，明细见上方"
+		;;
+esac
+
 echo "==============================="
 echo "通过 ${PASS_COUNT} 项，失败 ${FAIL_COUNT} 项"
 

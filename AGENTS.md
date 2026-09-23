@@ -51,7 +51,7 @@
 以下规则适用于新写和修改的内容。存量不符合的，改到哪处按哪处调整；批量调整按"仅格式化"单独提交。
 
 - 缩进 Tab；JSON 与 YAML 2 空格；行尾 LF，编码 UTF-8，以 `.editorconfig` 与 `.gitattributes` 为准
-- **禁用字符**，规则文本里只写码点：
+- **禁用字符**，由 `tests/check_structure.sh` 扫描拦截，规则文本里只写码点：
   - 弯引号 U+2018、U+2019、U+201C、U+201D，CJK 角引号 U+300C 到 U+300F，全角引号 U+FF02、U+FF07，统一用半角 `"` 或 `'`
   - 破折号与横线 U+2010 到 U+2015、U+2212、U+FF0D、U+2E3A、U+2E3B，统一用半角双连字符 `--`
   - Emoji 不出现在代码、注释、文档与提交信息中
@@ -121,7 +121,7 @@
 bash tools/check.sh docs/prd          # 校验某个项目的 PRD 结构
 bash tools/check.sh templates/prd-template   # 校验本仓自带模板
 bash tests/run_tests.sh               # check.sh 回归测试
-bash tests/check_structure.sh         # skill 完整性、版本号与链接
+bash tests/check_structure.sh         # skill 完整性、版本号、链接与禁用字符
 find tools tests -name '*.sh' -not -path '*/node_modules/*' -print0 | xargs -0 shellcheck --severity=warning
 bash tools/install-skills.sh          # 软链安装到 ~/.claude/skills
 bash tools/export-prd.sh 1.0 --title 标题   # 导出该版本的两份 PDF

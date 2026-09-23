@@ -156,6 +156,6 @@ bash ~/charles-prd-skill/tools/export-prd.sh 1.0 --title "订阅管理工具"
 ## 仓库自测
 
 ```bash
-bash tests/run_tests.sh          # check.sh 回归测试
-bash tests/check_structure.sh    # skill 完整性、版本号一致、Markdown 死链
+bash tests/run_tests.sh          # check.sh 与禁用字符扫描的回归测试
+bash tests/check_structure.sh    # skill 完整性、版本号一致、Markdown 死链、禁用字符
 ```

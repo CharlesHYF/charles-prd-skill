@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# check.sh 回归测试，用固定 fixture 断言各项检查该报的都报、不该报的不报
+# check.sh 与禁用字符扫描的回归测试，用固定 fixture 断言该报的都报、不该报的不报
 # 创建日期：2026-09-21
-# 修改日期：2026-09-22
+# 修改日期：2026-09-23
 
 set -uo pipefail
 
@@ -485,6 +485,49 @@ printf '\n<!-- 动一行 -->\n' >> "${FRESH_DIR}/versions/1.0/prototype/pages/li
 run_check "${FRESH_DIR}"
 expect_contains "${CHECK_OUTPUT}" "原型之后改过" "检查七:坐标过期被拦"
 expect_contains "${CHECK_OUTPUT}" "先重跑 tools/capture.mjs" "检查七:给出修复办法"
+
+echo "=== 场景十三：禁用字符扫描 ==="
+SCAN_SH="${REPO_ROOT}/tests/scan_forbidden_chars.sh"
+SCAN_DIR="$(mktemp -d)"
+OUTSIDE_DIR="$(mktemp -d)"
+git -C "${SCAN_DIR}" init -q
+
+# 书名号、目录树制表符与箭头不禁，放进干净文件确认不误报
+printf '%s\n' "合规文本《规范》" "├── docs" "审批 → 通过" > "${SCAN_DIR}/clean.md"
+git -C "${SCAN_DIR}" add clean.md
+SCAN_OUTPUT="$(bash "${SCAN_SH}" "${SCAN_DIR}" 2>&1)"
+SCAN_EXIT=$?
+
+if [ "${SCAN_EXIT}" -eq 0 ]; then
+	pass "扫描:合规文件退出码为 0"
+else
+	fail "扫描:合规文件退出码应为 0，实际 ${SCAN_EXIT}"
+fi
+
+expect_not_contains "${SCAN_OUTPUT}" "[FAIL]" "扫描:书名号、制表符与箭头不误报"
+
+# 角引号、破折号与 Emoji 用字节写入，测试脚本自身不含这些字符
+printf '\xe3\x80\x8c引语\xe3\x80\x8d\n' > "${SCAN_DIR}/quote.md"
+printf '前半句\xe2\x80\x94\xe2\x80\x94后半句\n' > "${SCAN_DIR}/dash.md"
+printf '完成 \xf0\x9f\x98\x80\n' > "${SCAN_DIR}/emoji.md"
+printf '\xe3\x80\x8c\n' > "${SCAN_DIR}/shot.png"
+printf '\xe3\x80\x8c\n' > "${OUTSIDE_DIR}/linked.md"
+ln -s "${OUTSIDE_DIR}/linked.md" "${SCAN_DIR}/linked.md"
+git -C "${SCAN_DIR}" add quote.md dash.md emoji.md shot.png linked.md
+SCAN_OUTPUT="$(bash "${SCAN_SH}" "${SCAN_DIR}" 2>&1)"
+SCAN_EXIT=$?
+
+if [ "${SCAN_EXIT}" -eq 1 ]; then
+	pass "扫描:发现违规时退出码为 1"
+else
+	fail "扫描:发现违规时退出码应为 1，实际 ${SCAN_EXIT}"
+fi
+
+expect_contains "${SCAN_OUTPUT}" "U+300C：quote.md:1" "扫描:角引号被拦并报出位置"
+expect_contains "${SCAN_OUTPUT}" "U+2014：dash.md:1" "扫描:破折号被拦"
+expect_contains "${SCAN_OUTPUT}" "U+1F600：emoji.md:1" "扫描:Emoji 被拦"
+expect_not_contains "${SCAN_OUTPUT}" "shot.png" "扫描:二进制文件跳过"
+expect_not_contains "${SCAN_OUTPUT}" "linked.md" "扫描:软链跳过"
 
 echo "=== 场景六：仓库自带模板必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-template"
