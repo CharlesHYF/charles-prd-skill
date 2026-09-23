@@ -1,5 +1,5 @@
 # EditorConfig -- 统一编辑器的缩进 / 行尾 / 编码
-# 落地 charles-coding skill 的"编辑与格式"全局约定
+# 落地 AGENTS.md 的格式约定
 # https://editorconfig.org
 root = true
 

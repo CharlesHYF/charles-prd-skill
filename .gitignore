@@ -8,9 +8,23 @@
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 Thumbs.db
+Desktop.ini
+*.lnk
+
+# 运行时
+.env
+.env.local
+*.log
+
+# AI 工具残留：.agents/ 不在此列，本仓要提交 .agents/plugins/marketplace.json
+.claude/
+.cursor/
+.codex/
+.opencode/
 
 # 过程产物：spec / plan / 调研笔记禁止提交
 *.spec.md
