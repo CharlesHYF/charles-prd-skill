@@ -22,8 +22,13 @@ const LABEL_TOP = 52;
 // 截图四周留一圈边，并描一道浅灰框把截图与白底分开
 const PAD = 18;
 
-// 图区固定这么宽，裁剪过的小截图等比放大填满，否则它在画布里占比太低反而更小
-const SHOT_WIDTH = 1440;
+// 图区按截图视口定宽，裁剪过的小截图等比放大填满，否则它在画布里占比太低反而更小
+// 手机截图窄而长，放大到桌面宽度会让整张图被按高度压缩，说明文字比桌面图还小
+const SHOT_WIDTHS = {
+	desktop: 1440,
+	mobile: 750,
+};
+const DEFAULT_VIEWPORT = "desktop";
 const MAX_ZOOM = 2.6;
 
 // 序号圆点的半径与它到正文左边的距离
@@ -135,7 +140,8 @@ const pick = (els, mark, shot) => {
 
 const buildSvg = (spec, coords, shot, imageHref) => {
 	const { els } = coords;
-	const zoom = Math.min(MAX_ZOOM, Math.max(1, SHOT_WIDTH / coords.w));
+	const shotWidth = SHOT_WIDTHS[coords.viewport ?? DEFAULT_VIEWPORT] ?? SHOT_WIDTHS[DEFAULT_VIEWPORT];
+	const zoom = Math.min(MAX_ZOOM, Math.max(1, shotWidth / coords.w));
 	const pageW = Math.round(coords.w * zoom);
 	const pageH = Math.round(coords.h * zoom);
 	const textX = PAD + pageW + NUM_OFFSET + 44;

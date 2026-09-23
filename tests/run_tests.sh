@@ -573,6 +573,49 @@ write_form "[待填] 后台管理系统" "[待填] 否"
 expect_not_contains "${CHECK_OUTPUT}" "取值不合法" "检查十二:待填占位不重复报取值"
 expect_contains "${CHECK_OUTPUT}" "还留着 [待填] 占位" "检查十二:待填占位由待填检查报"
 
+echo "=== 场景十六：截图视口与产品形态一致 ==="
+VIEW_DIR="$(mktemp -d)/docs/prd"
+make_prd "${VIEW_DIR}"
+VIEW_DIAGRAMS="${VIEW_DIR}/versions/1.0/diagrams"
+
+write_view_form() {
+	printf '%s\n' "# 产品定义" "" "## 产品形态" "- 形态：$1" "- 移动端适配：$2" > "${VIEW_DIR}/product.md"
+}
+
+write_shot() {
+	printf '{\n  "shot": "%s",\n  "page": "%s",\n  "viewport": "%s"\n}\n' "$1" "$2" "$3" > "${VIEW_DIAGRAMS}/$1.json"
+}
+
+write_view_form "Web 应用" "否"
+write_shot "home" "../prototype/index.html" "desktop"
+run_check "${VIEW_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "缺少手机端截图清单" "检查十三:不适配移动端时不要求手机截图"
+
+write_view_form "Web 应用" "是"
+run_check "${VIEW_DIR}"
+expect_contains "${CHECK_OUTPUT}" "home.json 缺少手机端截图清单 home-mobile.json" "检查十三:适配移动端时缺手机截图被拦"
+
+write_shot "home-mobile" "../prototype/other.html" "mobile"
+run_check "${VIEW_DIR}"
+expect_contains "${CHECK_OUTPUT}" "home-mobile.json 的 page 与桌面截图不同" "检查十三:手机截图页面不一致被拦"
+
+write_shot "home-mobile" "../prototype/index.html" "mobile"
+printf '{ "shot": "home", "inject": "../tasks.md", "marks": [] }\n' > "${VIEW_DIAGRAMS}/home.marks.json"
+run_check "${VIEW_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "page 与桌面截图不同" "检查十三:手机截图配对正确放行"
+expect_contains "${CHECK_OUTPUT}" "缺少手机端标注清单 home-mobile.marks.json" "检查十三:桌面有标注而手机端没有被拦"
+
+write_shot "home" "../prototype/index.html" "tablet"
+run_check "${VIEW_DIR}"
+expect_contains "${CHECK_OUTPUT}" "viewport 取值不合法：tablet" "检查十三:非法视口被拦"
+
+rm -f "${VIEW_DIAGRAMS}/home.marks.json"
+write_view_form "App" "不适用"
+write_shot "home" "../prototype/index.html" "desktop"
+run_check "${VIEW_DIR}"
+expect_contains "${CHECK_OUTPUT}" "但产品形态只含 App 或小程序" "检查十三:纯移动形态用桌面视口被拦"
+expect_not_contains "${CHECK_OUTPUT}" "home-mobile.json 用了" "检查十三:纯移动形态的手机截图放行"
+
 echo "=== 场景六：仓库自带样例与骨架必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-example"
 expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "样例通过自身校验"

@@ -17,9 +17,22 @@ const CHROME_CANDIDATES = [
 	"/usr/bin/chromium",
 ];
 
-const VIEWPORT_WIDTH = 1440;
-const VIEWPORT_HEIGHT = 900;
-const SCALE = 2;
+// 截图清单的 viewport 字段取值：桌面按 1440 宽截，手机按 375 宽截
+const VIEWPORTS = {
+	desktop: {
+		width: 1440,
+		height: 900,
+		deviceScaleFactor: 2,
+	},
+	mobile: {
+		width: 375,
+		height: 812,
+		deviceScaleFactor: 3,
+		isMobile: true,
+		hasTouch: true,
+	},
+};
+const DEFAULT_VIEWPORT = "desktop";
 const COORDS_NAME = "_coords.json";
 const JSON_INDENT = 2;
 
@@ -33,11 +46,13 @@ const usage = `用法: capture.mjs <截图清单.json...>
   "title": "订单列表页",
   "role": "manager",
   "state": "success",
+  "viewport": "desktop",
   "setup": ["[data-open-modal=deleteModal]"],
   "crop": ".modal",
   "cropPad": 60
 }
 
+viewport 取 desktop（缺省）或 mobile。
 产出同目录下的 <shot>.png、<shot>.md 来源说明，以及 _coords.json 里的一个条目。`;
 
 const args = process.argv.slice(2);
@@ -163,10 +178,19 @@ for (const arg of args) {
 		continue;
 	}
 
+	const viewportName = spec.viewport ?? DEFAULT_VIEWPORT;
+	const viewport = VIEWPORTS[viewportName];
+
+	if (!viewport) {
+		console.error(`[NG] ${shot}: viewport 取值不合法 ${viewportName}，可选 ${Object.keys(VIEWPORTS).join(" / ")}`);
+		failed += 1;
+		continue;
+	}
+
 	const protoRoot = prototypeRootOf(pageFile);
 
 	const page = await browser.newPage();
-	await page.setViewport({ width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT, deviceScaleFactor: SCALE });
+	await page.setViewport(viewport);
 	await page.goto(`file://${pageFile}`, { waitUntil: "networkidle0" });
 
 	if (spec.state) {
@@ -265,6 +289,7 @@ for (const arg of args) {
 
 	const coordsFile = join(dir, COORDS_NAME);
 	const coords = existsSync(coordsFile) ? JSON.parse(readFileSync(coordsFile, "utf8")) : {};
+	measured.viewport = viewportName;
 	measured.fingerprint = prototypeFingerprint(protoRoot);
 	measured.capturedAt = new Date().toISOString().slice(0, 19).replace("T", " ");
 	coords[shot] = measured;
@@ -275,7 +300,7 @@ for (const arg of args) {
 
 **来源**：本版原型 \`${spec.page}\`，由 \`tools/capture.mjs\` 自动截取。
 **获取日期**：${today}
-**视口**：${VIEWPORT_WIDTH} 宽，deviceScaleFactor ${SCALE}，截图前移除原型状态切换条。${spec.crop ? `\n**裁剪**：裁到 \`${spec.crop}\` 周边 ${spec.cropPad ?? 60}px。` : ""}
+**视口**：${viewportName}，${viewport.width} 宽，deviceScaleFactor ${viewport.deviceScaleFactor}，截图前移除原型状态切换条。${spec.crop ? `\n**裁剪**：裁到 \`${spec.crop}\` 周边 ${spec.cropPad ?? 60}px。` : ""}
 **用途**：\`tasks.md\` 界面小节的标注底图。
 
 截图时同步量取元素坐标写入 \`${COORDS_NAME}\`，标注框位置由该文件生成，不手写坐标。
@@ -298,7 +323,7 @@ if (coordsNote) {
 **获取日期**：${today}
 **用途**：生成 \`tasks.md\` 界面标注的框选位置，避免手写坐标与原型脱节。
 
-结构：\`{ "<截图名>": { w, h, els: [{ kind, txt, x, y, w, h }] } }\`，
+结构：\`{ "<截图名>": { w, h, viewport, els: [{ kind, txt, x, y, w, h }] } }\`，
 \`kind\` 取值为 btn / link / menu / field / th / kpi / box。
 
 标注清单按 \`txt\` 挑元素，同名多个时用 \`index\` 指定第几个，不写坐标。

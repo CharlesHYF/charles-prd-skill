@@ -7,10 +7,10 @@
 set -uo pipefail
 
 # 校验范围，与 README 同源，改这里要同步改那一处
-LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/占位残留/角色引用/待填残留/产品形态'
+LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/占位残留/角色引用/待填残留/产品形态/截图视口'
 
 # 检查步骤总数，新增检查时同步加一
-TOTAL_STEPS=12
+TOTAL_STEPS=13
 
 # 骨架里要填的位置统一用这个前缀，交付前必须全部替换
 FILL_MARK='[待填]'
@@ -20,7 +20,11 @@ ALLOWED_FORMS='后台管理系统、Web 应用、App、小程序'
 
 # 形态检查的结论，供截图视口检查使用
 HAS_WEB_FORM=0
+ONLY_MOBILE_FORMS=0
 MOBILE_ADAPT=""
+
+# 手机端截图清单的命名：桌面截图名加这个后缀，校验靠命名配对
+MOBILE_SHOT_SUFFIX='-mobile'
 
 # 违规计数：任意一项 > 0 则退出码非 0
 VIOLATIONS=0
@@ -727,9 +731,77 @@ check_product_form() {
 		report "${product} 的形态含后台管理系统或 Web 应用，移动端适配要写是或否"
 	fi
 
-	if [ "${HAS_WEB_FORM}" -eq 0 ] && [ "${has_mobile_app}" -eq 1 ] && [ "${MOBILE_ADAPT}" != "不适用" ]; then
-		report "${product} 的形态只含 App 或小程序，移动端适配写不适用"
+	if [ "${HAS_WEB_FORM}" -eq 0 ] && [ "${has_mobile_app}" -eq 1 ]; then
+		ONLY_MOBILE_FORMS=1
+
+		if [ "${MOBILE_ADAPT}" != "不适用" ]; then
+			report "${product} 的形态只含 App 或小程序，移动端适配写不适用"
+		fi
 	fi
+}
+
+# 从单层 JSON 清单里取一个字符串字段，没有时输出空串
+json_string_field() {
+	local file="$1"
+	local field="$2"
+
+	grep -oE "\"${field}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" "${file}" | head -1 | sed -E 's/.*"([^"]*)"$/\1/'
+}
+
+# 检查十三：截图视口与产品形态一致，适配移动端时每张桌面截图都有手机截图
+# 手机端布局与桌面不同，只截桌面等于移动端没有设计，开发只能自己猜
+check_viewports() {
+	echo "[13/${TOTAL_STEPS}] 检查截图视口与移动端配对..."
+
+	local spec name viewport page mobile_spec mobile_viewport mobile_page
+	while IFS= read -r spec; do
+		name=$(basename "${spec}" .json)
+		viewport=$(json_string_field "${spec}" "viewport")
+		viewport="${viewport:-desktop}"
+
+		case "${viewport}" in
+			"desktop" | "mobile")
+				;;
+			*)
+				report "${spec} 的 viewport 取值不合法：${viewport}(可选 desktop / mobile)"
+				continue
+				;;
+		esac
+
+		if [ "${ONLY_MOBILE_FORMS}" -eq 1 ] && [ "${viewport}" != "mobile" ]; then
+			report "${spec} 用了 ${viewport} 视口，但产品形态只含 App 或小程序(截图清单写 \"viewport\": \"mobile\")"
+		fi
+
+		# 只有 Web 类形态且适配移动端时，桌面截图才需要配手机截图
+		if [ "${viewport}" != "desktop" ] || [ "${HAS_WEB_FORM}" -ne 1 ] || [ "${MOBILE_ADAPT}" != "是" ]; then
+			continue
+		fi
+
+		mobile_spec="$(dirname "${spec}")/${name}${MOBILE_SHOT_SUFFIX}.json"
+
+		if [ ! -f "${mobile_spec}" ]; then
+			report "${spec} 缺少手机端截图清单 $(basename "${mobile_spec}")(产品声明了适配移动端，两端都要截图并逐元素标注)"
+			continue
+		fi
+
+		mobile_viewport=$(json_string_field "${mobile_spec}" "viewport")
+
+		if [ "${mobile_viewport}" != "mobile" ]; then
+			report "${mobile_spec} 要写 \"viewport\": \"mobile\""
+		fi
+
+		page=$(json_string_field "${spec}" "page")
+		mobile_page=$(json_string_field "${mobile_spec}" "page")
+
+		if [ "${page}" != "${mobile_page}" ]; then
+			report "${mobile_spec} 的 page 与桌面截图不同：${mobile_page:-未写}，应为 ${page}"
+		fi
+
+		if [ -f "$(dirname "${spec}")/${name}.marks.json" ] && [ ! -f "$(dirname "${spec}")/${name}${MOBILE_SHOT_SUFFIX}.marks.json" ]; then
+			report "$(dirname "${spec}")/${name}.marks.json 缺少手机端标注清单 ${name}${MOBILE_SHOT_SUFFIX}.marks.json"
+		fi
+
+	done < <(find "${PRD_ROOT}" -type f -path '*/diagrams/*' -name '*.json' ! -name '*.marks.json' ! -name '_coords.json' 2>/dev/null | sort)
 }
 
 if [ ! -d "${PRD_ROOT}" ]; then
@@ -755,6 +827,7 @@ check_todo_leftovers
 check_cross_reference
 check_fill_placeholders
 check_product_form
+check_viewports
 
 echo "==============================="
 
