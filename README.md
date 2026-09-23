@@ -32,12 +32,14 @@ git clone https://github.com/CharlesHYF/charles-prd-skill.git ~/charles-prd-skil
 bash ~/charles-prd-skill/tools/install-skills.sh
 
 # 其它工具把目标 skills 目录作为参数传进去
-bash ~/charles-prd-skill/tools/install-skills.sh ~/.agents/skills    # Codex / Qoder / Trae
+bash ~/charles-prd-skill/tools/install-skills.sh ~/.agents/skills    # Codex / Cursor / OpenCode / Trae
+bash ~/charles-prd-skill/tools/install-skills.sh ~/.qoder/skills     # Qoder
+bash ~/charles-prd-skill/tools/install-skills.sh ~/.qoder-cn/skills  # Qoder CN
 bash ~/charles-prd-skill/tools/install-skills.sh ~/.trae/skills      # Trae 专属路径
 bash ~/charles-prd-skill/tools/install-skills.sh ~/.rovodev/skills   # Rovo Dev
 ```
 
-装完是三个软链，改完开发仓立即生效，不需要重新安装。
+装完每个 skill 一个软链，改完开发仓立即生效，不需要重新安装。Cursor 与 OpenCode 同时会读 `~/.claude/skills`，已经装在那里就不必再装一遍；Qoder 只读自己的目录，要单独装。
 
 ### Claude Code plugin 方式（可选）
 ```
