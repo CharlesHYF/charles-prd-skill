@@ -256,6 +256,7 @@ check_coords_freshness() {
 	local coords_file="$1"
 
 	if ! command -v python3 > /dev/null 2>&1; then
+		echo "  [SKIP] 未找到 python3，跳过坐标时效检查：${coords_file}"
 		return
 	fi
 

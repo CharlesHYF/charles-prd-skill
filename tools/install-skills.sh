@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 把 skill 软链到指定工具的 skills 目录，改完开发仓即刻生效，不再需要逐处拷贝同步
 # 创建日期：2026-09-21
-# 修改日期：2026-09-21
+# 修改日期：2026-09-23
 
 set -uo pipefail
 
@@ -9,8 +9,6 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 # 目标 skills 目录：缺省装到 Claude Code
 TARGET="${1:-${HOME}/.claude/skills}"
-
-# v3.x 的单 skill 形态目录名，重装前需要先清掉
 
 if [ ! -d "${REPO_ROOT}/skills" ]; then
 	echo "[NG] 找不到 skills 目录：${REPO_ROOT}/skills"

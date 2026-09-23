@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 结构自检
 # 创建日期：2026-09-21
-# 修改日期：2026-09-21
+# 修改日期：2026-09-23
 
 set -uo pipefail
 
@@ -96,12 +96,27 @@ for skill_dir in skills/*/; do
 	done
 done
 
-# 三、版本号：主 skill 的 metadata 与五处配置必须一致
+# 三、版本号：其余 skill 的 metadata 与各处配置都必须与主 skill 一致
 MAIN_VERSION=$(grep -m1 '^[[:space:]]*version:' "${MAIN_SKILL}" | awk '{print $2}' | tr -d '"')
 
 if [ -z "${MAIN_VERSION}" ]; then
 	fail "${MAIN_SKILL} 未声明版本号"
 else
+
+	for skill_file in skills/*/SKILL.md; do
+
+		if [ "${skill_file}" = "${MAIN_SKILL}" ]; then
+			continue
+		fi
+
+		skill_version=$(grep -m1 '^[[:space:]]*version:' "${skill_file}" | awk '{print $2}' | tr -d '"')
+
+		if [ "${skill_version}" = "${MAIN_VERSION}" ]; then
+			pass "版本号一致 ${MAIN_VERSION}: ${skill_file}"
+		else
+			fail "版本号漂移: ${skill_file}=${skill_version:-未声明}，应为 ${MAIN_VERSION}"
+		fi
+	done
 
 	for version_file in "${VERSION_FILES[@]}"; do
 

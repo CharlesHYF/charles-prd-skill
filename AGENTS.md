@@ -22,7 +22,7 @@
    ```
 2. 改了规则文本，检查 `templates/prd-template/` 是否仍然通过 `tools/check.sh`
 3. 新增规则时优先考虑能否被 `tools/check.sh` 机器验证，不能验证的放进 `charles-prd-review` 的内容评审清单
-4. 版本号出现在六处，必须同步：主 SKILL.md、四个 plugin 配置、`gemini-extension.json`
+4. 版本号必须同步：每个 SKILL.md 的 metadata、各 plugin 配置与 `gemini-extension.json`，以主 skill 为准，`tests/check_structure.sh` 会比对
 
 ## 修改边界
 
