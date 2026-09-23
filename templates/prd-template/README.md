@@ -1,8 +1,7 @@
-# PRD
-
+# [待填] 产品名称
 Production: -
 Development: 1.0
-Next: 2.0
+Next: -
 
 - 产品定义 -> product.md
 - 关键决策 -> decisions.md

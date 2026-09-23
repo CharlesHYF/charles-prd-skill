@@ -29,7 +29,7 @@ prototype/
 └── assets/
 ```
 
-`templates/prd-template/versions/1.0/prototype/` 里有可直接复制的列表页与看板页，含筛选条、分页、批量操作弹窗、指标卡与内联 SVG 图表，照着改比从空文件写快。
+`templates/prd-example/versions/1.0/prototype/` 里有列表页与看板页的完整样例，含筛选条、分页、批量操作弹窗、指标卡与内联 SVG 图表，照着写比从空文件写快。骨架 `templates/prd-template/versions/1.0/prototype/` 只有满足截图 hook 的空页面，复制它做起点。
 
 ## 原型要做到这些
 > 下面每一条都能核对真假。**不要用"能判断产品体验即可"这类主观标准**，它会被理解成"做到能看就行"。

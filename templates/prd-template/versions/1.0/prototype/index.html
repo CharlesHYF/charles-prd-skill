@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[待填] 页面名称 - 原型</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-state="success" data-role="role-a">
+
+<div class="topbar">
+	<div class="topbar__brand">[待填] 产品名称</div>
+	<nav class="topbar__nav">
+		<a href="index.html" class="is-active">[待填] 页面名称</a>
+	</nav>
+	<select id="roleSelect">
+		<option value="role-a">[待填] 角色一</option>
+		<option value="role-b">[待填] 角色二</option>
+	</select>
+</div>
+
+<div class="statebar">
+	<strong>原型状态</strong>
+	<button data-state-btn="success">Success 正常</button>
+	<button data-state-btn="empty">Empty 空</button>
+	<button data-state-btn="loading">Loading 加载中</button>
+	<button data-state-btn="error">Error 失败</button>
+	<span class="statebar__hint">原型不含真实后端，数据为固定样例。截图时这一条会被自动移除。</span>
+</div>
+
+<div class="page">
+	<div class="page__head"><h1>[待填] 页面名称</h1></div>
+	<div class="page__crumb">[待填] 页面说明或面包屑</div>
+
+	<div class="card">
+		<div data-show-state="success">[待填] 正常状态的页面内容，用 Mock 数据写满</div>
+		<div class="state-block" data-show-state="empty" hidden>[待填] 空态文案原文</div>
+		<div class="state-block" data-show-state="loading" hidden>加载中</div>
+		<div class="state-block state-block--error" data-show-state="error" hidden>[待填] 失败文案原文</div>
+	</div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>

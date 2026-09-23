@@ -34,6 +34,7 @@ scratch/
 # 导出产物：日常导出不进仓库，只提交实际对外交付过的那一份
 # 只忽略仓库根的 export，不影响 templates/export 这个样张目录
 /export/
+templates/prd-example/versions/*/export/
 *.pdf.html
 
 # 渲染依赖

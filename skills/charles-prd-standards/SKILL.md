@@ -27,7 +27,7 @@ metadata:
 | 从零定义新产品 | [charles-new-product](../charles-new-product/SKILL.md) |
 | 给已有项目补 PRD | [charles-legacy-prd](../charles-legacy-prd/SKILL.md) |
 | 评审 PRD、找出内容矛盾 | [charles-prd-review](../charles-prd-review/SKILL.md) |
-| 规划新版本 | 复制模板建 `versions/<版本>/`，按 [structure](rules/structure.md) 写 |
+| 规划新版本 | 复制骨架建 `versions/<版本>/`，按 [structure](rules/structure.md) 写 |
 | 判断信息该写在哪 | [boundaries](rules/boundaries.md) |
 
 ## 规则模块
@@ -61,7 +61,7 @@ project/docs/prd/
     └── 3.0/
 ```
 
-模板在 [`templates/prd-template/`](templates/prd-template/)，直接复制为起点。
+骨架在 [`templates/prd-template/`](templates/prd-template/)，复制为起点，逐项替换 `[待填]`；完整写法参照 [`templates/prd-example/`](templates/prd-example/) 的订单系统样例，不要复制样例再删改。
 
 ## 工具与模板路径
 - 文中的 `tools/`、`templates/` 指 `<skill 目录>` 下的同名目录，不在产品仓里

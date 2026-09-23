@@ -477,7 +477,7 @@ expect_not_contains "${CHECK_OUTPUT}" "原型里却还挂着 data-todo 占位" "
 echo "=== 场景十二：原型改过而没重新截图要拦住 ==="
 FRESH_DIR="$(mktemp -d)/docs/prd"
 mkdir -p "${FRESH_DIR}"
-cp -R "${REPO_ROOT}/templates/prd-template/." "${FRESH_DIR}/"
+cp -R "${REPO_ROOT}/templates/prd-example/." "${FRESH_DIR}/"
 run_check "${FRESH_DIR}"
 expect_not_contains "${CHECK_OUTPUT}" "原型之后改过" "检查七:未改动时不误报"
 
@@ -529,9 +529,12 @@ expect_contains "${SCAN_OUTPUT}" "U+1F600：emoji.md:1" "扫描:Emoji 被拦"
 expect_not_contains "${SCAN_OUTPUT}" "shot.png" "扫描:二进制文件跳过"
 expect_not_contains "${SCAN_OUTPUT}" "linked.md" "扫描:软链跳过"
 
-echo "=== 场景六：仓库自带模板必须自洽 ==="
+echo "=== 场景六：仓库自带样例与骨架必须自洽 ==="
+run_check "${REPO_ROOT}/templates/prd-example"
+expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "样例通过自身校验"
+
 run_check "${REPO_ROOT}/templates/prd-template"
-expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "模板通过自身校验"
+expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "骨架通过自身校验"
 
 echo "==============================="
 echo "通过 ${PASS_COUNT} 项，失败 ${FAIL_COUNT} 项"
