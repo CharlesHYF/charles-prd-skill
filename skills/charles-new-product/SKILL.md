@@ -69,7 +69,7 @@ metadata:
 **这一步只做一次**，后续版本不重写它。写不出目标用户与核心问题就先别往下走，后面每一步都要靠它做取舍。
 
 ### 2. 写 versions/1.0/prd.md 与 scope.md
-按固定八章节写 `prd.md`，需求条目带编号（`REQ-1.0-001`）。
+按固定结构（版本历史加七章）写 `prd.md`，需求条目带编号（`REQ-1.0-001`）。
 
 `scope.md` 三段式：In Scope / Later / Out of Scope。**Out of Scope 比 In Scope 更重要**，它是后面拒绝范围蔓延的依据。
 
@@ -110,7 +110,7 @@ metadata:
 | `docs/prd/README.md` | 版本导航与三个状态 |
 | `docs/prd/product.md` | 产品定义、目标用户、核心问题、产品原则 |
 | `docs/prd/decisions.md` | 本次确认中定下的不可逆取舍 |
-| `versions/1.0/prd.md` | 八章节，需求带编号，**流程图与状态图用 Mermaid 写在正文里** |
+| `versions/1.0/prd.md` | 版本历史加七章，需求带编号，**流程图与状态图用 Mermaid 写在正文里** |
 | `versions/1.0/scope.md` | In Scope / Later / Out of Scope |
 | `versions/1.0/tasks.md` | 任务与交互规格，**界面标注图内联 SVG** |
 | `versions/1.0/notes.md` | 问不出来的待验证问题与影响范围 |
@@ -129,7 +129,7 @@ bash <skill 目录>/tools/check.sh docs/prd
 - `product.md`、`versions/1.0/prd.md`、`scope.md` 三个文件齐全
 - 需求条目全部带编号
 - 原型能走通核心 Journey，四种状态齐全
-- 每张图有同名生成说明
+- 外部导入的位图有同名来源说明
 - `docs/prd/**/prototype/` 已加进项目的规范校验排除清单
 - 发布时 tag 已打、版本目录已冻结、README 状态已更新
 - **七类必问项全部有答案**，问不出来的已记入 `notes.md` 并写明影响范围

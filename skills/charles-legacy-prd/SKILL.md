@@ -86,7 +86,7 @@ metadata:
 | 产物 | 补文档场景下的差别 |
 | --- | --- |
 | `product.md` | 产品定义从现状反推，目标用户与核心问题要问 Charles 确认 |
-| `versions/<线上版本>/prd.md` | 八章节，需求带来源标记，**流程图与状态图用 Mermaid 写在正文里** |
+| `versions/<线上版本>/prd.md` | 版本历史加七章，需求带来源标记，**流程图与状态图用 Mermaid 写在正文里** |
 | `versions/<线上版本>/scope.md` | In Scope 写已实现范围，Later 写清单里确认要做的，Out of Scope 写明确不做的 |
 | `versions/<线上版本>/tasks.md` | **只为 `[新增]` 与需要改的功能写任务**，已实现且不动的不写交互规格 |
 | `versions/<线上版本>/notes.md` | 技术债清单、文档与代码不一致处、问不出来的项 |

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PRD 结构校验器，把产品文档的确定性规则变成会 fail 的检查
 # 创建日期：2026-09-21
-# 修改日期：2026-09-22
+# 修改日期：2026-09-23
 
 # 说明：故意不用 set -e。grep 无匹配时返回非 0 属正常，需手动累计错误而非中断。
 set -uo pipefail
@@ -195,7 +195,7 @@ check_requirement_ids() {
 		ids=$(grep -oE "${REQ_ID_REGEX}" "${prd_file}" || true)
 
 		if [ -z "${ids}" ]; then
-			report "${prd_file} 的主要功能与行为没有任何需求编号(格式 REQ-<版本>-<三位序号>)"
+			report "${prd_file} 的功能需求没有任何需求编号(格式 REQ-<版本>-<三位序号>)"
 			continue
 		fi
 

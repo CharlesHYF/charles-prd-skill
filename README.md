@@ -17,7 +17,7 @@ Charles 的产品文档与原型规范，面向独立开发者的单人流程。
 | skill | 用途 |
 | --- | --- |
 | `charles-prd-standards` | 规范本体：目录结构、版本管理、任务与交互规格、原型、图、文字表达、导出交付、协作格式 |
-| `charles-new-product` | 从零定义新产品：**先集中问清七类必答项，确认后一次产出全部文档、图、原型与 PDF** |
+| `charles-new-product` | 从零定义新产品：**先集中问清必答项，确认后一次产出全部文档、图、原型与 PDF** |
 | `charles-legacy-prd` | 给已有项目补 PRD：扫描实现盘点功能、标注需求来源、区分设计与遗留 |
 | `charles-prd-review` | PRD 评审：找需求矛盾、范围与目标脱节、无法判定的 Release Criteria |
 
@@ -67,11 +67,12 @@ project/docs/prd/
 ├── decisions.md           跨版本的不可逆决策
 └── versions/
     ├── 1.0/
-    │   ├── prd.md         八个固定章节，需求带编号
+    │   ├── prd.md         版本历史加七章，需求带编号
     │   ├── scope.md       In Scope / Later / Out of Scope
+    │   ├── tasks.md       任务与交互规格，带界面标注图
     │   ├── notes.md       临时想法与待验证问题
     │   ├── prototype/     可点击的 HTML 原型
-    │   └── diagrams/      PNG 加同名生成说明
+    │   └── diagrams/      原型截图、坐标与标注清单，外部位图与来源说明
     ├── 2.0/
     └── 3.0/
 ```
@@ -80,7 +81,7 @@ project/docs/prd/
 
 ## 结构校验器
 
-`tools/check.sh` 把确定性规则变成会 fail 的检查，共八项：
+`tools/check.sh` 把确定性规则变成会 fail 的检查，完整清单以脚本输出为准：
 
 ```bash
 bash ~/charles-prd-skill/tools/check.sh docs/prd
@@ -88,18 +89,20 @@ bash ~/charles-prd-skill/tools/check.sh docs/prd
 
 | 检查 | 内容 |
 | --- | --- |
-| 一 | 必需文件（`README.md`、`product.md`、`versions/`） |
-| 二 | 版本目录命名（必须是明确版本号，禁止 current / latest / new） |
-| 三 | 版本内必需文档（major 要 `prd.md` 与 `scope.md`，minor 至少要 `changes.md`） |
-| 四 | `prd.md` 章节齐全与字段类型合规：版本历史、需求概述、产品描述、名词解释、整体流程、功能清单、功能需求、非功能需求、Non-goals、Release Criteria、未解决问题 |
-| 五 | 需求编号存在且不重复 |
-| 六 | 每张图有同名生成说明 |
-| 七 | `README.md` 声明三个版本状态 |
-| 八 | 任务编号唯一、六个小节齐全、流程图或无分支声明、交互规格七字段齐全、关联需求存在 |
+| 必需文件 | `README.md`、`product.md`、`versions/` |
+| 版本目录命名 | 必须是明确版本号，禁止 current / latest / new |
+| 版本内必需文档 | major 要 `prd.md` 与 `scope.md`，minor 至少要 `changes.md` |
+| `prd.md` 章节与字段类型 | 固定章节齐全；字段表类型列写 SQL 类型，禁止语言层类型与 ENUM |
+| 需求编号 | 存在且不重复分配 |
+| 图的位置与来源 | Mermaid 不进 `diagrams/`，位图配同名来源说明 |
+| 界面标注图 | 截图、坐标、标记块齐全，原型改过要重新截图 |
+| 版本状态 | `README.md` 声明三个版本状态 |
+| 任务与交互规格 | 编号唯一、小节齐全、流程图或无分支声明、七字段齐全、关联需求存在、已定义任务不留占位 |
+| 角色交叉引用 | 正文里的角色都能在 `product.md` 角色表里找到 |
 
-说「一键出全部」时，新产品走 `charles-new-product`、已有项目走 `charles-legacy-prd`。前者先按七类必答项集中提问（产品形态、用户优先级、运行环境、内容来源、外部对接、关键数值、合规约束），确认后一次产出全部内容，不分批交付。
+说「一键出全部」时，新产品走 `charles-new-product`、已有项目走 `charles-legacy-prd`。前者先按必答项集中提问（产品形态、用户优先级、运行环境、内容来源、外部对接、关键数值、合规约束），确认后一次产出全部内容，不分批交付。
 
-内容级的矛盾（需求打架、范围与目标脱节、判据无法判定）脚本查不了，由 `charles-prd-review` 的七类清单人工过。
+内容级的矛盾（需求打架、范围与目标脱节、判据无法判定）脚本查不了，由 `charles-prd-review` 的评审清单人工过。
 
 ## 导出 PDF
 
@@ -153,6 +156,6 @@ bash ~/charles-prd-skill/tools/export-prd.sh 1.0 --title "订阅管理工具"
 ## 仓库自测
 
 ```bash
-bash tests/run_tests.sh          # check.sh 回归测试，19 项断言
-bash tests/check_structure.sh    # skill 完整性、六处版本号、Markdown 死链
+bash tests/run_tests.sh          # check.sh 回归测试
+bash tests/check_structure.sh    # skill 完整性、版本号一致、Markdown 死链
 ```
