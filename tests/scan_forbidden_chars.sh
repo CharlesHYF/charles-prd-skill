@@ -22,16 +22,24 @@ import os, re, subprocess, sys
 
 root = os.environ['SCAN_ROOT']
 
-# 按码点列出禁用字符，脚本自身不含字面字符
-FORBIDDEN = re.compile(
-    '['
-    '‘’“”'
-    '「-』'
-    '＂＇'
-    '‐-―−－⸺⸻'
-    '☀-➿⭐⭕️\U0001f000-\U0001faff'
-    ']'
-)
+# 按码点区间列出禁用字符，脚本自身不含字面字符
+FORBIDDEN_RANGES = [
+    (0x2018, 0x2019),
+    (0x201C, 0x201D),
+    (0x300C, 0x300F),
+    (0xFF02, 0xFF02),
+    (0xFF07, 0xFF07),
+    (0x2010, 0x2015),
+    (0x2212, 0x2212),
+    (0xFF0D, 0xFF0D),
+    (0x2E3A, 0x2E3B),
+    (0x2600, 0x27BF),
+    (0x2B50, 0x2B50),
+    (0x2B55, 0x2B55),
+    (0xFE0F, 0xFE0F),
+    (0x1F000, 0x1FAFF),
+]
+FORBIDDEN = re.compile('[' + ''.join(f'{re.escape(chr(low))}-{re.escape(chr(high))}' for low, high in FORBIDDEN_RANGES) + ']')
 BINARY_SUFFIXES = ('.png', '.jpg', '.jpeg', '.gif', '.ico', '.pdf', '.woff', '.woff2')
 
 listed = subprocess.run(['git', '-C', root, 'ls-files', '-z'], capture_output=True, check=True).stdout
