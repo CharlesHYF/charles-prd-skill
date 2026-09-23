@@ -95,7 +95,7 @@
 图注：底图为原型真实截图，标注框坐标取自截图时的 DOM 量测，不手写，因此不会与原型脱节。红圈编号对应右侧批注，多步骤操作按执行顺序编号。
 
 <!--annotation:list-delete-modal-->
-<svg class="annotation" viewBox="0 0 2458 1045" role="img" aria-label="批量作废确认弹窗界面标注">
+<svg class="annotation" viewBox="0 0 2458 1007" role="img" aria-label="批量作废确认弹窗界面标注">
 	<style>
 		.annotation .mk-box { fill: none; stroke: #d93025; stroke-width: 3; }
 		.annotation .mk-bg { fill: #d93025; stroke: #ffffff; stroke-width: 1.5; }
@@ -116,13 +116,13 @@
 	<text class="mk-no" x="1035.6" y="475.5">2</text>
 	<circle class="mk-bg" cx="1502.0" cy="527.1" r="15"/>
 	<text class="mk-no" x="1502.0" y="533.4">2</text>
-	<text class="mk-t" x="1546.0" y="535.7"><tspan x="1546.0" dy="0">1. 点击后按钮文案变为「提交中」并禁用，取消按钮同时禁用，防止重</tspan><tspan x="1586.0" dy="38">复提交</tspan><tspan x="1546.0" dy="38">2. 全部成功则关闭弹窗、弹 toast「已作废 {N} 条订单」、刷新列</tspan><tspan x="1586.0" dy="38">表并清空勾选</tspan><tspan x="1546.0" dy="38">3. 部分失败则弹窗不关，失败行标红并在行尾附失败原因，按钮文案变</tspan><tspan x="1586.0" dy="38">为「重试失败项」</tspan><tspan x="1546.0" dy="38">4. 整体失败则弹窗不关，顶部显示错误提示，保留全部勾选状态让人能</tspan><tspan x="1586.0" dy="38">直接重试</tspan><tspan x="1546.0" dy="38">5. 请求超过十秒未返回则按整体失败处理，提示改为「提交超时，请稍</tspan><tspan x="1586.0" dy="38">后重试」</tspan></text>
+	<text class="mk-t" x="1546.0" y="535.7"><tspan x="1546.0" dy="0">1. 点击后按钮文案变为"提交中"并禁用，取消按钮同时禁用，防止重复提交</tspan><tspan x="1546.0" dy="38">2. 全部成功则关闭弹窗、弹 toast"已作废 {N} 条订单"、刷新列表</tspan><tspan x="1586.0" dy="38">并清空勾选</tspan><tspan x="1546.0" dy="38">3. 部分失败则弹窗不关，失败行标红并在行尾附失败原因，按钮文案变</tspan><tspan x="1586.0" dy="38">为"重试失败项"</tspan><tspan x="1546.0" dy="38">4. 整体失败则弹窗不关，顶部显示错误提示，保留全部勾选状态让人能</tspan><tspan x="1586.0" dy="38">直接重试</tspan><tspan x="1546.0" dy="38">5. 请求超过十秒未返回则按整体失败处理，提示改为"提交超时，请稍</tspan><tspan x="1586.0" dy="38">后重试"</tspan></text>
 	<rect class="mk-box" x="879.0" y="466.2" width="140.4" height="87.6" rx="3"/>
 	<circle class="mk-bg" cx="882.0" cy="469.2" r="15"/>
 	<text class="mk-no" x="882.0" y="475.5">3</text>
-	<circle class="mk-bg" cx="1502.0" cy="941.1" r="15"/>
-	<text class="mk-no" x="1502.0" y="947.4">3</text>
-	<text class="mk-t" x="1546.0" y="949.7"><tspan x="1546.0" dy="0">取消。关闭弹窗并保留列表上的勾选状态，提交中禁用。</tspan></text>
+	<circle class="mk-bg" cx="1502.0" cy="903.1" r="15"/>
+	<text class="mk-no" x="1502.0" y="909.4">3</text>
+	<text class="mk-t" x="1546.0" y="911.7"><tspan x="1546.0" dy="0">取消。关闭弹窗并保留列表上的勾选状态，提交中禁用。</tspan></text>
 </svg>
 <!--/annotation-->
 

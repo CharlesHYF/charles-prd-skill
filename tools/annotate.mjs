@@ -2,7 +2,7 @@
  * 用 capture.mjs 量好的坐标生成界面标注图，并写回 tasks.md 的界面小节
  * 标注清单只写元素文案与说明，坐标来自 _coords.json，不手写也不重跑浏览器
  * 创建日期：2026-09-22
- * 修改日期：2026-09-22
+ * 修改日期：2026-09-23
  */
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -38,7 +38,7 @@ const SMALL_BOX = 42;
 const ORPHAN_LIMIT = 2;
 
 // 这些标点不能出现在行首，超宽也要跟着上一行走
-const NO_LINE_START = "。，、；：？！）》」』%”’.,;:?!)]}";
+const NO_LINE_START = "。，、；：？！）》\u300d\u300f%\u201d\u2019.,;:?!)]}";
 
 const usage = `用法: annotate.mjs <标注清单.json...>
 
@@ -121,13 +121,13 @@ const pick = (els, mark, shot) => {
 
 	if (candidates.length === 0) {
 		const hint = els.map((el) => `${el.kind}:${el.txt}`).slice(0, 40).join("  ");
-		throw new Error(`${shot} 里找不到元素「${mark.el}」${mark.kind ? `(kind=${mark.kind})` : ""}\n     可选元素：${hint}`);
+		throw new Error(`${shot} 里找不到元素"${mark.el}"${mark.kind ? `(kind=${mark.kind})` : ""}\n     可选元素：${hint}`);
 	}
 
 	const index = mark.index ?? 0;
 
 	if (index >= candidates.length) {
-		throw new Error(`${shot} 的「${mark.el}」只有 ${candidates.length} 个，取不到第 ${index + 1} 个`);
+		throw new Error(`${shot} 的"${mark.el}"只有 ${candidates.length} 个，取不到第 ${index + 1} 个`);
 	}
 
 	return candidates[index];

@@ -184,7 +184,7 @@ check_prd_sections() {
 }
 
 # 检查五：需求条目必须带编号，且同一版本内不重复分配
-# 重复检测只看定义行（形如「- REQ-1.0-001 ...」），不看正文引用。
+# 重复检测只看定义行（形如"- REQ-1.0-001 ..."），不看正文引用。
 # 规范本身要求交叉引用：失效需求指向替代编号、未解决问题标注影响的需求、
 # Later 指向后续版本需求，这些都会让同一编号在文中出现多次，但不构成重复分配。
 check_requirement_ids() {
@@ -461,7 +461,7 @@ check_tasks() {
 			field_count=$(grep -cE "^\| *${field} *\|" "${task_file}" || true)
 
 			if [ "${field_count}" -lt "${task_count}" ]; then
-				report "${task_file} 有 ${task_count} 个任务，但交互规格里只有 ${field_count} 处「${field}」字段"
+				report "${task_file} 有 ${task_count} 个任务，但交互规格里只有 ${field_count} 处 \"${field}\" 字段"
 			fi
 		done
 
@@ -541,7 +541,7 @@ check_todo_leftovers() {
 # 检查九：角色与术语的交叉引用
 # prd.md 与 tasks.md 里出现的角色称谓，必须在 product.md 的角色表里存在。
 # 角色表与正文相隔几百行，这类不一致靠人工评审很难发现，交给脚本。
-# 用 python3 做中文分词判定：grep -E 没有中文词边界，会把「一人一岗」切成「一岗」误报。
+# 用 python3 做中文分词判定：grep -E 没有中文词边界，会把"一人一岗"切成"一岗"误报。
 check_cross_reference() {
 	echo "[10/10] 检查角色与术语交叉引用..."
 
@@ -564,7 +564,7 @@ root = os.environ['PRD_ROOT']
 text_product = open(os.path.join(root, 'product.md'), encoding='utf-8').read()
 
 # 只查高区分度的职位后缀。
-# 「岗」不在其列：岗位名在 product.md 角色表中本就全量列出，且「一人一岗」「按岗配置」
+# "岗"不在其列：岗位名在 product.md 角色表中本就全量列出，且"一人一岗"、"按岗配置"
 # 这类普通表述会大量误报，信噪比过低。
 SUFFIX = ('负责人', '管理员', '总监', '经理')
 HAN = re.compile(r'[一-龥]')
@@ -596,7 +596,7 @@ defined = declared(text_product)
 
 def is_known(word):
     """候选词的任一后缀子串命中已声明角色即视为合法引用。
-    这样「请联系数据与系统管理员」与其简称「管理员」都能通过，
+    这样"请联系数据与系统管理员"与其简称"管理员"都能通过，
     前提是该简称已在 product.md 角色表中声明。"""
     return any(word[i:] in defined for i in range(len(word)))
 
@@ -607,7 +607,7 @@ ignore_mark = os.environ.get('IGNORE_MARK', '')
 
 for doc in docs:
     lines = open(doc, encoding='utf-8').read().splitlines()
-    # 写了豁免标记的行跳过，用于放行泛指的「负责人」这类词
+    # 写了豁免标记的行跳过，用于放行泛指的"负责人"这类词
     kept = [ln for ln in lines if not (ignore_mark and ignore_mark in ln)]
     missing = sorted({w for w in candidates('\n'.join(kept)) if not is_known(w)})
     if missing:
