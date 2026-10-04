@@ -2,7 +2,7 @@
 name: charles-prd-review
 description: Use when reviewing a PRD or product document for Charles - finding internal contradictions between requirements, scope and goals, unverifiable release criteria, broken requirement references, and gaps the structure checker cannot detect. Also use to pressure-test a draft before it goes into development.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   author: Charles <w1400214654@outlook.com>
 ---
 
@@ -55,6 +55,8 @@ bash <skill 目录>/tools/check.sh docs/prd
 - **交互规格表的边界情况与原型实际行为对不上**。逐个 Task 打开原型点一遍，重点验边界：按钮的置灰条件、数量统计是否把不该算的算进去了、全部不可操作时是否还弹确认框。原型与规格表是两份独立文档，改了一边另一边不会自动跟着改
 - 原型里还挂着已定义任务的 `data-todo` 占位，见 [prototype](../charles-prd-standards/rules/prototype.md)
 - 原型没有覆盖 `product.md` 所选形态覆盖表里的界面类型；形态有多种时逐种核对，适配移动端时核对手机视口的页面是否也做全
+- 标注清单里 `skip` 掉的元素理由站不站得住。`check.sh` 只查 `skip` 有没有 `reason`，理由是不是借口要人看
+- **给已有项目补的 PRD，真实页面与复刻原型并排核对**：布局、文案、按钮、状态标签逐项对，差异是不是都记进了 `notes.md` 并写明理由；`prototype/sources.md` 里的源码路径是不是真对应那个页面
 
 ### 七、文字表达无法判定
 - 需求描述里出现"优化"、"提升体验"、"合理"、"一般情况下"这类写不成测试用例的表述
@@ -69,6 +71,12 @@ bash <skill 目录>/tools/check.sh docs/prd
 - **阻塞性问题超过三条**，说明当时该停下来确认而不是继续写，评审时要指出受影响的需求范围
 - 推算出来的数值没有在需求条目里就地标注，读的人分不清哪些是确认过的
 
+### 九、需求确认记录逐条对账
+- `notes.md` 需求确认记录里的每一条，到落点处（REQ、Task 或文件小节）能不能找到对应内容。找不到就是问了但答案没落进文档，这是最常见的"问清楚了还是写不详细"
+- 落点写得太泛（只写 `prd.md`），等于没写落点
+- 第二轮逐模块明细确认里 Charles 改过的草案，改动有没有同步到字段表、状态流转与交互规格
+- 记录里的功能清单与 `prd.md` 功能清单条数对不上，说明有功能被悄悄砍掉或凭空多出
+
 ## 提供思路时的做法
 评审不只是挑错。发现问题后按这个顺序给建议：
 
@@ -82,6 +90,6 @@ bash <skill 目录>/tools/check.sh docs/prd
 
 ## 评审闸门
 - 结构校验全绿
-- 八类内容问题逐条过完
+- 九类内容问题逐条过完
 - 每条意见都附具体位置
 - 需要 Charles 决定的取舍单独列出，不混在问题清单里

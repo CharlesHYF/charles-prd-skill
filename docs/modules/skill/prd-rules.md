@@ -184,7 +184,7 @@
 ## 功能六：仓库自检
 
 ### 功能描述
-`tests/check_structure.sh` 检查本仓自身：skill 完整性、四个 SKILL.md 与五处配置的版本号一致、Markdown 内部链接可达，以及禁用字符扫描。本仓的编码与提交规范内联在 `AGENTS.md`，不引用任何其它 skill。
+`tests/check_structure.sh` 检查本仓自身：skill 完整性、每个 SKILL.md 与五处配置的版本号一致、Markdown 内部链接可达，以及禁用字符扫描。本仓的编码与提交规范内联在 `AGENTS.md`，不引用任何其它 skill。
 
 禁用字符按码点列出，规则文本里同样只写码点，不写字符本身：
 

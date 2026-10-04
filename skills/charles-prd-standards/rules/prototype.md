@@ -2,7 +2,7 @@
 <!--
 原型的定位、编码规范豁免边界与时效性
 创建日期：2026-09-21
-修改日期：2026-09-23
+修改日期：2026-10-04
 -->
 > 原型默认直接做静态 HTML。它能点击、能表达状态、能进 Git，也最容易让 Coding Agent 继续修改。
 
@@ -111,16 +111,35 @@ App 的全部类型去掉启动与引导，再加下面三类：
 - 多角色产品要有角色切换，切换后可见范围与可操作按钮跟着变
 - 每个 major 版本保存自己的原型，2.0 不覆盖 1.0 的历史
 
+## 从真实前端复刻
+> 给已经在跑的项目补 PRD 时，原型不是另画一套，而是**与线上一模一样**。另画的话评审看到的和用户用到的是两个东西，标注图标的也不是真实界面。
+
+- 覆盖真实项目的全部页面与弹窗，含已实现且不打算改的
+- 每页从真实前端源码复刻：同一套布局、文案、按钮、状态标签与页面层级；数据换成 Mock，去掉接口调用与鉴权，保留四种状态切换
+- 真实前端用了组件库的，用静态 HTML 与 CSS 还原外观，不引入组件库运行时
+- 补上下面契约里的截图 hook，原型才能被 `capture.mjs` 截
+- 写 `prototype/sources.md` 对照表，每个原型页面一行：原型页面、真实源码路径（相对产品仓根目录）、路由。`check.sh` 核对每个 `.html` 都在表里且源码路径存在
+
+```markdown
+| 原型页面 | 真实源码 | 路由 |
+| --- | --- | --- |
+| pages/order-list.html | src/views/order/List.vue | /orders |
+| pages/order-list.html#deleteModal | src/components/order/DeleteConfirm.vue | 同上 |
+```
+
+复刻完与真实页面并排核对，有意简化的地方写明理由记进 `notes.md`。工作流见 [charles-legacy-prd](../../charles-legacy-prd/SKILL.md)。
+
 ## 与截图工具的契约
 > `tools/capture.mjs` 靠下面这几个 hook 控制截图状态。**原型要适配这些约定，不是反过来改工具。**
 
 | Hook | 谁用 | 作用 |
 | --- | --- | --- |
 | `[data-state-btn="<状态>"]` | 状态切换按钮 | 截图清单的 `state` 靠点它切到指定状态 |
-| `#roleSelect` | 角色下拉 | 截图清单的 `role` 靠给它赋值再派发 change |
+| `#roleSelect` | 角色下拉 | 截图清单的 `role` 靠给它赋值再派发 change；它是切换 hook 不是产品界面，不进坐标表 |
 | `.statebar` | 状态切换条容器 | 截图前整体移除，它是调试工具不是产品界面 |
 | `[hidden]` | 非当前状态的区块 | 隐藏元素不进坐标表，不会被误标 |
-| `.filters` `.pager` `.modal` `.kpi` `.state-block` | 可整体框选的区块 | 归为 `box` / `kpi` 类，标注清单按名字挑 |
+| `.filters` `.pager` `.modal` `.kpi` `.state-block` | 可整体框选的区块 | 归为 `box` / `kpi` 类，标注清单按名字挑；`.pager` 里的页码按钮不单独量，按整条分页标注 |
+| `nav` `aside` `.sidebar` `.topbar__nav` | 导航容器 | 里面的链接归为 `menu`，不强制逐个标注 |
 | `.chart-grid > .card` | 图表卡片 | 归为 `box` 类，用卡片标题挑 |
 
 截图清单的 `setup` 与 `crop` 用标准 CSS 选择器，写什么都行，但要保证选得中。

@@ -2,7 +2,7 @@
 
 <img src="assets/banner.png" alt="charles-prd" width="880">
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue) ![Scope](https://img.shields.io/badge/scope-PRD%20%7C%20Tasks%20%7C%20Prototype%20%7C%20PDF-informational) ![AI Tools](https://img.shields.io/badge/AI%20tools-Claude%20Code%20%7C%20Codex%20%7C%20Cursor%20%7C%20Gemini-brightgreen) ![Docs](https://img.shields.io/badge/docs-%E4%B8%AD%E6%96%87-red)
+![Version](https://img.shields.io/badge/version-1.1.0-blue) ![Scope](https://img.shields.io/badge/scope-PRD%20%7C%20Tasks%20%7C%20Prototype%20%7C%20PDF-informational) ![AI Tools](https://img.shields.io/badge/AI%20tools-Claude%20Code%20%7C%20Codex%20%7C%20Cursor%20%7C%20Gemini-brightgreen) ![Docs](https://img.shields.io/badge/docs-%E4%B8%AD%E6%96%87-red)
 
 </div>
 
@@ -16,10 +16,14 @@ Charles 的产品文档与原型规范，面向独立开发者的单人流程。
 
 | skill | 用途 |
 | --- | --- |
-| `charles-prd-standards` | 规范本体：目录结构、版本管理、任务与交互规格、原型、图、文字表达、导出交付、协作格式 |
-| `charles-new-product` | 从零定义新产品：**先集中问清必答项，确认后一次产出全部文档、图、原型与 PDF** |
-| `charles-legacy-prd` | 给已有项目补 PRD：扫描实现盘点功能、标注需求来源、区分设计与遗留 |
-| `charles-prd-review` | PRD 评审：找需求矛盾、范围与目标脱节、无法判定的 Release Criteria |
+| `charles-prd-standards` | 规范本体：目录结构、版本管理、任务与交互规格、原型、图、文字表达、导出交付、协作格式、一键出全部 |
+| `charles-new-product` | 模式 1，第一份 PRD 从 0 生成：两轮问清产品级与逐模块明细，确认后一次产出全部文档、图、原型与 PDF |
+| `charles-legacy-prd` | 模式 2，项目写完了补 PRD：扫描实现盘点功能、标注需求来源、区分设计与遗留，**原型从真实前端复刻** |
+| `charles-next-version` | 模式 3，第二版 PRD：先问版本号（1.1 还是 2.0），从骨架建新版本目录 |
+| `charles-add-feature` | 模式 4，在原有基础上加 PRD：往开发中的版本追加需求、任务、原型与标注图，已冻结版本拒绝 |
+| `charles-prd-review` | PRD 评审：找需求矛盾、范围与目标脱节、无法判定的 Release Criteria、确认记录对账 |
+
+四个工作流都支持**一键出全部**：先按必问项问完，有"未回答"不开写，确认后一次产出，`check.sh` 全绿并自评审后交付。
 
 ## 安装
 
@@ -97,15 +101,17 @@ bash ~/charles-prd-skill/tools/check.sh docs/prd
 | `prd.md` 章节与字段类型 | 固定章节齐全；字段表类型列写 SQL 类型，禁止语言层类型与 ENUM |
 | 需求编号 | 存在且不重复分配 |
 | 图的位置与来源 | Mermaid 不进 `diagrams/`，位图配同名来源说明 |
-| 界面标注图 | 截图、坐标、标记块齐全，原型改过要重新截图 |
+| 界面标注图 | 截图、坐标、标记块齐全，原型改过要重新截图；截图高宽比不超过 1.25；按钮、输入控件与链接每个都有标注，不标的要写 skip 原因 |
 | 版本状态 | `README.md` 声明三个版本状态 |
-| 任务与交互规格 | 编号唯一、小节齐全、流程图或无分支声明、七字段齐全、关联需求存在、已定义任务不留占位 |
+| 任务与交互规格 | 编号唯一、小节齐全、流程图或无分支声明、七字段齐全、关联需求存在、已定义任务不留占位；每个任务的界面小节有标记块，标记块外不许手画 SVG |
 | 角色交叉引用 | 正文里的角色都能在 `product.md` 角色表里找到 |
 | `[待填]` 残留 | 骨架复制后没替换的占位，Markdown 与原型 HTML 都查 |
 | 产品形态 | `product.md` 声明形态与移动端适配，取值合法且前后一致 |
 | 截图视口 | 视口取值合法；纯移动形态只用手机视口；适配移动端时每张桌面截图都配 `-mobile` 截图与标注 |
+| 需求确认记录 | major 版本的 `notes.md` 有"需求确认记录"一节且至少一行，每条写明落点 |
+| 原型来源对照 | 复刻原型的 `prototype/sources.md` 覆盖每个页面，源码路径存在 |
 
-说"一键出全部"时，新产品走 `charles-new-product`、已有项目走 `charles-legacy-prd`。前者先按必答项集中提问（产品形态、用户优先级、运行环境、内容来源、外部对接、关键数值、合规约束），确认后一次产出全部内容，不分批交付。
+说"一键出全部"时按四种模式分流：新产品走 `charles-new-product`，已有项目走 `charles-legacy-prd`，规划下一版走 `charles-next-version`，往开发中的版本加内容走 `charles-add-feature`。都先按必答项提问：第一轮七类产品级（产品形态、用户优先级、运行环境、内容来源、外部对接、关键数值、合规约束），第二轮逐模块功能明细（功能清单、角色入口、字段、状态流转、边界异常、关键数值），1.0 不等于 MVP，范围由 Charles 定；确认后一次产出全部内容，不分批交付。
 
 内容级的矛盾（需求打架、范围与目标脱节、判据无法判定）脚本查不了，由 `charles-prd-review` 的评审清单人工过。
 
@@ -151,7 +157,8 @@ bash ~/charles-prd-skill/tools/export-prd.sh 1.0 --title "订阅管理工具"
 | 需求表达 | 必须能写成测试用例，禁止"优化"、"提升体验"、"合理"这类无法判定的说法 |
 | 原型定位 | 开发期间是交互事实来源，发布后转历史存档，实现代码成为唯一事实来源 |
 | 原型规范 | 不受编码规范约束，但不许被复制进 `src/` |
-| 图 | Mermaid 手绘风格**写在 prd.md 与 tasks.md 正文里**，不放进 diagrams/；界面标注图内联 SVG；`diagrams/` 只存外部导入的位图并配来源说明 |
+| 图 | Mermaid 手绘风格**写在 prd.md 与 tasks.md 正文里**，不放进 diagrams/；界面标注图由 `annotate.mjs` 从原型截图生成、在 PDF 里占满正文宽度、说明列在图下；`diagrams/` 存截图清单、坐标与外部位图 |
+| 需求确认 | 产出前两轮必问项全部有答案，每条结论记进 `notes.md` 的需求确认记录并写明落点 |
 | Release Criteria | 只写产品维度判据，工程标准由项目自己的交付体系管 |
 | 决策落点 | 跨版本不可逆的进 `decisions.md`，模块级进实现文档，单次改动进 commit message |
 | 文档语言 | 中文，`Non-goals` / `Release Criteria` / `In Scope` 这类术语保留英文 |
