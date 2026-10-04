@@ -1,8 +1,8 @@
 # list-delete-modal 原型截图
 
 **来源**：本版原型 `../prototype/pages/list.html`，由 `tools/capture.mjs` 自动截取。
-**获取日期**：2026-09-23
-**视口**：1440 宽，deviceScaleFactor 2，截图前移除原型状态切换条。
+**获取日期**：2026-10-04
+**视口**：desktop，1440 宽，deviceScaleFactor 2，截图前移除原型状态切换条。
 **裁剪**：裁到 `.modal` 周边 70px。
 **用途**：`tasks.md` 界面小节的标注底图。
 

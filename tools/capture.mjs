@@ -2,7 +2,7 @@
  * 截原型页面并同时量取元素坐标
  * 截图与坐标在同一时刻产出，严格对应，之后生成标注图不需要再跑浏览器
  * 创建日期：2026-09-22
- * 修改日期：2026-09-23
+ * 修改日期：2026-10-04
  */
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -35,6 +35,9 @@ const VIEWPORTS = {
 const DEFAULT_VIEWPORT = "desktop";
 const COORDS_NAME = "_coords.json";
 const JSON_INDENT = 2;
+
+// 标注图在 PDF 里占满正文宽度，截图高度超过宽度这个倍数就放不进一页；与 annotate.mjs 保持一致
+const MAX_ASPECT = 1.25;
 
 const usage = `用法: capture.mjs <截图清单.json...>
 
@@ -70,10 +73,11 @@ if (!chrome) {
 }
 
 // 页面上值得标注的元素，按类型归类，标注清单按文案挑选
+// 侧边栏与顶部导航里的链接归为 menu，不然每页都要把整列导航逐个标一遍
 const COLLECT = `() => {
 	const kindOf = (el) => {
 		if (el.matches("button")) return "btn";
-		if (el.matches(".topbar__nav a")) return "menu";
+		if (el.matches("a") && el.closest("nav, aside, .sidebar, .topbar__nav")) return "menu";
 		if (el.matches("a")) return "link";
 		if (el.matches("input, select, textarea")) return "field";
 		if (el.matches("th")) return "th";
@@ -121,6 +125,11 @@ const COLLECT = `() => {
 		const kind = kindOf(el);
 
 		if (!kind || el.hidden || el.closest("[hidden]")) {
+			continue;
+		}
+
+		// 角色下拉是原型的切换 hook 不是产品界面；分页里的页码按钮按整条分页标注，不逐个量
+		if (el.matches("#roleSelect") || (el.closest(".pager") && !el.matches(".pager"))) {
 			continue;
 		}
 
@@ -308,6 +317,10 @@ for (const arg of args) {
 `, "utf8");
 
 	console.log(`[OK] ${shot}.png  ${measured.w}x${measured.h}  量到 ${measured.els.length} 个元素`);
+
+	if (measured.h / measured.w > MAX_ASPECT) {
+		console.log(`[WARN] ${shot}: 高宽比 ${(measured.h / measured.w).toFixed(2)} 超过 ${MAX_ASPECT}，annotate.mjs 会拒绝出图；用 crop 按区块分成多张截`);
+	}
 }
 
 // 坐标文件是位图之外的另一份产物，同样要有来源说明
