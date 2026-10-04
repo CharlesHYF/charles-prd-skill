@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # PRD 结构校验器，把产品文档的确定性规则变成会 fail 的检查
 # 创建日期：2026-09-21
-# 修改日期：2026-09-23
+# 修改日期：2026-10-04
 
 # 说明：故意不用 set -e。grep 无匹配时返回非 0 属正常，需手动累计错误而非中断。
 set -uo pipefail
 
 # 校验范围，与 README 同源，改这里要同步改那一处
-LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/占位残留/角色引用/待填残留/产品形态/截图视口'
+LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/占位残留/角色引用/待填残留/产品形态/截图视口/需求确认记录/原型来源对照'
 
 # 检查步骤总数，新增检查时同步加一
-TOTAL_STEPS=13
+TOTAL_STEPS=15
 
 # 骨架里要填的位置统一用这个前缀，交付前必须全部替换
 FILL_MARK='[待填]'
@@ -25,6 +25,18 @@ MOBILE_ADAPT=""
 
 # 手机端截图清单的命名：桌面截图名加这个后缀，校验靠命名配对
 MOBILE_SHOT_SUFFIX='-mobile'
+
+# 标注图在 PDF 里占满正文宽度，截图高宽比超过它就放不进一页；与 tools/annotate.mjs 保持一致
+MAX_ASPECT='1.25'
+
+# 这几类元素每个都必须有标注；导航、表头、指标卡与区块不强制
+REQUIRED_MARK_KINDS='btn field link'
+
+# notes.md 里记录提问结论与落点的小节
+CONFIRM_SECTION='## 需求确认记录'
+
+# 复刻原型时记录每个页面对应真实源码的对照表
+SOURCES_NAME='sources.md'
 
 # 违规计数：任意一项 > 0 则退出码非 0
 VIOLATIONS=0
@@ -50,6 +62,7 @@ TASK_ID_REGEX='Task-[0-9]{3}'
 # 每个任务必须齐全的小节
 REQUIRED_TASK_SECTIONS=(
 	"### 任务内容"
+	"### 界面"
 	"### 流程"
 	"### 交互规格"
 	"### 验收"
@@ -399,6 +412,8 @@ check_annotations() {
 			fi
 		fi
 
+		check_mark_coverage "${marks}"
+
 	done < <(find "${PRD_ROOT}" -type f -name '*.marks.json' 2>/dev/null)
 
 	# 文档里的标记块必须成对且非空，空的说明忘了跑 annotate.mjs
@@ -418,6 +433,267 @@ check_annotations() {
 		done < <(grep -oE '<!--annotation:[^>]+-->' "${doc}" 2>/dev/null | sed -E 's/<!--annotation:(.*)-->/\1/')
 
 	done < <(find "${PRD_ROOT}" -type f -name 'tasks.md' 2>/dev/null)
+}
+
+# 检查六之三：截图高宽比与标注覆盖
+# 标注图在 PDF 里占满正文宽度，截图太高就放不进一页；按钮、输入控件与链接漏标的，开发只能自己猜
+check_mark_coverage() {
+	local marks_file="$1"
+
+	if ! command -v python3 > /dev/null 2>&1; then
+		echo "  [SKIP] 未找到 python3，跳过高宽比与标注覆盖检查：${marks_file}"
+		return
+	fi
+
+	local findings
+	findings=$(MARKS="${marks_file}" MAX_ASPECT="${MAX_ASPECT}" REQUIRED_KINDS="${REQUIRED_MARK_KINDS}" python3 <<'PYCOVER'
+import json, os, sys
+
+marks_file = os.environ['MARKS']
+max_aspect = float(os.environ['MAX_ASPECT'])
+required_kinds = os.environ['REQUIRED_KINDS'].split()
+base = os.path.dirname(marks_file)
+
+try:
+    spec = json.load(open(marks_file, encoding='utf-8'))
+    coords = json.load(open(os.path.join(base, '_coords.json'), encoding='utf-8'))
+except Exception:
+    sys.exit(0)
+
+shot = spec.get('shot')
+data = coords.get(shot)
+
+if not isinstance(data, dict):
+    sys.exit(0)
+
+width = data.get('w') or 0
+height = data.get('h') or 0
+
+if width and height / width > max_aspect:
+    print(f"ASPECT\t{width}x{height} 高宽比 {height / width:.2f} 超过 {max_aspect}")
+
+els = data.get('els') or []
+
+
+def matches(el, target):
+    if target.get('kind') and el.get('kind') != target.get('kind'):
+        return False
+    name = target.get('el') or ''
+    txt = el.get('txt') or ''
+    return bool(name) and (txt == name or name in txt)
+
+
+picked = set()
+
+for mark in spec.get('marks') or []:
+    candidates = [el for el in els if matches(el, mark)]
+
+    if not candidates:
+        continue
+
+    index = min(mark.get('index', 0), len(candidates) - 1)
+    chosen = candidates[index]
+    picked.add((chosen.get('kind'), chosen.get('txt')))
+
+skips = spec.get('skip') or []
+
+if any(not skip.get('el') or not skip.get('reason') for skip in skips):
+    print("SKIP\tskip 每项都要有 el 与 reason")
+
+uncovered = {}
+
+for el in els:
+    key = (el.get('kind'), el.get('txt'))
+
+    if el.get('kind') not in required_kinds or key in picked:
+        continue
+
+    if any(matches(el, skip) for skip in skips):
+        continue
+
+    uncovered[key] = f"{el.get('kind')}:{el.get('txt')}"
+
+if uncovered:
+    print(f"UNCOVERED\t{len(uncovered)}\t" + " ".join(uncovered.values()))
+PYCOVER
+)
+
+	local line kind detail
+	while IFS= read -r line; do
+
+		if [ -z "${line}" ]; then
+			continue
+		fi
+
+		kind="${line%%	*}"
+		detail="${line#*	}"
+
+		case "${kind}" in
+			ASPECT)
+				report "${marks_file} 的截图 ${detail}(缩到正文宽度后放不进一页,在截图清单里用 crop 按区块分成多张截)"
+				;;
+			SKIP)
+				report "${marks_file} 的 ${detail}(不说明理由的跳过等于漏标)"
+				;;
+			UNCOVERED)
+				report "${marks_file} 有 ${detail%%	*} 个元素没有标注：${detail#*	}(每个按钮、输入控件与链接都要有一条,确实不标的写进 skip 并给出 reason)"
+				;;
+		esac
+
+	done <<< "${findings}"
+}
+
+# 检查八之三：每个任务的界面小节必须有标注标记块，标记块之外不许出现手画 SVG
+# 界面图只能由 annotate.mjs 从原型截图生成；手画的线框与原型必然对不上，原型一改就过期
+check_task_interfaces() {
+	local task_file="$1"
+	local diagrams_dir
+	diagrams_dir="$(dirname "${task_file}")/diagrams"
+
+	local line kind detail shot marks_file
+	while IFS= read -r line; do
+
+		if [ -z "${line}" ]; then
+			continue
+		fi
+
+		kind="${line%%	*}"
+		detail="${line#*	}"
+
+		case "${kind}" in
+			NOANN)
+				report "${task_file} 的 ${detail} 的界面小节没有标注标记块(界面图只能由 tools/annotate.mjs 生成并写进 <!--annotation:xxx--> 标记块)"
+				;;
+			SVG)
+				report "${task_file}:${detail} 标记块之外出现 <svg(界面图不许手画,只能由 tools/annotate.mjs 从原型截图生成)"
+				;;
+			MARK)
+				# 标记名缺省等于截图名；标注清单另起了 mark 的，按清单里的 shot 找截图
+				shot="${detail}"
+				marks_file=$(grep -lE "\"mark\"[[:space:]]*:[[:space:]]*\"${detail}\"" "${diagrams_dir}"/*.marks.json 2>/dev/null | head -1)
+
+				if [ -n "${marks_file}" ]; then
+					shot=$(json_string_field "${marks_file}" "shot")
+					shot="${shot:-${detail}}"
+				fi
+
+				if [ ! -f "${diagrams_dir}/${shot}.png" ]; then
+					report "${task_file} 的标记块 ${detail} 没有对应截图 diagrams/${shot}.png(先跑 tools/capture.mjs 截图再跑 tools/annotate.mjs)"
+				fi
+				;;
+		esac
+
+	done < <(awk -v fill="${FILL_MARK}" '
+		function flush() {
+			if (task != "" && count == 0 && !pending) {
+				print "NOANN\t" task
+			}
+		}
+		/^## Task-[0-9]+/ {
+			flush()
+			task = $0
+			sub(/^## /, "", task)
+			sub(/[：:].*/, "", task)
+			count = 0
+			pending = 0
+			next
+		}
+		index($0, fill) > 0 { pending = 1 }
+		/<!--annotation:/ {
+			count++
+			inside = 1
+			mark = $0
+			sub(/.*<!--annotation:/, "", mark)
+			sub(/-->.*/, "", mark)
+			print "MARK\t" mark
+			next
+		}
+		/<!--\/annotation-->/ { inside = 0; next }
+		/<svg/ && !inside { print "SVG\t" NR }
+		END { flush() }
+	' "${task_file}")
+}
+
+# 检查十四：需求确认记录
+# 问出来的答案要落进文档才算数；记录写明每条结论落到哪条 REQ、哪个 Task，评审时逐条对账
+check_confirmation_records() {
+	echo "[14/${TOTAL_STEPS}] 检查需求确认记录..."
+
+	if [ ! -d "${PRD_ROOT}/versions" ]; then
+		return
+	fi
+
+	local version_dir version_name notes_file rows
+	for version_dir in "${PRD_ROOT}"/versions/*/; do
+
+		if [ ! -d "${version_dir}" ]; then
+			continue
+		fi
+
+		version_name="$(basename "${version_dir%/}")"
+
+		if [[ ! "${version_name}" =~ ${VERSION_DIR_REGEX} ]] || [ ! -f "${version_dir}prd.md" ]; then
+			continue
+		fi
+
+		notes_file="${version_dir}notes.md"
+
+		if [ ! -f "${notes_file}" ]; then
+			report "versions/${version_name}/ 缺少 notes.md(需求确认记录写在这里,每条结论注明落到哪条 REQ 或 Task)"
+			continue
+		fi
+
+		if ! grep -qF "${CONFIRM_SECTION}" "${notes_file}"; then
+			report "${notes_file} 缺少\"需求确认记录\"一节(四列表：轮次、问题、结论、落点)"
+			continue
+		fi
+
+		# 只数该节里的表格行，去掉表头与分隔行
+		rows=$(awk -v section="${CONFIRM_SECTION}" '
+			index($0, section) == 1 { inside = 1; next }
+			/^## / { inside = 0 }
+			inside && /^\|/ { count++ }
+			END { print (count > 2 ? count - 2 : 0) }
+		' "${notes_file}")
+
+		if [ "${rows}" -lt 1 ]; then
+			report "${notes_file} 的需求确认记录没有任何记录(产出前问过的每一项都要有一行,写明结论与落点)"
+		fi
+	done
+}
+
+# 检查十五：原型来源对照表
+# 给已有项目补 PRD 时原型从真实前端复刻，对照表记每个页面抄的是哪份源码，缺一页就是没复刻全
+check_prototype_sources() {
+	echo "[15/${TOTAL_STEPS}] 检查原型来源对照表..."
+
+	local sources_file proto_dir html_file relative source_path
+	while IFS= read -r sources_file; do
+		proto_dir="$(dirname "${sources_file}")"
+
+		while IFS= read -r html_file; do
+			relative="${html_file#"${proto_dir}"/}"
+
+			if ! grep -qF -- "${relative}" "${sources_file}"; then
+				report "${html_file} 不在 ${SOURCES_NAME} 里(复刻的每个页面都要写明对应的真实源码与路由)"
+			fi
+
+		done < <(find "${proto_dir}" -type f -name '*.html' 2>/dev/null | sort)
+
+		# 第二列是真实源码路径，相对产品仓根目录
+		while IFS= read -r source_path; do
+
+			if [ -z "${source_path}" ] || [ "${source_path}" = "---" ] || [ "${source_path}" = "真实源码" ]; then
+				continue
+			fi
+
+			if [ ! -e "${source_path}" ]; then
+				report "${sources_file} 源码路径不存在：${source_path}(对照表第二列写相对产品仓根目录的源码路径,命令在产品仓根目录执行)"
+			fi
+
+		done < <(awk -F'|' '/^\|/ { gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3 }' "${sources_file}")
+
+	done < <(find "${PRD_ROOT}" -type f -path '*/prototype/*' -name "${SOURCES_NAME}" 2>/dev/null | sort)
 }
 
 # 检查七：README 必须声明三个版本状态
@@ -481,6 +757,8 @@ check_tasks() {
 				report "${task_file} 有 ${task_count} 个任务，但交互规格里只有 ${field_count} 处 \"${field}\" 字段"
 			fi
 		done
+
+		check_task_interfaces "${task_file}"
 
 		# 流程小节要么画了图，要么写明单一路径无分支
 		local flow_diagrams flow_declared
@@ -828,6 +1106,8 @@ check_cross_reference
 check_fill_placeholders
 check_product_form
 check_viewports
+check_confirmation_records
+check_prototype_sources
 
 echo "==============================="
 

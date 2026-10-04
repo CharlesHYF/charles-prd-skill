@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check.sh 与禁用字符扫描的回归测试，用固定 fixture 断言该报的都报、不该报的不报
 # 创建日期：2026-09-21
-# 修改日期：2026-09-23
+# 修改日期：2026-10-04
 
 set -uo pipefail
 
@@ -168,6 +168,22 @@ INNER
 
 	echo "# Scope" > "${dir}/versions/1.0/scope.md"
 
+	cat > "${dir}/versions/1.0/notes.md" <<'INNER'
+# Notes
+
+## 需求确认记录
+
+| 轮次 | 问题 | 结论 | 落点 |
+| --- | --- | --- | --- |
+| 1 | 产品形态 | 后台管理系统，不适配移动端 | product.md 产品形态 |
+
+## 待验证
+暂无
+INNER
+
+	printf 'x' > "${dir}/versions/1.0/diagrams/home.png"
+	printf '# home 截图\n' > "${dir}/versions/1.0/diagrams/home.md"
+
 	cat > "${dir}/versions/1.0/tasks.md" <<'INNER'
 # Tasks 1.0
 
@@ -177,6 +193,16 @@ INNER
 
 ### 任务内容
 实现内容。
+
+### 界面
+
+<!--annotation:home-->
+<svg class="annotation"></svg>
+
+1. **提交**：点击后提交。
+<!--/annotation-->
+
+图注：底图为原型截图。
 
 ### 流程
 
@@ -615,6 +641,104 @@ write_shot "home" "../prototype/index.html" "desktop"
 run_check "${VIEW_DIR}"
 expect_contains "${CHECK_OUTPUT}" "但产品形态只含 App 或小程序" "检查十三:纯移动形态用桌面视口被拦"
 expect_not_contains "${CHECK_OUTPUT}" "home-mobile.json 用了" "检查十三:纯移动形态的手机截图放行"
+
+echo "=== 场景十四：需求确认记录必须存在且有内容 ==="
+CONFIRM_DIR="$(mktemp -d)/docs/prd"
+make_prd "${CONFIRM_DIR}"
+printf '# Notes\n\n## 待验证\n暂无\n' > "${CONFIRM_DIR}/versions/1.0/notes.md"
+run_check "${CONFIRM_DIR}"
+expect_contains "${CHECK_OUTPUT}" "缺少\"需求确认记录\"一节" "检查十四:缺少确认记录一节被拦"
+
+printf '# Notes\n\n## 需求确认记录\n\n| 轮次 | 问题 | 结论 | 落点 |\n| --- | --- | --- | --- |\n\n## 待验证\n暂无\n' > "${CONFIRM_DIR}/versions/1.0/notes.md"
+run_check "${CONFIRM_DIR}"
+expect_contains "${CHECK_OUTPUT}" "需求确认记录没有任何记录" "检查十四:只有表头被拦"
+
+rm -f "${CONFIRM_DIR}/versions/1.0/notes.md"
+run_check "${CONFIRM_DIR}"
+expect_contains "${CHECK_OUTPUT}" "versions/1.0/ 缺少 notes.md" "检查十四:缺 notes.md 被拦"
+
+echo "=== 场景十五：界面小节必须有标记块，标记块外不许手画 SVG ==="
+IFACE_DIR="$(mktemp -d)/docs/prd"
+make_prd "${IFACE_DIR}"
+python3 - "${IFACE_DIR}/versions/1.0/tasks.md" <<'PYINNER'
+import pathlib, re, sys
+p = pathlib.Path(sys.argv[1])
+text = p.read_text(encoding="utf-8")
+text = re.sub(r"<!--annotation:home-->[\s\S]*?<!--/annotation-->", "<svg class=\"annotation\"><rect/></svg>", text)
+p.write_text(text, encoding="utf-8")
+PYINNER
+run_check "${IFACE_DIR}"
+expect_contains "${CHECK_OUTPUT}" "Task-001 的界面小节没有标注标记块" "检查九:任务缺标记块被拦"
+expect_contains "${CHECK_OUTPUT}" "标记块之外出现 <svg" "检查九:手画 SVG 被拦"
+
+make_prd "${IFACE_DIR}"
+rm -f "${IFACE_DIR}/versions/1.0/diagrams/home.png" "${IFACE_DIR}/versions/1.0/diagrams/home.md"
+run_check "${IFACE_DIR}"
+expect_contains "${CHECK_OUTPUT}" "标记块 home 没有对应截图" "检查九:标记块缺截图被拦"
+
+echo "=== 场景十六：截图高宽比与标注覆盖 ==="
+COVER_DIR="$(mktemp -d)/docs/prd"
+make_prd "${COVER_DIR}"
+printf '# 坐标\n' > "${COVER_DIR}/versions/1.0/diagrams/_coords.md"
+cat > "${COVER_DIR}/versions/1.0/diagrams/_coords.json" <<'INNER'
+{ "home": { "w": 375, "h": 812, "viewport": "mobile", "els": [
+  { "kind": "btn", "txt": "提交", "x": 10, "y": 700, "w": 100, "h": 40 },
+  { "kind": "link", "txt": "详情", "x": 10, "y": 100, "w": 40, "h": 20 },
+  { "kind": "link", "txt": "详情", "x": 10, "y": 140, "w": 40, "h": 20 },
+  { "kind": "menu", "txt": "工作台", "x": 0, "y": 0, "w": 60, "h": 20 }
+] } }
+INNER
+cat > "${COVER_DIR}/versions/1.0/diagrams/home.marks.json" <<'INNER'
+{ "shot": "home", "inject": "../tasks.md", "mark": "home", "marks": [] }
+INNER
+run_check "${COVER_DIR}"
+expect_contains "${CHECK_OUTPUT}" "高宽比 2.17 超过 1.25" "检查七:截图过高被拦"
+expect_contains "${CHECK_OUTPUT}" "没有标注：btn:提交 link:详情" "检查七:漏标元素被拦并按组去重"
+expect_not_contains "${CHECK_OUTPUT}" "menu:工作台" "检查七:导航不强制标注"
+
+python3 - "${COVER_DIR}/versions/1.0/diagrams/_coords.json" <<'PYINNER'
+import json, pathlib, sys
+p = pathlib.Path(sys.argv[1])
+data = json.loads(p.read_text(encoding="utf-8"))
+data["home"]["h"] = 400
+p.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+PYINNER
+cat > "${COVER_DIR}/versions/1.0/diagrams/home.marks.json" <<'INNER'
+{ "shot": "home", "inject": "../tasks.md", "mark": "home",
+  "marks": [ { "el": "提交", "kind": "btn", "note": "提交。" } ],
+  "skip": [ { "el": "详情", "kind": "link" } ] }
+INNER
+run_check "${COVER_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "高宽比" "检查七:高宽比合规放行"
+expect_contains "${CHECK_OUTPUT}" "skip 每项都要有 el 与 reason" "检查七:skip 缺 reason 被拦"
+
+cat > "${COVER_DIR}/versions/1.0/diagrams/home.marks.json" <<'INNER'
+{ "shot": "home", "inject": "../tasks.md", "mark": "home",
+  "marks": [ { "el": "提交", "kind": "btn", "note": "提交。" } ],
+  "skip": [ { "el": "详情", "kind": "link", "reason": "跳转到目标页，目标页自己是一张图" } ] }
+INNER
+run_check "${COVER_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "没有标注" "检查七:标注齐全加 skip 放行"
+expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "检查七:覆盖场景全部放行"
+
+echo "=== 场景十七：原型来源对照表 ==="
+SRC_DIR="$(mktemp -d)/docs/prd"
+make_prd "${SRC_DIR}"
+mkdir -p "${SRC_DIR}/versions/1.0/prototype/pages"
+printf '<html></html>\n' > "${SRC_DIR}/versions/1.0/prototype/index.html"
+printf '<html></html>\n' > "${SRC_DIR}/versions/1.0/prototype/pages/list.html"
+printf '%s\n' "# 原型来源" "" "| 原型页面 | 真实源码 | 路由 |" "| --- | --- | --- |" "| index.html | src/views/Home.vue | / |" > "${SRC_DIR}/versions/1.0/prototype/sources.md"
+run_check "${SRC_DIR}"
+expect_contains "${CHECK_OUTPUT}" "pages/list.html 不在 sources.md 里" "检查十五:原型页面缺对照被拦"
+expect_contains "${CHECK_OUTPUT}" "源码路径不存在：src/views/Home.vue" "检查十五:源码路径不存在被拦"
+
+printf '%s\n' "# 原型来源" "" "| 原型页面 | 真实源码 | 路由 |" "| --- | --- | --- |" "| index.html | tools/check.sh | / |" "| pages/list.html | tools/check.sh | /list |" > "${SRC_DIR}/versions/1.0/prototype/sources.md"
+run_check "${SRC_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "sources.md" "检查十五:对照齐全放行"
+
+rm -f "${SRC_DIR}/versions/1.0/prototype/sources.md"
+run_check "${SRC_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "sources.md" "检查十五:没有对照表时不检查"
 
 echo "=== 场景六：仓库自带样例与骨架必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-example"
