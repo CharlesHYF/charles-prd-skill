@@ -1,16 +1,17 @@
 ---
 name: charles-new-product
-description: Use when starting a brand-new product from zero for Charles, including requests to produce the whole PRD package in one go. Not for adding a feature to an existing product, and not for documenting a product whose code is already running.
+description: Use when starting a brand-new product from zero for Charles, including requests to produce the whole PRD package in one go. Not for adding a feature to an existing product, not for planning the next version of one, and not for documenting a product whose code is already running.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   author: Charles <w1400214654@outlook.com>
 ---
 
 # 新产品定义
 
-> 从零定义一个产品时使用。判据是**代码是否已经存在**：从零设计走本工作流；项目已经在跑、要把现状整理成文档，走 [charles-legacy-prd](../charles-legacy-prd/SKILL.md)。
+> 从零定义一个产品时使用。判据是**代码与 PRD 都不存在**：项目已经在跑走 [charles-legacy-prd](../charles-legacy-prd/SKILL.md)；PRD 已有、要规划下一版走 [charles-next-version](../charles-next-version/SKILL.md)；PRD 已有、要往开发中的版本加内容走 [charles-add-feature](../charles-add-feature/SKILL.md)。
 
 ## 前置阅读
+- [一键出全部](../charles-prd-standards/rules/one-shot.md)
 - [目录结构](../charles-prd-standards/rules/structure.md)
 - [与编码规范的边界](../charles-prd-standards/rules/boundaries.md)
 - 命令里的 `<skill 目录>` 见 [主规范](../charles-prd-standards/SKILL.md) 的工具与模板路径
@@ -18,11 +19,12 @@ metadata:
 ## 短循环
 不要把 PRD、设计、原型、开发拆成很多正式阶段，保持一个短循环。
 
-### 0. 集中提问，问到没有阻塞问题为止
-> Charles 说"一键出全部"时，**不是立刻开写**，而是先把该问的一次问完，确认后再一次产出全部内容。
+### 0. 两轮提问，问到没有阻塞问题为止
+> Charles 说"一键出全部"时，**不是立刻开写**，而是先把该问的问完，确认后再一次产出全部内容。
 > 带着未定前提写出来的内容，写得越多返工越多。问清的成本远低于返工。
 
-按下面七类逐项检查，**每一类都要有明确答案**才能进入产出：
+#### 第一轮：产品级七类必答项
+按下面七类逐项检查，**每一类都要有明确答案**才能进入第二轮：
 
 | 类别 | 要问清什么 | 不问清的后果 |
 | --- | --- | --- |
@@ -34,8 +36,29 @@ metadata:
 | 关键数值 | 有效期、阈值、频率、容量、超时、重试次数 | 只能推算，上线后大面积返工 |
 | 合规与硬约束 | 哪些是不能降级的、失败时能不能放行 | 降级策略可能违反合规要求 |
 
-#### 提问方式
+#### 第二轮：逐模块功能明细确认
+> 第一轮只能定下产品是什么。**功能有多少、每个功能长什么样，第一轮问不出来**，不问就只能靠猜，猜出来的就是一份只有核心流程的 MVP。
 
+第一轮答完后，先列出完整的模块与功能清单，再按模块给出明细草案，让 Charles 逐模块确认或修改：
+
+| 草案内容 | 要写到什么程度 |
+| --- | --- |
+| 功能清单 | 该模块全部功能，一行一个，不按优先级裁剪 |
+| 角色与入口 | 谁能用、从哪进 |
+| 字段草案 | 字段名、类型、必填、取值 |
+| 状态流转 | 状态枚举与每条流转的触发条件 |
+| 边界与异常 | 空、超限、冲突、失败各自的行为与文案 |
+| 关键数值 | 阈值、时限、容量，推算的标待确认 |
+
+- 每个模块需要 Charles 定的点**不超过四个**，写成带选项与推荐项的问题；其余是草案，他只需确认或改
+- 按模块分批，一批一个模块，等到回答再问下一个模块
+- Charles 说"按你的草案来"算已确认，需求确认记录里写明是草案确认
+- **功能清单未经 Charles 确认不开写**
+
+#### 范围不许自砍
+**1.0 不等于 MVP。** 功能清单以 Charles 确认的全量为准，不按"先做核心"自行裁剪。要不要分期、砍哪些是产品取舍，只能由 Charles 决定；可以提分期方案并说明代价，不能替他定。定了分期的，砍掉的写进 `scope.md` 的 Later。
+
+#### 提问方式
 - **交互卡片一次最多四个问题，超过四个就分批问**。按阻塞程度排序，先问最阻塞的四个
 - **工具没有交互卡片时**，每批最多四个编号问题，每题附选项与推荐项，发出后停下等待回答，同一条回复里不继续产出任何文件
 - **每批必须等到回答，才问下一批**。不允许把剩下的问题写成文本列表然后当作"已经问过"
@@ -54,7 +77,7 @@ metadata:
 把"未回答"当成"不知道"处理，等于自己替 Charles 做了决定，然后在交付说明里写"这些我问了但你没回答"，问题是他可能压根没看到那条问题。
 
 #### 开写前的状态自检
-产出任何文件之前，先把全部必问项列一遍，逐项标注状态。**只要还有一项是"未回答"，就不能开写**，要明确告诉 Charles：
+产出任何文件之前，先把两轮的全部必问项列一遍，逐项标注状态。**只要还有一项是"未回答"，就不能开写**，要明确告诉 Charles：
 
 > 还有 N 个问题没有答案，需要你回答后我才开始产出。要么回答它们，要么明确说"按你的默认值写，标注待确认"。
 
@@ -62,7 +85,10 @@ metadata:
 
 关键数值一律问，拿到"按默认写"的授权后才在需求条目里就地标注待确认，见 [writing](../charles-prd-standards/rules/writing.md)。
 
-判据：**每一项必问都有状态吗？状态里还有"未回答"吗？** 有就继续问，全部落到"已确认"或"明确不知道"才开写。
+#### 答案必须落进文档
+两轮问出来的每一条结论都要写进对应位置，并在 `versions/1.0/notes.md` 的"需求确认记录"里记一行：轮次、问题、结论、落点（哪条 REQ、哪个 Task 或哪个文件的哪一节）。`check.sh` 要求这一节至少一行，评审时逐条对账。
+
+判据：**每一项必问都有状态吗？状态里还有"未回答"吗？每条结论都有落点吗？** 有"未回答"就继续问，全部落到"已确认"或"明确不知道"、落点都写了才开写。
 
 ### 1. 写 product.md
 先按 [structure](../charles-prd-standards/rules/structure.md) 的"从骨架开始"把骨架复制为 `docs/prd/`，之后每一步都是替换其中的 `[待填]`。
@@ -72,7 +98,7 @@ metadata:
 **这一步只做一次**，后续版本不重写它。写不出目标用户与核心问题就先别往下走，后面每一步都要靠它做取舍。
 
 ### 2. 写 versions/1.0/prd.md 与 scope.md
-按固定结构（版本历史加七章）写 `prd.md`，需求条目带编号（`REQ-1.0-001`）。
+按固定结构（版本历史加七章）写 `prd.md`，需求条目带编号（`REQ-1.0-001`）。功能需求按第二轮确认的模块与明细写，每个功能含场景描述、需求条目、字段定义、流程四块。
 
 `scope.md` 三段式：In Scope / Later / Out of Scope。**Out of Scope 比 In Scope 更重要**，它是后面拒绝范围蔓延的依据。
 
@@ -81,10 +107,10 @@ metadata:
 
 这一步经常反过来改第 2 步：画出来才发现流程不通。改 PRD 再改原型，不要只改原型。
 
-### 4. 补必要的流程图与架构图
-**图用 Mermaid 直接写在 `prd.md` 与 `tasks.md` 正文里**，不要单独建文件放进 `diagrams/`。写进独立文件的话正文没有图、导出的 PDF 也没有图，等于白画。
-
-只画 PRD 里已定义的节点。横向图控制在 6 个节点以内，细则见 [diagrams](../charles-prd-standards/rules/diagrams.md)。
+### 4. 截图、标注与流程图
+- 每个任务的界面小节都要有由 `capture.mjs` 与 `annotate.mjs` 生成的标注图，按钮、输入控件与链接逐个标注，弹窗单独出图，手机端按区块裁剪，细则见 [diagrams](../charles-prd-standards/rules/diagrams.md)
+- **图用 Mermaid 直接写在 `prd.md` 与 `tasks.md` 正文里**，不要单独建文件放进 `diagrams/`。写进独立文件的话正文没有图、导出的 PDF 也没有图，等于白画
+- 只画 PRD 里已定义的节点。横向图控制在 6 个节点以内
 
 ### 5. 边开发边修 PRD 与 Prototype
 进入编码阶段，这一步起同时受项目编码规范约束。产品侧要做到三件事：
@@ -102,8 +128,8 @@ metadata:
 2. **冻结 `versions/1.0/`**，此后只允许修正笔误
 3. 更新 `README.md` 的版本状态：1.0 转为 Production，原型转为历史存档，实现代码成为唯一事实来源
 
-### 7. 复制最小骨架开始 2.0
-从 `templates/prd-template/versions/1.0/` 复制骨架建 `versions/2.0/`，**不要复制 1.0 的内容再删改**，那样会带进上一版的遗留表述。
+### 7. 下一版
+规划下一个版本走 [charles-next-version](../charles-next-version/SKILL.md)，从骨架复制建新版本目录，**不要复制 1.0 的内容再删改**，那样会带进上一版的遗留表述。
 
 ## 一次产出的完整清单
 确认完毕后一次产出下面全部内容，不分批交付：
@@ -111,30 +137,34 @@ metadata:
 | 产物 | 内容 |
 | --- | --- |
 | `docs/prd/README.md` | 版本导航与三个状态 |
-| `docs/prd/product.md` | 产品定义、目标用户、核心问题、产品原则 |
+| `docs/prd/product.md` | 产品定义、目标用户、核心问题、产品形态、角色、产品原则 |
 | `docs/prd/decisions.md` | 本次确认中定下的不可逆取舍 |
 | `versions/1.0/prd.md` | 版本历史加七章，需求带编号，**流程图与状态图用 Mermaid 写在正文里** |
 | `versions/1.0/scope.md` | In Scope / Later / Out of Scope |
-| `versions/1.0/tasks.md` | 任务与交互规格，**界面标注图内联 SVG** |
-| `versions/1.0/notes.md` | 问不出来的待验证问题与影响范围 |
+| `versions/1.0/tasks.md` | 任务与交互规格，每个任务的界面小节带 `annotate.mjs` 生成的标注图 |
+| `versions/1.0/notes.md` | 需求确认记录、问不出来的待验证问题与影响范围 |
 | `versions/1.0/prototype/` | 按产品形态覆盖表做全的可点击原型，含四种状态；适配移动端时手机视口同样做全 |
+| `versions/1.0/diagrams/` | 截图清单、标注清单、截图与坐标 |
 | 两份 PDF | 用 `<skill 目录>/tools/export-prd.sh` 产出，产品需求对外、任务规格内部 |
 
-产出后自己跑一遍校验与评审再交付：
+产出后按 [一键出全部](../charles-prd-standards/rules/one-shot.md) 的第 4、5 步自检并写交付说明：
 
 ```bash
 bash <skill 目录>/tools/check.sh docs/prd
 ```
 
-再按 [charles-prd-review](../charles-prd-review/SKILL.md) 的八类清单自评审，发现的矛盾直接改掉，改不了的列进交付说明。
+再按 [charles-prd-review](../charles-prd-review/SKILL.md) 的清单自评审，发现的矛盾直接改掉，改不了的列进交付说明。
 
 ## 交付闸门
 - `product.md`、`versions/1.0/prd.md`、`scope.md` 三个文件齐全
 - 需求条目全部带编号
+- 功能清单经 Charles 确认，没有自行砍成 MVP
 - 原型覆盖所选形态的覆盖表与全部任务页面，四种状态齐全
+- 每个任务的界面小节有标注图，按钮、输入控件与链接逐个标注
 - 外部导入的位图有同名来源说明
 - `docs/prd/**/prototype/` 已加进项目的规范校验排除清单
 - 发布时 tag 已打、版本目录已冻结、README 状态已更新
-- **七类必问项全部有答案**，问不出来的已记入 `notes.md` 并写明影响范围
+- **两轮必问项全部有答案**，问不出来的已记入 `notes.md` 并写明影响范围
+- 需求确认记录每条都有落点，评审对账能找到
 - 推算出来的数值已在需求条目里就地标注
 - 没有残留的 `[待填]`，`check.sh` 全绿

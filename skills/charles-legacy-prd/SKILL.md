@@ -1,14 +1,14 @@
 ---
 name: charles-legacy-prd
-description: Use when a project that is already running needs product documentation written after the fact for Charles, including when its PRD is missing or no longer matches the code. Not for defining a brand-new product.
+description: Use when a project that is already running needs product documentation written after the fact for Charles, including when its PRD is missing or no longer matches the code, and the prototype must mirror the real frontend. Not for defining a brand-new product or planning its next version.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   author: Charles <w1400214654@outlook.com>
 ---
 
 # 给已有项目补 PRD
 
-> 项目已经在跑、产品其实已经定义了（只是隐含在实现里），需要的是**从现状反向整理**，不是从零设计。从零定义走 [charles-new-product](../charles-new-product/SKILL.md)。
+> 项目已经在跑、产品其实已经定义了（只是隐含在实现里），需要的是**从现状反向整理**，不是从零设计。从零定义走 [charles-new-product](../charles-new-product/SKILL.md)；PRD 已有、要规划下一版走 [charles-next-version](../charles-next-version/SKILL.md)。
 
 ## 和从零定义的关键差别
 
@@ -17,16 +17,19 @@ metadata:
 | 第一步 | 集中提问 | **先读代码，盘点现状** |
 | 需求来源 | 全部来自业务确认 | 一部分从实现提取，一部分来自业务确认 |
 | 提问内容 | 做什么、怎么做 | **为什么这么做、哪些是有意为之、哪些是遗留妥协** |
+| 原型 | 从零设计 | **从真实前端源码复刻，与线上一模一样** |
 | 最大风险 | 在未定前提上写太多 | **把 bug 和临时妥协写成产品需求** |
 
 最后一行最要命。代码里的行为不等于产品意图，不区分的话会把赶工留下的坑固化成"设计如此"，以后想改反而要先推翻文档。
 
 ## 前置阅读
+- [一键出全部](../charles-prd-standards/rules/one-shot.md)
 - [目录结构](../charles-prd-standards/rules/structure.md)
 - [任务与交互规格](../charles-prd-standards/rules/tasks.md)
+- [产品原型](../charles-prd-standards/rules/prototype.md) 的"从真实前端复刻"
 - 命令里的 `<skill 目录>` 见 [主规范](../charles-prd-standards/SKILL.md) 的工具与模板路径
 
-## 五步
+## 六步
 
 ### 1. 全量扫描，产出功能清单
 > 这一步只盘点不写细节。很多旧项目自己都不知道有哪些功能，盘点本身就有价值。
@@ -44,9 +47,11 @@ metadata:
 
 同时判断产品形态：前端是后台管理、面向用户的网页、App 还是小程序，网页有没有做移动端适配（响应式断点、移动端专用路由或页面）。判断结果写进 `product.md` 的产品形态一节，第 2 步随清单一起确认。
 
+扫描前端时同步记下**每个页面与弹窗对应的源码文件和路由**，第 5 步复刻原型与写 `sources.md` 要用。
+
 产出一份清单，每行记：模块、功能名、入口位置、当前行为一句话。**先把清单交给 Charles 确认完整性与优先级**，不要直接往下写。
 
-**规模预警**：清单超过 80 个功能时，明确告诉 Charles 全量整理的工作量，并建议按模块分期，先补正在改的和最核心的。
+**规模预警**：清单超过 80 个功能时，明确告诉 Charles 全量整理的工作量，并建议按模块分期，先补正在改的和最核心的。分期是他的决定，不是 Agent 自行裁剪。
 
 ### 2. 确认清单与版本号
 - 清单有没有漏、有没有已废弃但代码还在的
@@ -79,11 +84,21 @@ metadata:
 2. 如果是设计，背后的约束是什么（合规要求、业务规则、外部系统限制）？
 3. 如果是遗留，要不要记进技术债、什么时候处理？
 
-同时按 [charles-new-product](../charles-new-product/SKILL.md) 的七类必答项检查缺口：代码能告诉你"做了什么"，告诉不了你"为什么做、边界在哪、关键数值的依据"。这些一并问。
+同时按 [charles-new-product](../charles-new-product/SKILL.md) 第 0 步的两轮必问项检查缺口：第一轮七类产品级问题里，代码能告诉你"做了什么"，告诉不了你"为什么做、边界在哪、关键数值的依据"；第二轮逐模块明细以扫描出的功能清单为草案底本，字段、状态、边界从代码读出来，问的是哪些是有意为之。这些一并问。
 
-**提问方式与状态管理同样适用**：交互卡片一次最多四个，超过就分批问且每批等到回答；"未回答"不等于"不知道"，前者必须重新问不能开写。细则见 [charles-new-product](../charles-new-product/SKILL.md) 的第 0 步。
+**提问方式与状态管理同样适用**：交互卡片一次最多四个，超过就分批问且每批等到回答；"未回答"不等于"不知道"，前者必须重新问不能开写。问出来的结论记进 `notes.md` 的需求确认记录，写明落点。
 
-### 5. 产出完整 PRD 包
+### 5. 从真实前端复刻原型
+> 原型必须与线上一模一样。另画一套的话，评审看到的和用户用到的是两个东西，标注图标的也不是真实界面。
+
+- 覆盖真实项目的**全部页面与弹窗**，含已实现且不打算改的
+- 每页从真实前端源码复刻：同一套布局、文案、按钮、状态标签与页面层级；数据换成 Mock，去掉接口调用与鉴权，保留四种状态切换
+- 真实前端用了组件库的，用静态 HTML 与 CSS 还原外观，不引入组件库运行时
+- 补上截图 hook（状态切换条、角色下拉、区块 class），见 [prototype](../charles-prd-standards/rules/prototype.md) 的工具契约
+- 写 `prototype/sources.md` 对照表，每个原型页面一行：原型页面、真实源码路径（相对产品仓根目录）、路由。`check.sh` 核对每个页面都在表里且源码路径存在
+- 复刻完成后与真实页面并排核对一遍，有意简化的地方写明理由，记进 `notes.md`
+
+### 6. 产出完整 PRD 包
 确认完毕后一次产出：
 
 | 产物 | 补文档场景下的差别 |
@@ -91,17 +106,22 @@ metadata:
 | `product.md` | 产品定义从现状反推，目标用户与核心问题要问 Charles 确认 |
 | `versions/<线上版本>/prd.md` | 版本历史加七章，需求带来源标记，**流程图与状态图用 Mermaid 写在正文里** |
 | `versions/<线上版本>/scope.md` | In Scope 写已实现范围，Later 写清单里确认要做的，Out of Scope 写明确不做的 |
-| `versions/<线上版本>/tasks.md` | **只为 `[新增]` 与需要改的功能写任务**，已实现且不动的不写交互规格 |
-| `versions/<线上版本>/notes.md` | 技术债清单、文档与代码不一致处、问不出来的项 |
+| `versions/<线上版本>/tasks.md` | **全部功能都写任务**，已实现的交互规格从代码读出并带 `[已实现]` 标记，`[新增]` 与要改的按正常任务写；每个任务的界面小节带复刻原型的标注图 |
+| `versions/<线上版本>/notes.md` | 需求确认记录、技术债清单、文档与代码不一致处、原型与真实页面的差异、问不出来的项 |
+| `versions/<线上版本>/prototype/` | 复刻原型与 `sources.md` 对照表 |
+| `versions/<线上版本>/diagrams/` | 截图清单、标注清单、截图与坐标 |
 | `decisions.md` | 第 4 步问出来的设计约束与理由 |
 | 两份 PDF | 用 `<skill 目录>/tools/export-prd.sh` 产出 |
 
-**不要为已实现且不打算改的功能写界面标注图与交互规格**，那是纯消耗。任务文档只覆盖接下来要动的部分。
+产出后按 [一键出全部](../charles-prd-standards/rules/one-shot.md) 的第 4、5 步自检并写交付说明。
 
 ## 交付闸门
 - 六个扫描入口全部过完，功能清单经 Charles 确认
 - 所有 `[已实现·待确认]` 已转成 `[已实现]` 或 `[遗留]`
 - 行为描述与代码一致，不一致处已记进 `notes.md`
 - 版本号对应当前线上版本
+- 原型覆盖真实项目全部页面与弹窗，`prototype/sources.md` 齐全，并排核对完毕
+- 每个任务的界面小节有标注图，按钮、输入控件与链接逐个标注
+- 需求确认记录每条都有落点
 - `bash <skill 目录>/tools/check.sh docs/prd` 全绿
-- 按 [charles-prd-review](../charles-prd-review/SKILL.md) 的八类清单自评审完毕
+- 按 [charles-prd-review](../charles-prd-review/SKILL.md) 的清单自评审完毕

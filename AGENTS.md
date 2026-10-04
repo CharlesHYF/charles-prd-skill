@@ -4,13 +4,15 @@
 本文件内联了本仓自己的编码与提交规范原文，不是指针。改代码、文档、脚本之前先读完本文件，不以"稍后去查别处"代替。
 
 ## 这是什么
-一个跨工具的产品文档规范 plugin，包含下列 skill：
+一个跨工具的产品文档规范 plugin，包含下列 skill。四个工作流对应四种模式，都支持"一键出全部"，统一流程在 `skills/charles-prd-standards/rules/one-shot.md`：
 
 | skill | 作用 |
 | --- | --- |
 | `skills/charles-prd-standards/` | 规范本体：目录结构、版本管理、任务与交互规格、原型、图、文字表达、导出交付、协作格式 |
-| `skills/charles-new-product/` | 从零定义新产品的工作流 |
-| `skills/charles-legacy-prd/` | 给已有项目补 PRD，从实现反向整理 |
+| `skills/charles-new-product/` | 模式 1：从零定义新产品 |
+| `skills/charles-legacy-prd/` | 模式 2：给已有项目补 PRD，从实现反向整理，原型从真实前端复刻 |
+| `skills/charles-next-version/` | 模式 3：已有 PRD 规划下一个版本，必问版本号 |
+| `skills/charles-add-feature/` | 模式 4：往开发中的版本追加需求、任务与原型 |
 | `skills/charles-prd-review/` | PRD 评审，找内容矛盾 |
 
 ## 交付红线
