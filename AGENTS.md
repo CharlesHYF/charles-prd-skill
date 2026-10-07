@@ -9,10 +9,10 @@
 | skill | 作用 |
 | --- | --- |
 | `skills/charles-prd-standards/` | 规范本体：目录结构、版本管理、任务与交互规格、原型、图、文字表达、导出交付、协作格式 |
-| `skills/charles-new-product/` | 模式 1：从零定义新产品 |
-| `skills/charles-legacy-prd/` | 模式 2：给已有项目补 PRD，从实现反向整理，原型从真实前端复刻 |
-| `skills/charles-next-version/` | 模式 3：已有 PRD 规划下一个版本，必问版本号 |
-| `skills/charles-add-feature/` | 模式 4：往开发中的版本追加需求、任务与原型 |
+| `skills/charles-prd-new-product/` | 模式 1：从零定义新产品 |
+| `skills/charles-prd-legacy/` | 模式 2：给已有项目补 PRD，从实现反向整理，原型从真实前端复刻 |
+| `skills/charles-prd-next-version/` | 模式 3：已有 PRD 规划下一个版本，必问版本号 |
+| `skills/charles-prd-add-feature/` | 模式 4：往开发中的版本追加需求、任务与原型 |
 | `skills/charles-prd-review/` | PRD 评审，找内容矛盾 |
 
 ## 交付红线

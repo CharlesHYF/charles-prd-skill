@@ -1,5 +1,5 @@
 ---
-name: charles-add-feature
+name: charles-prd-add-feature
 description: Use when a product already has a PRD whose target version is still in development and Charles wants to add requirements, tasks or prototype pages into that same version, including producing all the additions in one go. Not for a frozen or released version, not for a brand-new product, and not for documenting code that has no PRD.
 metadata:
   version: "1.1.0"
@@ -8,7 +8,7 @@ metadata:
 
 # 在原有基础上加 PRD
 
-> PRD 已有、目标版本还在 Development、要往里面加内容时使用。判据是 **`docs/prd/README.md` 里要加的版本处于 Development 状态**。目标版本已经是 Production 的不许改，走 [charles-next-version](../charles-next-version/SKILL.md) 开新版本。
+> PRD 已有、目标版本还在 Development、要往里面加内容时使用。判据是 **`docs/prd/README.md` 里要加的版本处于 Development 状态**。目标版本已经是 Production 的不许改，走 [charles-prd-next-version](../charles-prd-next-version/SKILL.md) 开新版本。
 
 ## 前置阅读
 - [一键出全部](../charles-prd-standards/rules/one-shot.md)
@@ -24,7 +24,7 @@ metadata:
 | 目标版本状态 | 处理 |
 | --- | --- |
 | Development | 继续，往该版本目录追加 |
-| Production | **拒绝**。告诉 Charles 该版本已冻结，要加内容走 [charles-next-version](../charles-next-version/SKILL.md) 开 minor 或 major |
+| Production | **拒绝**。告诉 Charles 该版本已冻结，要加内容走 [charles-prd-next-version](../charles-prd-next-version/SKILL.md) 开 minor 或 major |
 | Next | 可以加，但先确认是不是该直接把它转为 Development 开工 |
 
 Charles 没说版本时，默认取 Development 状态的那个；没有 Development 版本就按 Production 处理，引导走模式 3。
@@ -37,7 +37,7 @@ Charles 没说版本时，默认取 Development 状态的那个；没有 Develop
 - 要加的内容是不是已经在 `scope.md` 的 Later 或 Out of Scope 里。在 Out of Scope 里的要先问 Charles 是否推翻当时的决定，推翻了记进 `decisions.md`
 
 ### 3. 两轮提问
-与 [charles-new-product](../charles-new-product/SKILL.md) 第 0 步相同，范围只限新增内容：
+与 [charles-prd-new-product](../charles-prd-new-product/SKILL.md) 第 0 步相同，范围只限新增内容：
 
 - 第一轮七类必答项里，只问新增内容触及的类别（新接外部系统、新角色、新的关键数值），其余已在 `product.md` 与现有 `prd.md` 里定下
 - 第二轮逐模块明细确认按新增的模块或功能走，字段、状态、边界、异常、关键数值逐项列草案

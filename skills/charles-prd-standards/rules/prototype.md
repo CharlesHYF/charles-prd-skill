@@ -127,7 +127,7 @@ App 的全部类型去掉启动与引导，再加下面三类：
 | pages/order-list.html#deleteModal | src/components/order/DeleteConfirm.vue | 同上 |
 ```
 
-复刻完与真实页面并排核对，有意简化的地方写明理由记进 `notes.md`。工作流见 [charles-legacy-prd](../../charles-legacy-prd/SKILL.md)。
+复刻完与真实页面并排核对，有意简化的地方写明理由记进 `notes.md`。工作流见 [charles-prd-legacy](../../charles-prd-legacy/SKILL.md)。
 
 ## 与截图工具的契约
 > `tools/capture.mjs` 靠下面这几个 hook 控制截图状态。**原型要适配这些约定，不是反过来改工具。**

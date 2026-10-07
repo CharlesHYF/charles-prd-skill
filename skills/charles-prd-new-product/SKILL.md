@@ -1,5 +1,5 @@
 ---
-name: charles-new-product
+name: charles-prd-new-product
 description: Use when starting a brand-new product from zero for Charles, including requests to produce the whole PRD package in one go. Not for adding a feature to an existing product, not for planning the next version of one, and not for documenting a product whose code is already running.
 metadata:
   version: "1.1.0"
@@ -8,7 +8,7 @@ metadata:
 
 # 新产品定义
 
-> 从零定义一个产品时使用。判据是**代码与 PRD 都不存在**：项目已经在跑走 [charles-legacy-prd](../charles-legacy-prd/SKILL.md)；PRD 已有、要规划下一版走 [charles-next-version](../charles-next-version/SKILL.md)；PRD 已有、要往开发中的版本加内容走 [charles-add-feature](../charles-add-feature/SKILL.md)。
+> 从零定义一个产品时使用。判据是**代码与 PRD 都不存在**：项目已经在跑走 [charles-prd-legacy](../charles-prd-legacy/SKILL.md)；PRD 已有、要规划下一版走 [charles-prd-next-version](../charles-prd-next-version/SKILL.md)；PRD 已有、要往开发中的版本加内容走 [charles-prd-add-feature](../charles-prd-add-feature/SKILL.md)。
 
 ## 前置阅读
 - [一键出全部](../charles-prd-standards/rules/one-shot.md)
@@ -129,7 +129,7 @@ metadata:
 3. 更新 `README.md` 的版本状态：1.0 转为 Production，原型转为历史存档，实现代码成为唯一事实来源
 
 ### 7. 下一版
-规划下一个版本走 [charles-next-version](../charles-next-version/SKILL.md)，从骨架复制建新版本目录，**不要复制 1.0 的内容再删改**，那样会带进上一版的遗留表述。
+规划下一个版本走 [charles-prd-next-version](../charles-prd-next-version/SKILL.md)，从骨架复制建新版本目录，**不要复制 1.0 的内容再删改**，那样会带进上一版的遗留表述。
 
 ## 一次产出的完整清单
 确认完毕后一次产出下面全部内容，不分批交付：

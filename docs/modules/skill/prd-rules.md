@@ -145,7 +145,7 @@
 | App | 启动与引导、登录、Tab 主页面、列表与详情、表单、底部弹层、系统权限、空态与异常（含无网络） |
 | 小程序 | App 的全部类型去掉启动与引导，再加授权弹窗、胶囊避让、分享卡片 |
 
-**提问**：`charles-new-product` 第 0 步的"产品形态与边界"一类必须问清形态；形态含 `后台管理系统` 或 `Web 应用` 时，追问是否适配移动端。`charles-legacy-prd` 从代码判断形态后向 Charles 确认。
+**提问**：`charles-prd-new-product` 第 0 步的"产品形态与边界"一类必须问清形态；形态含 `后台管理系统` 或 `Web 应用` 时，追问是否适配移动端。`charles-prd-legacy` 从代码判断形态后向 Charles 确认。
 
 **原型节奏**：原型一次做全，覆盖所选形态的覆盖表与 `tasks.md` 里全部任务的页面，做完再交给 Charles 看，不分批交付半成品。
 
@@ -216,10 +216,10 @@
 
 | 模式 | skill | 判据 | 产出落点 |
 | --- | --- | --- | --- |
-| 1 第一份 PRD，从 0 生成 | `charles-new-product` | 代码不存在，PRD 不存在 | 复制骨架建 `docs/prd/`，写 `versions/1.0/` |
-| 2 项目写完了，PRD 没做 | `charles-legacy-prd` | 代码在跑，PRD 不存在或与代码不符 | 版本号对应线上版本，原型从真实前端复刻（功能十） |
-| 3 第二版 PRD | `charles-next-version` | PRD 已有且目标版本已发布或已冻结，要规划下一个版本 | 新建 `versions/<新版本>/` |
-| 4 在原有基础上加 PRD | `charles-add-feature` | PRD 已有，目标版本状态为 Development，要往里面加内容 | 追加进现有 `versions/<版本>/` |
+| 1 第一份 PRD，从 0 生成 | `charles-prd-new-product` | 代码不存在，PRD 不存在 | 复制骨架建 `docs/prd/`，写 `versions/1.0/` |
+| 2 项目写完了，PRD 没做 | `charles-prd-legacy` | 代码在跑，PRD 不存在或与代码不符 | 版本号对应线上版本，原型从真实前端复刻（功能十） |
+| 3 第二版 PRD | `charles-prd-next-version` | PRD 已有且目标版本已发布或已冻结，要规划下一个版本 | 新建 `versions/<新版本>/` |
+| 4 在原有基础上加 PRD | `charles-prd-add-feature` | PRD 已有，目标版本状态为 Development，要往里面加内容 | 追加进现有 `versions/<版本>/` |
 
 **模式 3 必问版本号**。先读 `README.md` 的三个状态，按 versioning 的 major 与 minor 规则给出两个候选（线上 1.0 则候选 1.1 与 2.0），同时接受 0.1 这类使用者自定的号。minor 走 `changes.md` 加必要的 Task 与原型，major 走完整目录。版本号未确认不建目录。
 

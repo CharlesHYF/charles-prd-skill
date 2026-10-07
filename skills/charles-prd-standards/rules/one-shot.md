@@ -9,16 +9,16 @@
 ## 四种模式
 | 模式 | 工作流 | 判据 |
 | --- | --- | --- |
-| 1 第一份 PRD，从 0 生成 | [charles-new-product](../../charles-new-product/SKILL.md) | 代码不存在，PRD 不存在 |
-| 2 项目写完了，PRD 没做 | [charles-legacy-prd](../../charles-legacy-prd/SKILL.md) | 代码在跑，PRD 不存在或与代码不符 |
-| 3 第二版 PRD | [charles-next-version](../../charles-next-version/SKILL.md) | PRD 已有，目标版本已发布或已冻结，要规划下一个版本 |
-| 4 在原有基础上加 PRD | [charles-add-feature](../../charles-add-feature/SKILL.md) | PRD 已有，目标版本还在 Development，要往里面加内容 |
+| 1 第一份 PRD，从 0 生成 | [charles-prd-new-product](../../charles-prd-new-product/SKILL.md) | 代码不存在，PRD 不存在 |
+| 2 项目写完了，PRD 没做 | [charles-prd-legacy](../../charles-prd-legacy/SKILL.md) | 代码在跑，PRD 不存在或与代码不符 |
+| 3 第二版 PRD | [charles-prd-next-version](../../charles-prd-next-version/SKILL.md) | PRD 已有，目标版本已发布或已冻结，要规划下一个版本 |
+| 4 在原有基础上加 PRD | [charles-prd-add-feature](../../charles-prd-add-feature/SKILL.md) | PRD 已有，目标版本还在 Development，要往里面加内容 |
 
 判定不了时先读 `docs/prd/README.md` 的三个版本状态：没有这个文件走模式 1 或 2，按代码是否存在分；有这个文件，要加的内容属于 Development 版本走模式 4，否则走模式 3。
 
 ## 五步
 ### 1. 先问后写
-按所属模式的必问项问完。模式 1、3、4 走两轮提问：第一轮七类产品级必答项，第二轮逐模块功能明细确认，细则见 [charles-new-product](../../charles-new-product/SKILL.md) 第 0 步。模式 2 以代码扫描出的功能清单为底本，问的是为什么这么做、哪些是有意为之。
+按所属模式的必问项问完。模式 1、3、4 走两轮提问：第一轮七类产品级必答项，第二轮逐模块功能明细确认，细则见 [charles-prd-new-product](../../charles-prd-new-product/SKILL.md) 第 0 步。模式 2 以代码扫描出的功能清单为底本，问的是为什么这么做、哪些是有意为之。
 
 提问方式固定：交互卡片一次最多四个问题，没有交互卡片就每批最多四个编号问题；每批等到回答再问下一批；每个问题给两到四个选项与推荐项。
 

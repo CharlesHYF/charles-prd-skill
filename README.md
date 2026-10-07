@@ -17,10 +17,10 @@ Charles 的产品文档与原型规范，面向独立开发者的单人流程。
 | skill | 用途 |
 | --- | --- |
 | `charles-prd-standards` | 规范本体：目录结构、版本管理、任务与交互规格、原型、图、文字表达、导出交付、协作格式、一键出全部 |
-| `charles-new-product` | 模式 1，第一份 PRD 从 0 生成：两轮问清产品级与逐模块明细，确认后一次产出全部文档、图、原型与 PDF |
-| `charles-legacy-prd` | 模式 2，项目写完了补 PRD：扫描实现盘点功能、标注需求来源、区分设计与遗留，**原型从真实前端复刻** |
-| `charles-next-version` | 模式 3，第二版 PRD：先问版本号（1.1 还是 2.0），从骨架建新版本目录 |
-| `charles-add-feature` | 模式 4，在原有基础上加 PRD：往开发中的版本追加需求、任务、原型与标注图，已冻结版本拒绝 |
+| `charles-prd-new-product` | 模式 1，第一份 PRD 从 0 生成：两轮问清产品级与逐模块明细，确认后一次产出全部文档、图、原型与 PDF |
+| `charles-prd-legacy` | 模式 2，项目写完了补 PRD：扫描实现盘点功能、标注需求来源、区分设计与遗留，**原型从真实前端复刻** |
+| `charles-prd-next-version` | 模式 3，第二版 PRD：先问版本号（1.1 还是 2.0），从骨架建新版本目录 |
+| `charles-prd-add-feature` | 模式 4，在原有基础上加 PRD：往开发中的版本追加需求、任务、原型与标注图，已冻结版本拒绝 |
 | `charles-prd-review` | PRD 评审：找需求矛盾、范围与目标脱节、无法判定的 Release Criteria、确认记录对账 |
 
 四个工作流都支持**一键出全部**：先按必问项问完，有"未回答"不开写，确认后一次产出，`check.sh` 全绿并自评审后交付。
@@ -111,7 +111,7 @@ bash ~/charles-prd-skill/tools/check.sh docs/prd
 | 需求确认记录 | major 版本的 `notes.md` 有"需求确认记录"一节且至少一行，每条写明落点 |
 | 原型来源对照 | 复刻原型的 `prototype/sources.md` 覆盖每个页面，源码路径存在 |
 
-说"一键出全部"时按四种模式分流：新产品走 `charles-new-product`，已有项目走 `charles-legacy-prd`，规划下一版走 `charles-next-version`，往开发中的版本加内容走 `charles-add-feature`。都先按必答项提问：第一轮七类产品级（产品形态、用户优先级、运行环境、内容来源、外部对接、关键数值、合规约束），第二轮逐模块功能明细（功能清单、角色入口、字段、状态流转、边界异常、关键数值），1.0 不等于 MVP，范围由 Charles 定；确认后一次产出全部内容，不分批交付。
+说"一键出全部"时按四种模式分流：新产品走 `charles-prd-new-product`，已有项目走 `charles-prd-legacy`，规划下一版走 `charles-prd-next-version`，往开发中的版本加内容走 `charles-prd-add-feature`。都先按必答项提问：第一轮七类产品级（产品形态、用户优先级、运行环境、内容来源、外部对接、关键数值、合规约束），第二轮逐模块功能明细（功能清单、角色入口、字段、状态流转、边界异常、关键数值），1.0 不等于 MVP，范围由 Charles 定；确认后一次产出全部内容，不分批交付。
 
 内容级的矛盾（需求打架、范围与目标脱节、判据无法判定）脚本查不了，由 `charles-prd-review` 的评审清单人工过。
 

@@ -1,5 +1,5 @@
 ---
-name: charles-legacy-prd
+name: charles-prd-legacy
 description: Use when a project that is already running needs product documentation written after the fact for Charles, including when its PRD is missing or no longer matches the code, and the prototype must mirror the real frontend. Not for defining a brand-new product or planning its next version.
 metadata:
   version: "1.1.0"
@@ -8,7 +8,7 @@ metadata:
 
 # 给已有项目补 PRD
 
-> 项目已经在跑、产品其实已经定义了（只是隐含在实现里），需要的是**从现状反向整理**，不是从零设计。从零定义走 [charles-new-product](../charles-new-product/SKILL.md)；PRD 已有、要规划下一版走 [charles-next-version](../charles-next-version/SKILL.md)。
+> 项目已经在跑、产品其实已经定义了（只是隐含在实现里），需要的是**从现状反向整理**，不是从零设计。从零定义走 [charles-prd-new-product](../charles-prd-new-product/SKILL.md)；PRD 已有、要规划下一版走 [charles-prd-next-version](../charles-prd-next-version/SKILL.md)。
 
 ## 和从零定义的关键差别
 
@@ -84,7 +84,7 @@ metadata:
 2. 如果是设计，背后的约束是什么（合规要求、业务规则、外部系统限制）？
 3. 如果是遗留，要不要记进技术债、什么时候处理？
 
-同时按 [charles-new-product](../charles-new-product/SKILL.md) 第 0 步的两轮必问项检查缺口：第一轮七类产品级问题里，代码能告诉你"做了什么"，告诉不了你"为什么做、边界在哪、关键数值的依据"；第二轮逐模块明细以扫描出的功能清单为草案底本，字段、状态、边界从代码读出来，问的是哪些是有意为之。这些一并问。
+同时按 [charles-prd-new-product](../charles-prd-new-product/SKILL.md) 第 0 步的两轮必问项检查缺口：第一轮七类产品级问题里，代码能告诉你"做了什么"，告诉不了你"为什么做、边界在哪、关键数值的依据"；第二轮逐模块明细以扫描出的功能清单为草案底本，字段、状态、边界从代码读出来，问的是哪些是有意为之。这些一并问。
 
 **提问方式与状态管理同样适用**：交互卡片一次最多四个，超过就分批问且每批等到回答；"未回答"不等于"不知道"，前者必须重新问不能开写。问出来的结论记进 `notes.md` 的需求确认记录，写明落点。
 

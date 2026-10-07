@@ -25,10 +25,10 @@ metadata:
 ## 四种模式
 | 模式 | 判据 | 工作流 |
 | --- | --- | --- |
-| 1 第一份 PRD，从 0 生成 | 代码不存在，PRD 不存在 | [charles-new-product](../charles-new-product/SKILL.md) |
-| 2 项目写完了，PRD 没做 | 代码在跑，PRD 不存在或与代码不符 | [charles-legacy-prd](../charles-legacy-prd/SKILL.md) |
-| 3 第二版 PRD | PRD 已有，目标版本已发布或已冻结，要规划下一个版本 | [charles-next-version](../charles-next-version/SKILL.md) |
-| 4 在原有基础上加 PRD | PRD 已有，目标版本还在 Development，要往里面加内容 | [charles-add-feature](../charles-add-feature/SKILL.md) |
+| 1 第一份 PRD，从 0 生成 | 代码不存在，PRD 不存在 | [charles-prd-new-product](../charles-prd-new-product/SKILL.md) |
+| 2 项目写完了，PRD 没做 | 代码在跑，PRD 不存在或与代码不符 | [charles-prd-legacy](../charles-prd-legacy/SKILL.md) |
+| 3 第二版 PRD | PRD 已有，目标版本已发布或已冻结，要规划下一个版本 | [charles-prd-next-version](../charles-prd-next-version/SKILL.md) |
+| 4 在原有基础上加 PRD | PRD 已有，目标版本还在 Development，要往里面加内容 | [charles-prd-add-feature](../charles-prd-add-feature/SKILL.md) |
 
 四种模式都支持**一键出全部**：先按必问项问完，确认后一次产出全部文档、原型、标注图与 PDF，流程见 [one-shot](rules/one-shot.md)。判定不了模式时先读 `docs/prd/README.md` 的版本状态。
 

@@ -1,5 +1,5 @@
 ---
-name: charles-next-version
+name: charles-prd-next-version
 description: Use when a product already has a PRD and Charles wants to plan its next version, whether a major like 2.0 or a minor like 1.1, including producing the whole version package in one go. Not for a brand-new product, not for adding content to a version still in development, and not for documenting code that has no PRD.
 metadata:
   version: "1.1.0"
@@ -8,7 +8,7 @@ metadata:
 
 # 第二版 PRD
 
-> PRD 已有、上一版已发布或已冻结，要规划下一个版本时使用。判据是 **`docs/prd/README.md` 存在，且要写的内容不属于 Development 状态的版本**。往开发中的版本里加内容走 [charles-add-feature](../charles-add-feature/SKILL.md)；没有 PRD 的项目走 [charles-legacy-prd](../charles-legacy-prd/SKILL.md)。
+> PRD 已有、上一版已发布或已冻结，要规划下一个版本时使用。判据是 **`docs/prd/README.md` 存在，且要写的内容不属于 Development 状态的版本**。往开发中的版本里加内容走 [charles-prd-add-feature](../charles-prd-add-feature/SKILL.md)；没有 PRD 的项目走 [charles-prd-legacy](../charles-prd-legacy/SKILL.md)。
 
 ## 前置阅读
 - [一键出全部](../charles-prd-standards/rules/one-shot.md)
@@ -40,7 +40,7 @@ metadata:
 Charles 也可以给别的号（0.1 这类预发布号同样接受），只要符合 `数字.数字` 且不与已有目录重复。版本号是"已确认"状态才进入第 3 步。
 
 ### 3. 两轮提问
-与 [charles-new-product](../charles-new-product/SKILL.md) 第 0 步相同，差别只在底本：
+与 [charles-prd-new-product](../charles-prd-new-product/SKILL.md) 第 0 步相同，差别只在底本：
 
 - 第一轮七类产品级必答项里，上一版已经定下且没变的（产品形态、运行环境、外部对接）只需确认"没变"，变了的重新问
 - 第二轮逐模块功能明细确认以 Later 清单与 Charles 新提的需求为底本，每个模块需要他定的点不超过四个
