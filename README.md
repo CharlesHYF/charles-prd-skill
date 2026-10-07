@@ -157,7 +157,7 @@ bash ~/charles-prd-skill/tools/export-prd.sh 1.0 --title "订阅管理工具"
 | 需求表达 | 必须能写成测试用例，禁止"优化"、"提升体验"、"合理"这类无法判定的说法 |
 | 原型定位 | 开发期间是交互事实来源，发布后转历史存档，实现代码成为唯一事实来源 |
 | 原型规范 | 不受编码规范约束，但不许被复制进 `src/` |
-| 图 | Mermaid 手绘风格**写在 prd.md 与 tasks.md 正文里**，不放进 diagrams/；界面标注图由 `annotate.mjs` 从原型截图生成、在 PDF 里占满正文宽度、说明列在图下；`diagrams/` 存截图清单、坐标与外部位图 |
+| 图 | Mermaid 手绘风格**写在 prd.md 与 tasks.md 正文里**，不放进 diagrams/；界面标注图由 `annotate.mjs` 从原型截图生成、左图右文，说明栏在截图右侧；`diagrams/` 存截图清单、坐标与外部位图 |
 | 需求确认 | 产出前两轮必问项全部有答案，每条结论记进 `notes.md` 的需求确认记录并写明落点 |
 | Release Criteria | 只写产品维度判据，工程标准由项目自己的交付体系管 |
 | 决策落点 | 跨版本不可逆的进 `decisions.md`，模块级进实现文档，单次改动进 commit message |

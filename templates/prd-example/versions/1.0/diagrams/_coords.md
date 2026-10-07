@@ -1,7 +1,7 @@
 # _coords.json 元素坐标
 
 **来源**：`tools/capture.mjs` 在截图同一时刻用 `getBoundingClientRect()` 量取，与同名 PNG 严格对应。
-**获取日期**：2026-10-04
+**获取日期**：2026-10-07
 **用途**：生成 `tasks.md` 界面标注的框选位置，避免手写坐标与原型脱节。
 
 结构：`{ "<截图名>": { w, h, viewport, els: [{ kind, txt, x, y, w, h }] } }`，

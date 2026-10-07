@@ -2,7 +2,7 @@
 <!--
 图的画法、类型选择、尺寸约束与界面标注图的做法
 创建日期：2026-09-21
-修改日期：2026-10-04
+修改日期：2026-10-07
 -->
 > **图用 Mermaid 写在 Markdown 里，导出时渲染成矢量 SVG 进 PDF。** 图是文本，改图就是改代码，Git 里有可读 diff，不依赖任何外部服务。
 
@@ -115,7 +115,7 @@ flowchart LR
 
 分两步：先截图并量坐标，再按元素文案写标注。截图与坐标在同一时刻产出，严格对应。
 
-**标注图在 PDF 里一律占满 174mm 正文宽度**，桌面与手机截图一样宽。SVG 里只有截图、红框与编号角标，说明文字是 SVG 下方的 Markdown 编号列表，按正文字号排版。截图太高就放不进一页，所以高宽比有上限，见下文。
+**标注图左边是截图加红框编号，右边是对应编号的说明栏**，整张图在 PDF 里占满正文宽度。截图太高就放不进一页，所以高宽比有上限，见下文。
 
 ### 第一步：截图清单
 `versions/<版本>/diagrams/<截图名>.json`，说清截哪个页面、什么角色、什么状态、用什么视口：
@@ -157,7 +157,7 @@ node <skill 目录>/tools/capture.mjs docs/prd/versions/1.0/diagrams/list.json
         "部分失败则保留失败清单不关弹窗，让人能重试"
       ]
     },
-    { "el": "checkbox", "kind": "field", "label": "全选", "note": "只选中当前页，翻页后不保留。" }
+    { "el": "checkbox", "kind": "field", "index": 0, "note": "全选。只选中当前页，翻页后不保留。" }
   ],
   "skip": [
     { "el": "详情", "kind": "link", "reason": "跳转到详情页，详情页自己是一张图" }
@@ -165,13 +165,11 @@ node <skill 目录>/tools/capture.mjs docs/prd/versions/1.0/diagrams/list.json
 }
 ```
 
-说明里不要重复元素名，列表会用 `el`（或 `label`）加粗作为每条的开头。
-
 ```bash
 node <skill 目录>/tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks.json
 ```
 
-生成的 SVG 与编号说明列表写进 `inject` 指向文档里这对标记之间，重跑覆盖，不会追加：
+生成的 SVG 写进 `inject` 指向文档里这对标记之间，重跑覆盖，不会追加：
 
 ```markdown
 ### 界面
@@ -179,7 +177,7 @@ node <skill 目录>/tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks
 <!--annotation:list-->
 <!--/annotation-->
 
-图注：底图为原型真实截图，标注框坐标取自截图时的 DOM 量测，红圈编号对应下方说明。
+图注：底图为原型真实截图，标注框坐标取自截图时的 DOM 量测，红圈编号对应右侧批注。
 ```
 
 ### 清单字段
@@ -195,9 +193,8 @@ node <skill 目录>/tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks
 | `marks[].el` | 标注清单 | 元素文案，按包含匹配 |
 | `marks[].kind` | 标注清单 | 限定类型：btn / link / menu / field / th / kpi / box |
 | `marks[].index` | 标注清单 | 同名元素有多个时取第几个，从 0 开始 |
-| `marks[].label` | 标注清单 | 列表里显示的名字，元素文案不可读（如 `checkbox`）时用它 |
 | `marks[].note` | 标注清单 | 一句话说明 |
-| `marks[].steps` | 标注清单 | 多步骤说明，排成嵌套编号列表 |
+| `marks[].steps` | 标注清单 | 多步骤说明，按 1. 2. 3. 编号排版 |
 | `skip[]` | 标注清单 | 明确不标的元素，每项 `el`、`kind`、`reason`，缺 `reason` 拒绝出图 |
 
 `_coords.json` 里除了坐标还有 `fingerprint` 与 `capturedAt`，是 `capture.mjs` 自动写的，不要手改。指纹按内容算不按修改时间算，因为 `git checkout` 与 `cp` 都会改 mtime 但内容没变。
@@ -229,7 +226,7 @@ node <skill 目录>/tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks
 
 标注图在导出时占满正文版心，与段落、表格左右对齐，不单独开横向页：横向页的版心是 273mm，正文是 174mm，两者放在一起左右边界对不上。
 
-截图会被缩到版心宽度，所以 SVG 里不放说明文字，只放截图、红框与编号角标；说明是 SVG 下方的 Markdown 列表，按正文字号排，可换行可搜索。角标半径 22px、编号字号 26px、框线 3px，是按 1440px 缩到 174mm 后仍能读出编号来定的，是 `tools/annotate.mjs` 里的常量，改之前先算缩放后的实际字号。
+代价是图会被缩到版心宽度，所以标注图按"缩完还要能读"来生成：说明区宽 1000px、说明字号 27px、编号圆点半径 15px、框线 3px；图区桌面截图按 1440px 宽、手机截图按 750px 宽排版。这些是 `tools/annotate.mjs` 里的常量，改之前先想清楚缩放后的实际字号。
 
 ## 外部导入的位图
 截图、照片、第三方工具产出的 PNG 这类**位图**才需要配同名 `.md` 说明来源与日期，因为它们无法从文本复现：

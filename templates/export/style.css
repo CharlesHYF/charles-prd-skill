@@ -281,19 +281,7 @@ svg.annotation {
 	page-break-inside: avoid;
 }
 
-svg.annotation + ol {
-	margin: 3mm 0 2mm;
-	padding-left: 7mm;
-	font-size: 9.5pt;
-	line-height: 1.6;
-}
-
-svg.annotation + ol ol {
-	margin: 1mm 0 1.5mm;
-	padding-left: 6mm;
-}
-
-svg.annotation + ol + p {
+svg.annotation + p {
 	margin-bottom: 7mm;
 	color: var(--color-muted);
 	font-size: 9pt;
