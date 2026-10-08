@@ -145,7 +145,7 @@ project/docs/prd/
 | 命令 | 作用 |
 | --- | --- |
 | `bash <skill>/tools/check.sh docs/prd` | 结构校验，有问题时退出码非 0 |
-| `bash <skill>/tools/check.sh --fix docs/prd` | 先把表格里没换行的分点自动改写，再执行全部检查 |
+| `bash <skill>/tools/check.sh --fix docs/prd` | 先自动修复再执行全部检查：表格里没换行的分点改写成编号加换行，标记块里旧版存下的标注图清空 |
 | `node <skill>/tools/capture.mjs <截图清单.json...>` | 截原型页面，同时量元素坐标写进 `_coords.json` |
 | `node <skill>/tools/annotate.mjs <标注清单.json...>` | 校验标注清单：坐标时效、高宽比、标注覆盖、文档里的标记块 |
 | `bash <skill>/tools/export-prd.sh 1.0 --title "产品名"` | 导出该版本的产品需求与任务规格两份 PDF |

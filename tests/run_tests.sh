@@ -765,6 +765,26 @@ run_check "${CELL_DIR}"
 expect_not_contains "${CHECK_OUTPUT}" "没有换行" "检查十六:--fix 后不再报未换行"
 expect_not_contains "${CHECK_OUTPUT}" "网络失败提示" "检查十六:已用 br 换行放行"
 
+echo "=== 场景十九：--fix 清空旧标记块里的 SVG ==="
+OLD_ANN_DIR="$(mktemp -d)/docs/prd"
+make_prd "${OLD_ANN_DIR}"
+python3 - "${OLD_ANN_DIR}/versions/1.0/tasks.md" <<'PYINNER'
+import pathlib, sys
+p = pathlib.Path(sys.argv[1])
+p.write_text(p.read_text(encoding="utf-8").replace(
+	"<!--annotation:home-->\n<!--/annotation-->",
+	"<!--annotation:home-->\n<svg class=\"annotation\">\n\t<rect/>\n</svg>\n\n1. **提交**：旧版说明\n<!--/annotation-->"), encoding="utf-8")
+PYINNER
+run_check "${OLD_ANN_DIR}"
+expect_contains "${CHECK_OUTPUT}" "的标记块 home 里有内容" "检查七:旧标记块里的 SVG 被拦"
+OLD_FIX_OUTPUT="$(bash "${CHECK_SH}" --fix "${OLD_ANN_DIR}" 2>&1)"
+expect_contains "${OLD_FIX_OUTPUT}" "已清空" "检查七:--fix 报出清空的标记块"
+expect_not_contains "${OLD_FIX_OUTPUT}" "里有内容" "检查七:--fix 后不再报标记块有内容"
+expect_not_contains "$(cat "${OLD_ANN_DIR}/versions/1.0/tasks.md")" "<svg" "检查七:--fix 后标记块里没有 SVG"
+expect_not_contains "$(cat "${OLD_ANN_DIR}/versions/1.0/tasks.md")" "旧版说明" "检查七:--fix 后标记块里没有旧说明"
+expect_contains "$(cat "${OLD_ANN_DIR}/versions/1.0/tasks.md")" "<!--annotation:home-->" "检查七:--fix 保留标记块本身"
+expect_contains "$(cat "${OLD_ANN_DIR}/versions/1.0/tasks.md")" "图注：底图为原型截图。" "检查七:--fix 不动标记块外的内容"
+
 echo "=== 场景六：仓库自带样例与骨架必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-example"
 expect_not_contains "${CHECK_OUTPUT}" "[FAIL]" "样例通过自身校验"

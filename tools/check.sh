@@ -44,7 +44,7 @@ VIOLATIONS=0
 # 表格单元格里的分点上限，超过就该改成表格下方的列表
 MAX_TABLE_POINTS=6
 
-# --fix：把表格里没换行的分点自动改写成编号加 <br>，其余检查照常执行
+# --fix：把表格里没换行的分点自动改写成编号加 <br>，清空标记块里旧版存下的标注图，其余检查照常执行
 SHOULD_FIX=0
 
 # PRD 根目录：缺省按约定放在 docs/prd
@@ -402,6 +402,38 @@ check_annotations() {
 	if ! command -v python3 > /dev/null 2>&1; then
 		echo "  [SKIP] 未找到 python3，跳过标注清单、高宽比、标注覆盖与界面标记块检查"
 		return
+	fi
+
+	# 旧版工具把生成的 SVG 存进了标记块，现在导出时现场生成，--fix 把块内内容清空，标记本身保留
+	if [ "${SHOULD_FIX}" -eq 1 ]; then
+		PRD_ROOT="${PRD_ROOT}" python3 <<'PYCLEAR'
+import os, re
+
+root = os.environ['PRD_ROOT']
+BLOCK = re.compile(r'(<!--annotation:([^>]+?)-->)[\s\S]*?(<!--/annotation-->)')
+
+for cur, dirs, files in os.walk(root):
+    dirs[:] = [d for d in dirs if d not in ('export', 'node_modules') and not d.startswith('.')]
+
+    for name in sorted(files):
+        if not name.endswith('.md'):
+            continue
+
+        path = os.path.join(cur, name)
+        text = open(path, encoding='utf-8').read()
+        cleared = []
+
+        def empty(match):
+            if match.group(0) != f"{match.group(1)}\n{match.group(3)}":
+                cleared.append(match.group(2))
+            return f"{match.group(1)}\n{match.group(3)}"
+
+        updated = BLOCK.sub(empty, text)
+
+        if cleared:
+            open(path, 'w', encoding='utf-8').write(updated)
+            print(f"  [OK] 已清空 {path} 里 {len(cleared)} 个标记块的旧内容")
+PYCLEAR
 	fi
 
 	local findings line
@@ -1261,7 +1293,7 @@ check_viewports() {
 
 if [ ! -d "${PRD_ROOT}" ]; then
 	echo "[NG] 找不到 PRD 目录：${PRD_ROOT}"
-	echo "用法: check.sh [--fix] [PRD 根目录]  缺省为 docs/prd，--fix 自动改写表格里没换行的分点"
+	echo "用法: check.sh [--fix] [PRD 根目录]  缺省为 docs/prd，--fix 自动改写表格里没换行的分点并清空标记块里的旧标注图"
 	exit 2
 fi
 
