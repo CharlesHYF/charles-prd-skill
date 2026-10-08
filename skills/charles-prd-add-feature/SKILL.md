@@ -2,7 +2,7 @@
 name: charles-prd-add-feature
 description: Use when a product already has a PRD whose target version is still in development and Charles wants to add requirements, tasks or prototype pages into that same version, including producing all the additions in one go. Not for a frozen or released version, not for a brand-new product, and not for documenting code that has no PRD.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   author: Charles <w1400214654@outlook.com>
 ---
 

@@ -2,7 +2,7 @@
 name: charles-prd-review
 description: Use when reviewing a PRD or product document for Charles - finding internal contradictions between requirements, scope and goals, unverifiable release criteria, broken requirement references, and gaps the structure checker cannot detect. Also use to pressure-test a draft before it goes into development.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   author: Charles <w1400214654@outlook.com>
 ---
 

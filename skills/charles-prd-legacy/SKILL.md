@@ -2,7 +2,7 @@
 name: charles-prd-legacy
 description: Use when a project that is already running needs product documentation written after the fact for Charles, including when its PRD is missing or no longer matches the code, and the prototype must mirror the real frontend. Not for defining a brand-new product or planning its next version.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   author: Charles <w1400214654@outlook.com>
 ---
 

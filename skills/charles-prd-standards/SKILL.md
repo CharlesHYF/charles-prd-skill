@@ -2,7 +2,7 @@
 name: charles-prd-standards
 description: Use when writing or organizing product documentation for Charles's projects - PRD, product definition, scope, version planning, clickable HTML prototypes, and flow or architecture diagrams. Covers the minimal docs/prd structure, version freezing rules, prototype boundaries, the four working modes, and how product docs hand off to the coding standards.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   author: Charles <w1400214654@outlook.com>
 ---
 

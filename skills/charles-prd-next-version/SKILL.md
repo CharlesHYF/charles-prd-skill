@@ -2,7 +2,7 @@
 name: charles-prd-next-version
 description: Use when a product already has a PRD and Charles wants to plan its next version, whether a major like 2.0 or a minor like 1.1, including producing the whole version package in one go. Not for a brand-new product, not for adding content to a version still in development, and not for documenting code that has no PRD.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   author: Charles <w1400214654@outlook.com>
 ---
 

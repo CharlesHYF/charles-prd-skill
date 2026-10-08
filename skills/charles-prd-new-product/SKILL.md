@@ -2,7 +2,7 @@
 name: charles-prd-new-product
 description: Use when starting a brand-new product from zero for Charles, including requests to produce the whole PRD package in one go. Not for adding a feature to an existing product, not for planning the next version of one, and not for documenting a product whose code is already running.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   author: Charles <w1400214654@outlook.com>
 ---
 
