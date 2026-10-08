@@ -110,6 +110,7 @@ bash ~/charles-prd-skill/tools/check.sh docs/prd
 | 截图视口 | 视口取值合法；纯移动形态只用手机视口；适配移动端时每张桌面截图都配 `-mobile` 截图与标注 |
 | 需求确认记录 | major 版本的 `notes.md` 有"需求确认记录"一节且至少一行，每条写明落点 |
 | 原型来源对照 | 复刻原型的 `prototype/sources.md` 覆盖每个页面，源码路径存在 |
+| 表格分点换行 | 单元格里多个编号分点或三段以上分号串联时，必须用 `<br>` 换行 |
 
 说"一键出全部"时按四种模式分流：新产品走 `charles-prd-new-product`，已有项目走 `charles-prd-legacy`，规划下一版走 `charles-prd-next-version`，往开发中的版本加内容走 `charles-prd-add-feature`。都先按必答项提问：第一轮七类产品级（产品形态、用户优先级、运行环境、内容来源、外部对接、关键数值、合规约束），第二轮逐模块功能明细（功能清单、角色入口、字段、状态流转、边界异常、关键数值），1.0 不等于 MVP，范围由 Charles 定；确认后一次产出全部内容，不分批交付。
 

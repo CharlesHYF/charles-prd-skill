@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check.sh 与禁用字符扫描的回归测试，用固定 fixture 断言该报的都报、不该报的不报
 # 创建日期：2026-09-21
-# 修改日期：2026-10-04
+# 修改日期：2026-10-08
 
 set -uo pipefail
 
@@ -739,6 +739,19 @@ expect_not_contains "${CHECK_OUTPUT}" "sources.md" "检查十五:对照齐全放
 rm -f "${SRC_DIR}/versions/1.0/prototype/sources.md"
 run_check "${SRC_DIR}"
 expect_not_contains "${CHECK_OUTPUT}" "sources.md" "检查十五:没有对照表时不检查"
+
+echo "=== 场景十八：表格单元格里的分点必须换行 ==="
+CELL_DIR="$(mktemp -d)/docs/prd"
+make_prd "${CELL_DIR}"
+printf '%s\n' "" "| 字段 | 内容 |" "| --- | --- |" "| 正常路径 | 1. 弹确认框 2. 确认后删除 3. 刷新列表 |" "| 边界情况 | ①未勾选时提示 ②多选时打包 |" "| 显示规则 | 版本 1.0 与 2.0 各自显示 |" "| 前置条件 | 状态为待审核；当前用户是审核人；前序节点已通过 |" "| 兜底行为 | 接口不可用时改用快照；快照也没有时置灰 |" "| 错误处理 | 1. 网络失败提示<br>2. 列表保持原状 |" >> "${CELL_DIR}/versions/1.0/tasks.md"
+run_check "${CELL_DIR}"
+expect_contains "${CHECK_OUTPUT}" "表格单元格里有多个分点没有换行" "检查十六:单元格挤着编号分点被拦"
+expect_contains "${CHECK_OUTPUT}" "1. 弹确认框 2. 确认后删除" "检查十六:报出原文片段"
+expect_contains "${CHECK_OUTPUT}" "①未勾选时提示" "检查十六:圈码分点被拦"
+expect_not_contains "${CHECK_OUTPUT}" "版本 1.0 与 2.0" "检查十六:版本号不误报"
+expect_contains "${CHECK_OUTPUT}" "状态为待审核；当前用户是审核人" "检查十六:分号串起的三个分点被拦"
+expect_not_contains "${CHECK_OUTPUT}" "接口不可用时改用快照" "检查十六:只有两个分句不报"
+expect_not_contains "${CHECK_OUTPUT}" "网络失败提示" "检查十六:已用 br 换行放行"
 
 echo "=== 场景六：仓库自带样例与骨架必须自洽 ==="
 run_check "${REPO_ROOT}/templates/prd-example"

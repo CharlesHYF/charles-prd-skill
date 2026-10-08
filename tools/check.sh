@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # PRD 结构校验器，把产品文档的确定性规则变成会 fail 的检查
 # 创建日期：2026-09-21
-# 修改日期：2026-10-04
+# 修改日期：2026-10-08
 
 # 说明：故意不用 set -e。grep 无匹配时返回非 0 属正常，需手动累计错误而非中断。
 set -uo pipefail
 
 # 校验范围，与 README 同源，改这里要同步改那一处
-LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/占位残留/角色引用/待填残留/产品形态/截图视口/需求确认记录/原型来源对照'
+LINT_SCOPE='必需文件/版本目录命名/版本内必需文档/章节完整性/需求编号/图的位置与来源/界面标注图/版本状态/任务规格/字段类型/占位残留/角色引用/待填残留/产品形态/截图视口/需求确认记录/原型来源对照/表格分点换行'
 
 # 检查步骤总数，新增检查时同步加一
-TOTAL_STEPS=15
+TOTAL_STEPS=16
 
 # 骨架里要填的位置统一用这个前缀，交付前必须全部替换
 FILL_MARK='[待填]'
@@ -696,6 +696,72 @@ check_prototype_sources() {
 	done < <(find "${PRD_ROOT}" -type f -path '*/prototype/*' -name "${SOURCES_NAME}" 2>/dev/null | sort)
 }
 
+# 检查十六：表格单元格里的分点必须换行
+# Markdown 表格单元格不能直接换行，几个编号点挤成一行在 PDF 里读不出层次，要用 <br> 分开
+check_table_points() {
+	echo "[16/${TOTAL_STEPS}] 检查表格单元格分点换行..."
+
+	if ! command -v python3 > /dev/null 2>&1; then
+		echo "  [SKIP] 未找到 python3，跳过表格分点检查"
+		return
+	fi
+
+	local findings
+	findings=$(PRD_ROOT="${PRD_ROOT}" python3 <<'PYCELL'
+import os, re
+
+root = os.environ['PRD_ROOT']
+
+# 第二个分点出现在第一个之后，才算一格里挤了多个点；1. 后面紧跟数字的是版本号或小数，不算
+patterns = [
+    re.compile(r'(?:^|[^\d.])1[.、](?!\d).*?[^\d.]2[.、](?!\d)'),
+    re.compile(r'[(（]1[)）].*?[(（]2[)）]'),
+    re.compile(r'①.*?②'),
+    # 三个及以上用分号串起来的分句，同样是挤在一行的分点
+    re.compile(r'[^；]+；[^；]+；[^；]*\S'),
+]
+
+for cur, dirs, files in os.walk(root):
+    dirs[:] = [d for d in dirs if d not in ('export', 'prototype', 'node_modules') and not d.startswith('.')]
+
+    for name in sorted(files):
+
+        if not name.endswith('.md'):
+            continue
+
+        path = os.path.join(cur, name)
+        in_fence = False
+
+        for number, line in enumerate(open(path, encoding='utf-8'), 1):
+
+            if line.startswith('```'):
+                in_fence = not in_fence
+                continue
+
+            if in_fence or not line.lstrip().startswith('|'):
+                continue
+
+            for cell in line.strip().strip('|').split('|'):
+                cell = cell.strip()
+
+                if '<br' in cell:
+                    continue
+
+                if any(pattern.search(cell) for pattern in patterns):
+                    print(f"{path}:{number}\t{cell[:40]}")
+PYCELL
+)
+
+	local line
+	while IFS= read -r line; do
+
+		if [ -n "${line}" ]; then
+			report "${line%%	*} 表格单元格里有多个分点没有换行：${line#*	}(每个分点之间用 <br> 换行,如 1. 弹确认框<br>2. 确认后删除)"
+		fi
+
+	done <<< "${findings}"
+}
+
 # 检查七：README 必须声明三个版本状态
 check_version_states() {
 	echo "[8/${TOTAL_STEPS}] 检查版本状态声明..."
@@ -1108,6 +1174,7 @@ check_product_form
 check_viewports
 check_confirmation_records
 check_prototype_sources
+check_table_points
 
 echo "==============================="
 
