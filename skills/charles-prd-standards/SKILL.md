@@ -1,6 +1,6 @@
 ---
 name: charles-prd-standards
-description: Use when writing or organizing product documentation for Charles's projects - PRD, product definition, scope, version planning, clickable HTML prototypes, and flow or architecture diagrams. Covers the minimal docs/prd structure, version freezing rules, prototype boundaries, the four working modes, and how product docs hand off to the coding standards.
+description: Use when writing or organizing product documentation for a project - PRD, product definition, scope, version planning, clickable HTML prototypes, and flow or architecture diagrams. Covers the minimal docs/prd structure, version freezing rules, prototype boundaries, the four working modes, and how product docs hand off to the coding standards.
 metadata:
   version: "1.2.0"
   author: Charles <w1400214654@outlook.com>
@@ -8,7 +8,7 @@ metadata:
 
 # Charles PRD
 
-> Charles 的产品文档与原型规范。面向独立开发者的单人流程，目标是几个月后还能回答三个问题：**为什么做、这一版做什么、界面和交互是什么**。
+> 一套产品文档与原型规范。面向独立开发者的单人流程，目标是几个月后还能回答三个问题：**为什么做、这一版做什么、界面和交互是什么**。
 
 ## 何时使用
 - 从零定义一个新产品，需要写产品定义与第一版 PRD
@@ -103,4 +103,4 @@ project/docs/prd/
 11. **需求描述必须能写成测试用例**，出现"优化"、"提升体验"、"合理"这类无法判定的表述一律改写，见 [writing](rules/writing.md)
 12. **每个任务必须写全交互规格七个字段**（触发、前置条件、正常路径、边界情况、错误处理、兜底行为、显示规则），提示文案写完整原文，见 [tasks](rules/tasks.md)
 13. **先问后写，答案落进文档**：产出前两轮必问项全部有答案，每条结论记进 `notes.md` 的需求确认记录并写明落点，见 [one-shot](rules/one-shot.md)
-14. **范围不许自砍**：1.0 不等于 MVP，功能清单以 Charles 确认的全量为准，分期是他的决定
+14. **范围不许自砍**：1.0 不等于 MVP，功能清单以使用者确认的全量为准，分期是使用者的决定

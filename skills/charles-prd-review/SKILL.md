@@ -1,6 +1,6 @@
 ---
 name: charles-prd-review
-description: Use when reviewing a PRD or product document for Charles - finding internal contradictions between requirements, scope and goals, unverifiable release criteria, broken requirement references, and gaps the structure checker cannot detect. Also use to pressure-test a draft before it goes into development.
+description: Use when reviewing a PRD or product document - finding internal contradictions between requirements, scope and goals, unverifiable release criteria, broken requirement references, and gaps the structure checker cannot detect. Also use to pressure-test a draft before it goes into development.
 metadata:
   version: "1.2.0"
   author: Charles <w1400214654@outlook.com>
@@ -74,7 +74,7 @@ bash <skill 目录>/tools/check.sh docs/prd
 ### 九、需求确认记录逐条对账
 - `notes.md` 需求确认记录里的每一条，到落点处（REQ、Task 或文件小节）能不能找到对应内容。找不到就是问了但答案没落进文档，这是最常见的"问清楚了还是写不详细"
 - 落点写得太泛（只写 `prd.md`），等于没写落点
-- 第二轮逐模块明细确认里 Charles 改过的草案，改动有没有同步到字段表、状态流转与交互规格
+- 第二轮逐模块明细确认里使用者改过的草案，改动有没有同步到字段表、状态流转与交互规格
 - 记录里的功能清单与 `prd.md` 功能清单条数对不上，说明有功能被悄悄砍掉或凭空多出
 
 ## 提供思路时的做法
@@ -83,7 +83,7 @@ bash <skill 目录>/tools/check.sh docs/prd
 1. **先说清矛盾是什么**，引用两处具体位置
 2. **说明不解决会怎样**，落到具体后果而不是"不规范"
 3. **给出两到三个可选解法并推荐一个**，说明推荐理由
-4. 涉及产品取舍时**不替 Charles 决定**，把取舍摆清楚让他选
+4. 涉及产品取舍时**不替使用者决定**，把取舍摆清楚让使用者选
 
 ## 输出格式
 按 [collaboration](../charles-prd-standards/rules/collaboration.md) 的三段式输出：问题描述、存在的隐患、解决方案。评审场景下"问题描述"要点出矛盾的两处具体位置。
@@ -92,4 +92,4 @@ bash <skill 目录>/tools/check.sh docs/prd
 - 结构校验全绿
 - 九类内容问题逐条过完
 - 每条意见都附具体位置
-- 需要 Charles 决定的取舍单独列出，不混在问题清单里
+- 需要使用者决定的取舍单独列出，不混在问题清单里

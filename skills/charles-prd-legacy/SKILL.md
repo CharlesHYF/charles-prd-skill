@@ -1,6 +1,6 @@
 ---
 name: charles-prd-legacy
-description: Use when a project that is already running needs product documentation written after the fact for Charles, including when its PRD is missing or no longer matches the code, and the prototype must mirror the real frontend. Not for defining a brand-new product or planning its next version.
+description: Use when a project that is already running needs product documentation written after the fact, including when its PRD is missing or no longer matches the code, and the prototype must mirror the real frontend. Not for defining a brand-new product or planning its next version.
 metadata:
   version: "1.2.0"
   author: Charles <w1400214654@outlook.com>
@@ -49,9 +49,9 @@ metadata:
 
 扫描前端时同步记下**每个页面与弹窗对应的源码文件和路由**，第 5 步复刻原型与写 `sources.md` 要用。
 
-产出一份清单，每行记：模块、功能名、入口位置、当前行为一句话。**先把清单交给 Charles 确认完整性与优先级**，不要直接往下写。
+产出一份清单，每行记：模块、功能名、入口位置、当前行为一句话。**先把清单交给使用者确认完整性与优先级**，不要直接往下写。
 
-**规模预警**：清单超过 80 个功能时，明确告诉 Charles 全量整理的工作量，并建议按模块分期，先补正在改的和最核心的。分期是他的决定，不是 Agent 自行裁剪。
+**规模预警**：清单超过 80 个功能时，明确告诉使用者全量整理的工作量，并建议按模块分期，先补正在改的和最核心的。分期是使用者的决定，不是 Agent 自行裁剪。
 
 ### 2. 确认清单与版本号
 - 清单有没有漏、有没有已废弃但代码还在的
@@ -103,7 +103,7 @@ metadata:
 
 | 产物 | 补文档场景下的差别 |
 | --- | --- |
-| `product.md` | 产品定义从现状反推，目标用户与核心问题要问 Charles 确认 |
+| `product.md` | 产品定义从现状反推，目标用户与核心问题要问使用者确认 |
 | `versions/<线上版本>/prd.md` | 版本历史加七章，需求带来源标记，**流程图与状态图用 Mermaid 写在正文里** |
 | `versions/<线上版本>/scope.md` | In Scope 写已实现范围，Later 写清单里确认要做的，Out of Scope 写明确不做的 |
 | `versions/<线上版本>/tasks.md` | **全部功能都写任务**，已实现的交互规格从代码读出并带 `[已实现]` 标记，`[新增]` 与要改的按正常任务写；每个任务的界面小节带复刻原型的标注图 |
@@ -116,7 +116,7 @@ metadata:
 产出后按 [一键出全部](../charles-prd-standards/rules/one-shot.md) 的第 4、5 步自检并写交付说明。
 
 ## 交付闸门
-- 六个扫描入口全部过完，功能清单经 Charles 确认
+- 六个扫描入口全部过完，功能清单经使用者确认
 - 所有 `[已实现·待确认]` 已转成 `[已实现]` 或 `[遗留]`
 - 行为描述与代码一致，不一致处已记进 `notes.md`
 - 版本号对应当前线上版本

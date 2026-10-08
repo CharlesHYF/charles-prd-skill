@@ -1,6 +1,6 @@
 ---
 name: charles-prd-new-product
-description: Use when starting a brand-new product from zero for Charles, including requests to produce the whole PRD package in one go. Not for adding a feature to an existing product, not for planning the next version of one, and not for documenting a product whose code is already running.
+description: Use when starting a brand-new product from zero, including requests to produce the whole PRD package in one go. Not for adding a feature to an existing product, not for planning the next version of one, and not for documenting a product whose code is already running.
 metadata:
   version: "1.2.0"
   author: Charles <w1400214654@outlook.com>
@@ -20,7 +20,7 @@ metadata:
 不要把 PRD、设计、原型、开发拆成很多正式阶段，保持一个短循环。
 
 ### 0. 两轮提问，问到没有阻塞问题为止
-> Charles 说"一键出全部"时，**不是立刻开写**，而是先把该问的问完，确认后再一次产出全部内容。
+> 使用者说"一键出全部"时，**不是立刻开写**，而是先把该问的问完，确认后再一次产出全部内容。
 > 带着未定前提写出来的内容，写得越多返工越多。问清的成本远低于返工。
 
 #### 第一轮：产品级七类必答项
@@ -39,7 +39,7 @@ metadata:
 #### 第二轮：逐模块功能明细确认
 > 第一轮只能定下产品是什么。**功能有多少、每个功能长什么样，第一轮问不出来**，不问就只能靠猜，猜出来的就是一份只有核心流程的 MVP。
 
-第一轮答完后，先列出完整的模块与功能清单，再按模块给出明细草案，让 Charles 逐模块确认或修改：
+第一轮答完后，先列出完整的模块与功能清单，再按模块给出明细草案，让使用者逐模块确认或修改：
 
 | 草案内容 | 要写到什么程度 |
 | --- | --- |
@@ -50,19 +50,19 @@ metadata:
 | 边界与异常 | 空、超限、冲突、失败各自的行为与文案 |
 | 关键数值 | 阈值、时限、容量，推算的标待确认 |
 
-- 每个模块需要 Charles 定的点**不超过四个**，写成带选项与推荐项的问题；其余是草案，他只需确认或改
+- 每个模块需要使用者定的点**不超过四个**，写成带选项与推荐项的问题；其余是草案，使用者只需确认或改
 - 按模块分批，一批一个模块，等到回答再问下一个模块
-- Charles 说"按你的草案来"算已确认，需求确认记录里写明是草案确认
-- **功能清单未经 Charles 确认不开写**
+- 使用者说"按你的草案来"算已确认，需求确认记录里写明是草案确认
+- **功能清单未经使用者确认不开写**
 
 #### 范围不许自砍
-**1.0 不等于 MVP。** 功能清单以 Charles 确认的全量为准，不按"先做核心"自行裁剪。要不要分期、砍哪些是产品取舍，只能由 Charles 决定；可以提分期方案并说明代价，不能替他定。定了分期的，砍掉的写进 `scope.md` 的 Later。
+**1.0 不等于 MVP。** 功能清单以使用者确认的全量为准，不按"先做核心"自行裁剪。要不要分期、砍哪些是产品取舍，只能由使用者决定；可以提分期方案并说明代价，不能替使用者定。定了分期的，砍掉的写进 `scope.md` 的 Later。
 
 #### 提问方式
 - **交互卡片一次最多四个问题，超过四个就分批问**。按阻塞程度排序，先问最阻塞的四个
 - **工具没有交互卡片时**，每批最多四个编号问题，每题附选项与推荐项，发出后停下等待回答，同一条回复里不继续产出任何文件
 - **每批必须等到回答，才问下一批**。不允许把剩下的问题写成文本列表然后当作"已经问过"
-- 每个问题给出两到四个具体选项与推荐项，降低回答成本；Charles 可以直接选，也可以给别的答案
+- 每个问题给出两到四个具体选项与推荐项，降低回答成本；使用者可以直接选，也可以给别的答案
 - 回答后如果引出新的必问项，再问一轮，并说明为什么需要第二轮
 
 #### 三种状态要分清
@@ -70,18 +70,18 @@ metadata:
 
 | 状态 | 含义 | 处理 |
 | --- | --- | --- |
-| 已确认 | Charles 给了明确答案 | 写进 PRD，不加待确认标记 |
-| 明确不知道 | Charles 说了"这个我也不清楚"或"你按默认写" | 按默认值写并就地标注待确认，记入 `notes.md` |
-| **未回答** | 这个问题 Charles 根本没有回应过 | **必须重新问，不能开写** |
+| 已确认 | 使用者给了明确答案 | 写进 PRD，不加待确认标记 |
+| 明确不知道 | 使用者说了"这个我也不清楚"或"你按默认写" | 按默认值写并就地标注待确认，记入 `notes.md` |
+| **未回答** | 这个问题使用者根本没有回应过 | **必须重新问，不能开写** |
 
-把"未回答"当成"不知道"处理，等于自己替 Charles 做了决定，然后在交付说明里写"这些我问了但你没回答"，问题是他可能压根没看到那条问题。
+把"未回答"当成"不知道"处理，等于自己替使用者做了决定，然后在交付说明里写"这些我问了但你没回答"，问题是使用者可能压根没看到那条问题。
 
 #### 开写前的状态自检
-产出任何文件之前，先把两轮的全部必问项列一遍，逐项标注状态。**只要还有一项是"未回答"，就不能开写**，要明确告诉 Charles：
+产出任何文件之前，先把两轮的全部必问项列一遍，逐项标注状态。**只要还有一项是"未回答"，就不能开写**，要明确告诉使用者：
 
 > 还有 N 个问题没有答案，需要你回答后我才开始产出。要么回答它们，要么明确说"按你的默认值写，标注待确认"。
 
-后半句是给 Charles 的逃生口：他可以主动授权按默认值写，但这是**他给的明确授权**，不是 Agent 自己决定的。
+后半句是给使用者的逃生口：使用者可以主动授权按默认值写，但这是**使用者给的明确授权**，不是 Agent 自己决定的。
 
 关键数值一律问，拿到"按默认写"的授权后才在需求条目里就地标注待确认，见 [writing](../charles-prd-standards/rules/writing.md)。
 
@@ -103,7 +103,7 @@ metadata:
 `scope.md` 三段式：In Scope / Later / Out of Scope。**Out of Scope 比 In Scope 更重要**，它是后面拒绝范围蔓延的依据。
 
 ### 3. 做全 HTML Prototype
-按 `product.md` 的产品形态，照 [prototype](../charles-prd-standards/rules/prototype.md) 的覆盖表一次做全：覆盖表里的每类界面、PRD 与 `tasks.md` 涉及的全部页面、Empty / Loading / Success / Error 四种状态；适配移动端时手机视口同样做全。做完再交给 Charles 看，不分批交付半成品。
+按 `product.md` 的产品形态，照 [prototype](../charles-prd-standards/rules/prototype.md) 的覆盖表一次做全：覆盖表里的每类界面、PRD 与 `tasks.md` 涉及的全部页面、Empty / Loading / Success / Error 四种状态；适配移动端时手机视口同样做全。做完再交给使用者看，不分批交付半成品。
 
 这一步经常反过来改第 2 步：画出来才发现流程不通。改 PRD 再改原型，不要只改原型。
 
@@ -158,7 +158,7 @@ bash <skill 目录>/tools/check.sh docs/prd
 ## 交付闸门
 - `product.md`、`versions/1.0/prd.md`、`scope.md` 三个文件齐全
 - 需求条目全部带编号
-- 功能清单经 Charles 确认，没有自行砍成 MVP
+- 功能清单经使用者确认，没有自行砍成 MVP
 - 原型覆盖所选形态的覆盖表与全部任务页面，四种状态齐全
 - 每个任务的界面小节有标注图，按钮、输入控件与链接逐个标注
 - 外部导入的位图有同名来源说明
