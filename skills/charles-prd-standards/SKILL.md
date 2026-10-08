@@ -84,7 +84,7 @@ project/docs/prd/
 | 产品定义、需求、边界 | Markdown |
 | 页面布局、按钮、弹窗、状态、完整操作流程 | HTML Prototype |
 | 复杂流程的解释、系统模块关系与数据流 | Mermaid 手绘风格图，写在 Markdown 里 |
-| 界面元素位置与标注 | `capture.mjs` 截原型并量坐标，`annotate.mjs` 生成标注图 |
+| 界面元素位置与标注 | `capture.mjs` 截原型并量坐标，`annotate.mjs` 校验标注清单，导出时生成标注图 |
 | 视觉风格探索、组件细节、Design Tokens | Penpot（可选，需要设计画布时才引入） |
 
 工具能力与价格会变，长期稳定的事实来源放在 Git 里。
@@ -97,7 +97,7 @@ project/docs/prd/
 5. **名词解释与字段定义是必需的**，第一次出现的非通用术语必须进表，涉及数据的功能必须有六列字段表
 6. **原型不受编码规范约束，但也不许被复制进 `src/`**，见 [prototype](rules/prototype.md)
 7. **Release Criteria 只写产品维度判据**，工程交付标准由项目自己的编码规范与交付闸门管，PRD 不重复定义
-8. **图用 Mermaid 写在 Markdown 里**，是文本不是位图；**界面标注图必须由 `annotate.mjs` 从原型截图生成**，不手画界面示意，每个任务的界面小节都要有，见 [diagrams](rules/diagrams.md)
+8. **图用 Mermaid 写在 Markdown 里**，是文本不是位图；**界面标注图必须由原型截图加标注清单在导出时生成**，文档里只留空标记块，不手画界面示意，每个任务的界面小节都要有，见 [diagrams](rules/diagrams.md)
 9. 文档用中文，`Non-goals`、`Release Criteria`、`In Scope` 这类没有稳定中文对应的正式术语保留英文
 10. **Markdown 是唯一源头**，PDF 是导出产物，不在 PDF 上改内容，见 [export](rules/export.md)
 11. **需求描述必须能写成测试用例**，出现"优化"、"提升体验"、"合理"这类无法判定的表述一律改写，见 [writing](rules/writing.md)

@@ -2,7 +2,7 @@
 <!--
 图的画法、类型选择、尺寸约束与界面标注图的做法
 创建日期：2026-09-21
-修改日期：2026-10-07
+修改日期：2026-10-08
 -->
 > **图用 Mermaid 写在 Markdown 里，导出时渲染成矢量 SVG 进 PDF。** 图是文本，改图就是改代码，Git 里有可读 diff，不依赖任何外部服务。
 
@@ -157,7 +157,7 @@ node <skill 目录>/tools/capture.mjs docs/prd/versions/1.0/diagrams/list.json
         "部分失败则保留失败清单不关弹窗，让人能重试"
       ]
     },
-    { "el": "checkbox", "kind": "field", "index": 0, "note": "全选。只选中当前页，翻页后不保留。" }
+    { "el": "checkbox", "kind": "field", "index": 0, "label": "全选", "note": "只选中当前页，翻页后不保留。" }
   ],
   "skip": [
     { "el": "详情", "kind": "link", "reason": "跳转到详情页，详情页自己是一张图" }
@@ -169,7 +169,9 @@ node <skill 目录>/tools/capture.mjs docs/prd/versions/1.0/diagrams/list.json
 node <skill 目录>/tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks.json
 ```
 
-生成的 SVG 写进 `inject` 指向文档里这对标记之间，重跑覆盖，不会追加：
+`annotate.mjs` 只校验清单：坐标时效、截图高宽比、按钮与控件有没有漏标、`inject` 指向的文档里有没有对应标记块，不改文档。**标注图不存进 Markdown**，文档里只留一对空标记块，导出 PDF 时 `render.mjs` 按同版本 `diagrams/` 下 `mark`（缺省为 `shot`）相同的清单现场生成。这样换布局只需升级工具，文档本身不用动，diff 里也不会出现几万行坐标。
+
+说明栏每条以元素名开头（"订单号：支持前缀匹配"），元素名取 `label`，缺省取 `el`，所以 `note` 里不要再写元素名。
 
 ```markdown
 ### 界面
@@ -189,10 +191,11 @@ node <skill 目录>/tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks
 | `viewport` | 截图清单 | `desktop`（缺省，1440 宽）或 `mobile`（375 宽），见下文手机截图 |
 | `setup` | 截图清单 | 截图前依次点击的选择器，用来截弹窗这类要先触发的界面 |
 | `crop` / `cropPad` | 截图清单 | 裁到某个元素及其周边，弹窗整页截完在 A4 上小到读不出文案 |
-| `inject` / `mark` | 标注清单 | 写进哪个文档的哪对标记之间 |
+| `inject` / `mark` | 标注清单 | 标注图放进哪个文档的哪对标记之间，`mark` 缺省为 `shot` |
 | `marks[].el` | 标注清单 | 元素文案，按包含匹配 |
 | `marks[].kind` | 标注清单 | 限定类型：btn / link / menu / field / th / kpi / box |
 | `marks[].index` | 标注清单 | 同名元素有多个时取第几个，从 0 开始 |
+| `marks[].label` | 标注清单 | 说明栏里显示的元素名，元素文案不可读（如 `checkbox`）时用它，缺省取 `el` |
 | `marks[].note` | 标注清单 | 一句话说明 |
 | `marks[].steps` | 标注清单 | 多步骤说明，按 1. 2. 3. 编号排版 |
 | `skip[]` | 标注清单 | 明确不标的元素，每项 `el`、`kind`、`reason`，缺 `reason` 拒绝出图 |
@@ -202,11 +205,11 @@ node <skill 目录>/tools/annotate.mjs docs/prd/versions/1.0/diagrams/list.marks
 `_coords.json` 里列出了页面上所有可标注元素的 `kind` 与 `txt`，写标注清单时照着挑。找不到元素时脚本会把候选列出来。
 
 ### 几条硬要求
-- **按钮逐个标注，由工具强制。** `kind` 为 `btn`、`field`、`link` 的元素每个都要有一条，`annotate.mjs` 出图前核对，漏标的列出来并拒绝；同类同文案的算一组，十行表格的十个"详情"标一条即可。确实不该标的写进 `skip` 并给出 `reason`。导航菜单、表头、指标卡与区块不强制
+- **按钮逐个标注，由工具强制。** `kind` 为 `btn`、`field`、`link` 的元素每个都要有一条，`annotate.mjs`、`check.sh` 与导出时都会核对，漏标的列出来并拒绝；同类同文案的算一组，十行表格的十个"详情"标一条即可。确实不该标的写进 `skip` 并给出 `reason`。导航菜单、表头、指标卡与区块不强制
 - **截图高宽比不超过 1.25。** 标注图占满正文宽度，再高就放不进一页。桌面 1440 宽最高 1800px；手机 375 宽的整屏已经超限，手机端一律用 `crop` 按区块分张截（顶栏加表单一张、列表一张、底部操作栏一张）。`capture.mjs` 超限时告警，`annotate.mjs` 与 `check.sh` 拒绝
 - **点击后有多步行为的写 `steps` 不写 `note`。** 置灰条件、二次确认、成功与失败各自的界面反应，分步写清楚
-- **不要手写坐标，也不要手改生成的 SVG**，改了下次重跑就没了。要改内容改标注清单
-- **原型改动后先重跑 `capture.mjs` 再重跑 `annotate.mjs`**，只跑后者会拿旧坐标画新说明。这条不用靠自觉：`capture.mjs` 把原型目录的内容指纹写进 `_coords.json`，`annotate.mjs` 与 `check.sh` 都会比对，对不上直接拒绝出图
+- **不要手写坐标，也不要往标记块里放任何内容**，`check.sh` 发现标记块非空就报。要改标注改标注清单
+- **原型改动后重跑 `capture.mjs`**，不重跑的话导出时会拿旧坐标画图。这条不用靠自觉：`capture.mjs` 把原型目录的内容指纹写进 `_coords.json`，`annotate.mjs`、`render.mjs` 与 `check.sh` 都会比对，对不上直接拒绝
 - 弹窗、空态、失败态各自出一张图，用 `setup` 与 `state` 区分
 - **弹窗要配 `crop`**，整页截完弹窗只占中间一小块，缩到正文宽度后里面的文案读不出来。裁过的小截图会被等比放大填满图区，不用担心变小
 - PNG 与 `_coords.json` 都要进 Git，评审的人不必装 Node 也能看

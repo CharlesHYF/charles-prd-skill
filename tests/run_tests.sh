@@ -183,6 +183,9 @@ INNER
 
 	printf 'x' > "${dir}/versions/1.0/diagrams/home.png"
 	printf '# home 截图\n' > "${dir}/versions/1.0/diagrams/home.md"
+	printf '# 坐标\n' > "${dir}/versions/1.0/diagrams/_coords.md"
+	printf '{ "home": { "w": 100, "h": 100, "els": [] } }\n' > "${dir}/versions/1.0/diagrams/_coords.json"
+	printf '{ "shot": "home", "inject": "../tasks.md", "mark": "home", "marks": [] }\n' > "${dir}/versions/1.0/diagrams/home.marks.json"
 
 	cat > "${dir}/versions/1.0/tasks.md" <<'INNER'
 # Tasks 1.0
@@ -197,9 +200,6 @@ INNER
 ### 界面
 
 <!--annotation:home-->
-<svg class="annotation"></svg>
-
-1. **提交**：点击后提交。
 <!--/annotation-->
 
 图注：底图为原型截图。
@@ -456,6 +456,8 @@ echo "=== 场景十：界面标注图必须由截图与坐标生成 ==="
 ANN_DIR="$(mktemp -d)/docs/prd"
 make_prd "${ANN_DIR}"
 mkdir -p "${ANN_DIR}/versions/1.0/diagrams"
+# 夹具自带 home 的坐标，这个场景要从没有坐标开始
+rm -f "${ANN_DIR}/versions/1.0/diagrams/_coords.json" "${ANN_DIR}/versions/1.0/diagrams/_coords.md"
 cat > "${ANN_DIR}/versions/1.0/diagrams/list.marks.json" <<'INNER'
 { "shot": "list", "inject": "../tasks.md", "mark": "list", "marks": [] }
 INNER
@@ -467,26 +469,26 @@ run_check "${ANN_DIR}"
 expect_contains "${CHECK_OUTPUT}" "在 _coords.json 里没有坐标" "检查七:坐标缺该截图被拦"
 expect_contains "${CHECK_OUTPUT}" "缺少同名来源说明 _coords.md" "检查七:坐标缺来源说明被拦"
 
-printf '{ "list": { "w": 1, "h": 1, "els": [] } }\n' > "${ANN_DIR}/versions/1.0/diagrams/_coords.json"
+printf '{ "home": { "w": 100, "h": 100, "els": [] }, "list": { "w": 1, "h": 1, "els": [] } }\n' > "${ANN_DIR}/versions/1.0/diagrams/_coords.json"
 printf '# 坐标\n' > "${ANN_DIR}/versions/1.0/diagrams/_coords.md"
 run_check "${ANN_DIR}"
 expect_contains "${CHECK_OUTPUT}" "没有对应截图 list.png" "检查七:缺截图被拦"
 
 printf 'x' > "${ANN_DIR}/versions/1.0/diagrams/list.png"
 printf '# list 截图\n' > "${ANN_DIR}/versions/1.0/diagrams/list.md"
-printf '\n<!--annotation:list-->\n<!--/annotation-->\n' >> "${ANN_DIR}/versions/1.0/tasks.md"
+printf '\n<!--annotation:list-->\n<svg class="annotation"></svg>\n<!--/annotation-->\n' >> "${ANN_DIR}/versions/1.0/tasks.md"
 run_check "${ANN_DIR}"
-expect_contains "${CHECK_OUTPUT}" "标记块是空的" "检查七:标记块留空被拦"
+expect_contains "${CHECK_OUTPUT}" "的标记块 list 里有内容" "检查七:标记块里存了 SVG 被拦"
 
 python3 - "${ANN_DIR}/versions/1.0/tasks.md" <<'PYINNER'
 import pathlib, sys
 p = pathlib.Path(sys.argv[1])
 p.write_text(p.read_text(encoding="utf-8").replace(
-	"<!--annotation:list-->\n<!--/annotation-->",
-	"<!--annotation:list-->\n<svg class=\"annotation\"></svg>\n<!--/annotation-->"), encoding="utf-8")
+	"<!--annotation:list-->\n<svg class=\"annotation\"></svg>\n<!--/annotation-->",
+	"<!--annotation:list-->\n<!--/annotation-->"), encoding="utf-8")
 PYINNER
 run_check "${ANN_DIR}"
-expect_not_contains "${CHECK_OUTPUT}" "标记块是空的" "检查七:标注齐备后放行"
+expect_not_contains "${CHECK_OUTPUT}" "里有内容" "检查七:标记块清空后放行"
 
 echo "=== 场景十一：已定义任务不能还挂占位 ==="
 TODO_DIR="$(mktemp -d)/docs/prd"
@@ -743,7 +745,7 @@ expect_not_contains "${CHECK_OUTPUT}" "sources.md" "检查十五:没有对照表
 echo "=== 场景十八：表格单元格里的分点必须换行 ==="
 CELL_DIR="$(mktemp -d)/docs/prd"
 make_prd "${CELL_DIR}"
-printf '%s\n' "" "| 字段 | 内容 |" "| --- | --- |" "| 正常路径 | 1. 弹确认框 2. 确认后删除 3. 刷新列表 |" "| 边界情况 | ①未勾选时提示 ②多选时打包 |" "| 显示规则 | 版本 1.0 与 2.0 各自显示 |" "| 前置条件 | 状态为待审核；当前用户是审核人；前序节点已通过 |" "| 兜底行为 | 接口不可用时改用快照；快照也没有时置灰 |" "| 错误处理 | 1. 网络失败提示<br>2. 列表保持原状 |" >> "${CELL_DIR}/versions/1.0/tasks.md"
+printf '%s\n' "" "| 字段 | 内容 |" "| --- | --- |" "| 正常路径 | 1. 弹确认框 2. 确认后删除 3. 刷新列表 |" "| 边界情况 | ①未勾选时提示 ②多选时打包 |" "| 显示规则 | 版本 1.0 与 2.0 各自显示 |" "| 前置条件 | 状态为待审核；当前用户是审核人；前序节点已通过 |" "| 兜底行为 | 接口不可用时改用快照；快照也没有时置灰 |" "| 提示文案 | 弹出\"保存失败；请检查网络；稍后重试\"后保持原状 |" "| 前置条件 | 1. 甲<br>2. 乙<br>3. 丙<br>4. 丁<br>5. 戊<br>6. 己<br>7. 庚 |" "| 错误处理 | 1. 网络失败提示<br>2. 列表保持原状 |" >> "${CELL_DIR}/versions/1.0/tasks.md"
 run_check "${CELL_DIR}"
 expect_contains "${CHECK_OUTPUT}" "表格单元格里有多个分点没有换行" "检查十六:单元格挤着编号分点被拦"
 expect_contains "${CHECK_OUTPUT}" "1. 弹确认框 2. 确认后删除" "检查十六:报出原文片段"
@@ -751,6 +753,16 @@ expect_contains "${CHECK_OUTPUT}" "①未勾选时提示" "检查十六:圈码�
 expect_not_contains "${CHECK_OUTPUT}" "版本 1.0 与 2.0" "检查十六:版本号不误报"
 expect_contains "${CHECK_OUTPUT}" "状态为待审核；当前用户是审核人" "检查十六:分号串起的三个分点被拦"
 expect_not_contains "${CHECK_OUTPUT}" "接口不可用时改用快照" "检查十六:只有两个分句不报"
+expect_not_contains "${CHECK_OUTPUT}" "保存失败" "检查十六:引号里的分号不算分点"
+expect_contains "${CHECK_OUTPUT}" "表格单元格有 7 个分点，超过 6 个" "检查十六:超过上限被拦"
+
+CELL_FIX_OUTPUT="$(bash "${CHECK_SH}" --fix "${CELL_DIR}" 2>&1)"
+expect_contains "${CELL_FIX_OUTPUT}" "已改写" "检查十六:--fix 报出改写位置"
+expect_contains "$(cat "${CELL_DIR}/versions/1.0/tasks.md")" "| 1. 弹确认框<br>2. 确认后删除<br>3. 刷新列表 |" "检查十六:--fix 改写编号分点"
+expect_contains "$(cat "${CELL_DIR}/versions/1.0/tasks.md")" "| 1. 状态为待审核<br>2. 当前用户是审核人<br>3. 前序节点已通过 |" "检查十六:--fix 改写分号分点"
+expect_contains "$(cat "${CELL_DIR}/versions/1.0/tasks.md")" "\"保存失败；请检查网络；稍后重试\"" "检查十六:--fix 不拆引号里的原文"
+run_check "${CELL_DIR}"
+expect_not_contains "${CHECK_OUTPUT}" "没有换行" "检查十六:--fix 后不再报未换行"
 expect_not_contains "${CHECK_OUTPUT}" "网络失败提示" "检查十六:已用 br 换行放行"
 
 echo "=== 场景六：仓库自带样例与骨架必须自洽 ==="

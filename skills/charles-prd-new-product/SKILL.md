@@ -108,7 +108,7 @@ metadata:
 这一步经常反过来改第 2 步：画出来才发现流程不通。改 PRD 再改原型，不要只改原型。
 
 ### 4. 截图、标注与流程图
-- 每个任务的界面小节都要有由 `capture.mjs` 与 `annotate.mjs` 生成的标注图，按钮、输入控件与链接逐个标注，弹窗单独出图，手机端按区块裁剪，细则见 [diagrams](../charles-prd-standards/rules/diagrams.md)
+- 每个任务的界面小节都要有标注标记块，由 `capture.mjs` 截图、`annotate.mjs` 校验清单、导出时生成标注图，按钮、输入控件与链接逐个标注，弹窗单独出图，手机端按区块裁剪，细则见 [diagrams](../charles-prd-standards/rules/diagrams.md)
 - **图用 Mermaid 直接写在 `prd.md` 与 `tasks.md` 正文里**，不要单独建文件放进 `diagrams/`。写进独立文件的话正文没有图、导出的 PDF 也没有图，等于白画
 - 只画 PRD 里已定义的节点。横向图控制在 6 个节点以内
 
@@ -141,7 +141,7 @@ metadata:
 | `docs/prd/decisions.md` | 本次确认中定下的不可逆取舍 |
 | `versions/1.0/prd.md` | 版本历史加七章，需求带编号，**流程图与状态图用 Mermaid 写在正文里** |
 | `versions/1.0/scope.md` | In Scope / Later / Out of Scope |
-| `versions/1.0/tasks.md` | 任务与交互规格，每个任务的界面小节带 `annotate.mjs` 生成的标注图 |
+| `versions/1.0/tasks.md` | 任务与交互规格，每个任务的界面小节带标注标记块，导出时生成标注图 |
 | `versions/1.0/notes.md` | 需求确认记录、问不出来的待验证问题与影响范围 |
 | `versions/1.0/prototype/` | 按产品形态覆盖表做全的可点击原型，含四种状态；适配移动端时手机视口同样做全 |
 | `versions/1.0/diagrams/` | 截图清单、标注清单、截图与坐标 |

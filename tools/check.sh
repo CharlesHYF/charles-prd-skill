@@ -41,8 +41,26 @@ SOURCES_NAME='sources.md'
 # 违规计数：任意一项 > 0 则退出码非 0
 VIOLATIONS=0
 
+# 表格单元格里的分点上限，超过就该改成表格下方的列表
+MAX_TABLE_POINTS=6
+
+# --fix：把表格里没换行的分点自动改写成编号加 <br>，其余检查照常执行
+SHOULD_FIX=0
+
 # PRD 根目录：缺省按约定放在 docs/prd
-PRD_ROOT="${1:-docs/prd}"
+PRD_ROOT="docs/prd"
+
+for argument in "$@"; do
+
+	case "${argument}" in
+		--fix)
+			SHOULD_FIX=1
+			;;
+		*)
+			PRD_ROOT="${argument}"
+			;;
+	esac
+done
 
 # 版本目录命名：只允许数字.数字
 VERSION_DIR_REGEX='^[0-9]+\.[0-9]+$'
@@ -362,12 +380,13 @@ PYFRESH
 	done <<< "${stale}"
 }
 
-# 检查六之二：界面标注图必须由截图与坐标生成
-# 拦的是手画标注、标注清单指向没截过的页面、以及标记块留空忘了跑生成
+# 检查六之二：界面标注图的清单、坐标、截图与标记块
+# 标注图导出时才由 render.mjs 生成，文档里只留空标记块；清单与坐标对不上、截图过高、漏标都在这里拦
+# 全部文件一次读进 python 处理：逐标记 grep、逐清单起进程的写法在几百张图的文档上要跑几分钟
 check_annotations() {
 	echo "[7/${TOTAL_STEPS}] 检查界面标注图..."
 
-	local coords marks shot doc mark note inject
+	local coords note
 
 	while IFS= read -r coords; do
 		note="$(dirname "${coords}")/_coords.md"
@@ -380,99 +399,29 @@ check_annotations() {
 
 	done < <(find "${PRD_ROOT}" -type f -name '_coords.json' 2>/dev/null)
 
-	while IFS= read -r marks; do
-		shot=$(grep -oE '"shot"[[:space:]]*:[[:space:]]*"[^"]+"' "${marks}" | head -1 | sed -E 's/.*"([^"]+)"$/\1/')
-		coords="$(dirname "${marks}")/_coords.json"
-
-		if [ ! -f "${coords}" ]; then
-			report "${marks} 所在目录没有 _coords.json(先跑 tools/capture.mjs 截图并量坐标)"
-			continue
-		fi
-
-		if ! grep -q "\"${shot}\"" "${coords}"; then
-			report "${marks} 的 shot=${shot} 在 _coords.json 里没有坐标(先跑 tools/capture.mjs ${shot}.json)"
-		fi
-
-		if [ ! -f "$(dirname "${marks}")/${shot}.png" ]; then
-			report "${marks} 的 shot=${shot} 没有对应截图 ${shot}.png(先跑 tools/capture.mjs)"
-		fi
-
-		# inject 指向的文档里必须有对应标记，否则生成时无处可写
-		inject=$(grep -oE '"inject"[[:space:]]*:[[:space:]]*"[^"]+"' "${marks}" | head -1 | sed -E 's/.*"([^"]+)"$/\1/')
-		mark=$(grep -oE '"mark"[[:space:]]*:[[:space:]]*"[^"]+"' "${marks}" | head -1 | sed -E 's/.*"([^"]+)"$/\1/')
-		mark="${mark:-${shot}}"
-
-		if [ -n "${inject}" ]; then
-			doc="$(cd "$(dirname "${marks}")" && cd "$(dirname "${inject}")" 2>/dev/null && pwd)/$(basename "${inject}")"
-
-			if [ ! -f "${doc}" ]; then
-				report "${marks} 的 inject 指向的文档不存在：${inject}"
-			elif ! grep -q "<!--annotation:${mark}-->" "${doc}"; then
-				report "${marks} 的 inject 文档里没有 <!--annotation:${mark}--> 标记"
-			fi
-		fi
-
-		check_mark_coverage "${marks}"
-
-	done < <(find "${PRD_ROOT}" -type f -name '*.marks.json' 2>/dev/null)
-
-	# 文档里的标记块必须成对且非空，空的说明忘了跑 annotate.mjs
-	while IFS= read -r doc; do
-
-		while IFS= read -r mark; do
-
-			if ! grep -q '<!--/annotation-->' "${doc}"; then
-				report "${doc} 的 <!--annotation:${mark}--> 没有配对的 <!--/annotation-->"
-				continue
-			fi
-
-			if grep -A 1 "<!--annotation:${mark}-->" "${doc}" | grep -q '<!--/annotation-->'; then
-				report "${doc} 的 ${mark} 标记块是空的(跑 node tools/annotate.mjs <清单>.marks.json 生成标注图)"
-			fi
-
-		done < <(grep -oE '<!--annotation:[^>]+-->' "${doc}" 2>/dev/null | sed -E 's/<!--annotation:(.*)-->/\1/')
-
-	done < <(find "${PRD_ROOT}" -type f -name 'tasks.md' 2>/dev/null)
-}
-
-# 检查六之三：截图高宽比与标注覆盖
-# 标注图在 PDF 里占满正文宽度，截图太高就放不进一页；按钮、输入控件与链接漏标的，开发只能自己猜
-check_mark_coverage() {
-	local marks_file="$1"
-
 	if ! command -v python3 > /dev/null 2>&1; then
-		echo "  [SKIP] 未找到 python3，跳过高宽比与标注覆盖检查：${marks_file}"
+		echo "  [SKIP] 未找到 python3，跳过标注清单、高宽比、标注覆盖与界面标记块检查"
 		return
 	fi
 
-	local findings
-	findings=$(MARKS="${marks_file}" MAX_ASPECT="${MAX_ASPECT}" REQUIRED_KINDS="${REQUIRED_MARK_KINDS}" python3 <<'PYCOVER'
-import json, os, sys
+	local findings line
+	findings=$(PRD_ROOT="${PRD_ROOT}" MAX_ASPECT="${MAX_ASPECT}" REQUIRED_KINDS="${REQUIRED_MARK_KINDS}" FILL_MARK="${FILL_MARK}" python3 <<'PYANN'
+import json, os, re
 
-marks_file = os.environ['MARKS']
+root = os.environ['PRD_ROOT']
 max_aspect = float(os.environ['MAX_ASPECT'])
 required_kinds = os.environ['REQUIRED_KINDS'].split()
-base = os.path.dirname(marks_file)
+fill_mark = os.environ['FILL_MARK']
 
-try:
-    spec = json.load(open(marks_file, encoding='utf-8'))
-    coords = json.load(open(os.path.join(base, '_coords.json'), encoding='utf-8'))
-except Exception:
-    sys.exit(0)
+OPEN = re.compile(r'<!--annotation:([^>]+?)-->')
+CLOSE = '<!--/annotation-->'
 
-shot = spec.get('shot')
-data = coords.get(shot)
 
-if not isinstance(data, dict):
-    sys.exit(0)
-
-width = data.get('w') or 0
-height = data.get('h') or 0
-
-if width and height / width > max_aspect:
-    print(f"ASPECT\t{width}x{height} 高宽比 {height / width:.2f} 超过 {max_aspect}")
-
-els = data.get('els') or []
+def load(path):
+    try:
+        return json.load(open(path, encoding='utf-8'))
+    except Exception:
+        return None
 
 
 def matches(el, target):
@@ -483,135 +432,168 @@ def matches(el, target):
     return bool(name) and (txt == name or name in txt)
 
 
-picked = set()
+marks_by_dir = {}
+coords_by_dir = {}
 
-for mark in spec.get('marks') or []:
-    candidates = [el for el in els if matches(el, mark)]
+for cur, dirs, files in os.walk(root):
+    dirs[:] = [d for d in dirs if d not in ('export', 'node_modules') and not d.startswith('.')]
 
-    if not candidates:
+    for name in sorted(files):
+        if not name.endswith('.marks.json'):
+            continue
+
+        path = os.path.join(cur, name)
+        spec = load(path)
+
+        if not isinstance(spec, dict):
+            print(f"{path} 不是合法 JSON")
+            continue
+
+        shot = spec.get('shot') or ''
+        mark = spec.get('mark') or shot
+        marks_by_dir.setdefault(cur, {})[mark] = (path, spec)
+
+        if cur not in coords_by_dir:
+            coords_by_dir[cur] = load(os.path.join(cur, '_coords.json')) if os.path.isfile(os.path.join(cur, '_coords.json')) else None
+
+        coords = coords_by_dir[cur]
+
+        if coords is None:
+            print(f"{path} 所在目录没有 _coords.json(先跑 tools/capture.mjs 截图并量坐标)")
+            continue
+
+        data = coords.get(shot)
+
+        if not isinstance(data, dict):
+            print(f"{path} 的 shot={shot} 在 _coords.json 里没有坐标(先跑 tools/capture.mjs {shot}.json)")
+        elif not os.path.isfile(os.path.join(cur, f'{shot}.png')):
+            print(f"{path} 的 shot={shot} 没有对应截图 {shot}.png(先跑 tools/capture.mjs)")
+
+        inject = spec.get('inject')
+
+        if inject:
+            doc = os.path.normpath(os.path.join(cur, inject))
+
+            if not os.path.isfile(doc):
+                print(f"{path} 的 inject 指向的文档不存在：{inject}")
+            elif f'<!--annotation:{mark}-->' not in open(doc, encoding='utf-8').read():
+                print(f"{path} 的 inject 文档里没有 <!--annotation:{mark}--> 标记")
+
+        if not isinstance(data, dict):
+            continue
+
+        width = data.get('w') or 0
+        height = data.get('h') or 0
+
+        if width and height / width > max_aspect:
+            print(f"{path} 的截图 {width}x{height} 高宽比 {height / width:.2f} 超过 {max_aspect}(缩进正文后放不进一页,在截图清单里用 crop 按区块分成多张截)")
+
+        els = data.get('els') or []
+        picked = set()
+
+        for item in spec.get('marks') or []:
+            candidates = [el for el in els if matches(el, item)]
+
+            if candidates:
+                chosen = candidates[min(item.get('index', 0), len(candidates) - 1)]
+                picked.add((chosen.get('kind'), chosen.get('txt')))
+
+        skips = spec.get('skip') or []
+
+        if any(not skip.get('el') or not skip.get('reason') for skip in skips):
+            print(f"{path} 的 skip 每项都要有 el 与 reason(不说明理由的跳过等于漏标)")
+
+        uncovered = {}
+
+        for el in els:
+            key = (el.get('kind'), el.get('txt'))
+
+            if el.get('kind') not in required_kinds or key in picked or any(matches(el, skip) for skip in skips):
+                continue
+
+            uncovered[key] = f"{el.get('kind')}:{el.get('txt')}"
+
+        if uncovered:
+            print(f"{path} 有 {len(uncovered)} 个元素没有标注：" + " ".join(uncovered.values()) + "(每个按钮、输入控件与链接都要有一条,确实不标的写进 skip 并给出 reason)")
+
+# 任务文档：每个任务的界面小节要有标记块；标记块必须为空，能找到清单与截图；块外不许手画 SVG
+for cur, dirs, files in os.walk(root):
+    dirs[:] = [d for d in dirs if d not in ('export', 'node_modules') and not d.startswith('.')]
+
+    if 'tasks.md' not in files:
         continue
 
-    index = min(mark.get('index', 0), len(candidates) - 1)
-    chosen = candidates[index]
-    picked.add((chosen.get('kind'), chosen.get('txt')))
+    path = os.path.join(cur, 'tasks.md')
+    diagrams = os.path.join(cur, 'diagrams')
+    index = marks_by_dir.get(diagrams, {})
+    task = ''
+    count = 0
+    pending = False
+    inside = None
+    inside_reported = False
 
-skips = spec.get('skip') or []
+    def flush():
+        if task and count == 0 and not pending:
+            print(f"{path} 的 {task} 的界面小节没有标注标记块(在界面小节写 <!--annotation:xxx--> 与 <!--/annotation--> 空标记块,导出时由 tools/render.mjs 生成标注图)")
 
-if any(not skip.get('el') or not skip.get('reason') for skip in skips):
-    print("SKIP\tskip 每项都要有 el 与 reason")
+    for number, line in enumerate(open(path, encoding='utf-8'), 1):
+        heading = re.match(r'^## (Task-\d+)', line)
 
-uncovered = {}
+        if heading:
+            flush()
+            task, count, pending = heading.group(1), 0, False
+            continue
 
-for el in els:
-    key = (el.get('kind'), el.get('txt'))
+        if fill_mark in line:
+            pending = True
 
-    if el.get('kind') not in required_kinds or key in picked:
-        continue
+        opened = OPEN.search(line)
 
-    if any(matches(el, skip) for skip in skips):
-        continue
+        if opened:
+            count += 1
+            mark = opened.group(1)
+            inside = (mark, number)
+            inside_reported = False
 
-    uncovered[key] = f"{el.get('kind')}:{el.get('txt')}"
+            if CLOSE in line[opened.end():]:
+                inside = None
 
-if uncovered:
-    print(f"UNCOVERED\t{len(uncovered)}\t" + " ".join(uncovered.values()))
-PYCOVER
+            if mark in index:
+                spec_path, spec = index[mark]
+                shot = spec.get('shot') or mark
+            else:
+                shot = mark
+                print(f"{path} 的标记块 {mark} 在 diagrams/ 下找不到 mark 或 shot 为 {mark} 的标注清单(导出时无法生成标注图)")
+
+            if not os.path.isfile(os.path.join(diagrams, f'{shot}.png')):
+                print(f"{path} 的标记块 {mark} 没有对应截图 diagrams/{shot}.png(先跑 tools/capture.mjs 截图)")
+            continue
+
+        if CLOSE in line:
+            inside = None
+            continue
+
+        # 每个标记块只报一次，旧文档里几百个块各有几十行 SVG
+        if inside is not None:
+            if line.strip() and not inside_reported:
+                print(f"{path}:{number} 的标记块 {inside[0]} 里有内容(标注图改为导出时由 tools/render.mjs 生成,标记块内不再存 SVG 与说明,删掉块内内容)")
+                inside_reported = True
+            continue
+
+        if '<svg' in line:
+            print(f"{path}:{number} 标记块之外出现 <svg(界面图不许手画,只能由原型截图加标注清单在导出时生成)")
+
+    flush()
+PYANN
 )
 
-	local line kind detail
 	while IFS= read -r line; do
 
-		if [ -z "${line}" ]; then
-			continue
+		if [ -n "${line}" ]; then
+			report "${line}"
 		fi
 
-		kind="${line%%	*}"
-		detail="${line#*	}"
-
-		case "${kind}" in
-			ASPECT)
-				report "${marks_file} 的截图 ${detail}(缩到正文宽度后放不进一页,在截图清单里用 crop 按区块分成多张截)"
-				;;
-			SKIP)
-				report "${marks_file} 的 ${detail}(不说明理由的跳过等于漏标)"
-				;;
-			UNCOVERED)
-				report "${marks_file} 有 ${detail%%	*} 个元素没有标注：${detail#*	}(每个按钮、输入控件与链接都要有一条,确实不标的写进 skip 并给出 reason)"
-				;;
-		esac
-
-	done <<< "${findings}"
-}
-
-# 检查八之三：每个任务的界面小节必须有标注标记块，标记块之外不许出现手画 SVG
-# 界面图只能由 annotate.mjs 从原型截图生成；手画的线框与原型必然对不上，原型一改就过期
-check_task_interfaces() {
-	local task_file="$1"
-	local diagrams_dir
-	diagrams_dir="$(dirname "${task_file}")/diagrams"
-
-	local line kind detail shot marks_file
-	while IFS= read -r line; do
-
-		if [ -z "${line}" ]; then
-			continue
-		fi
-
-		kind="${line%%	*}"
-		detail="${line#*	}"
-
-		case "${kind}" in
-			NOANN)
-				report "${task_file} 的 ${detail} 的界面小节没有标注标记块(界面图只能由 tools/annotate.mjs 生成并写进 <!--annotation:xxx--> 标记块)"
-				;;
-			SVG)
-				report "${task_file}:${detail} 标记块之外出现 <svg(界面图不许手画,只能由 tools/annotate.mjs 从原型截图生成)"
-				;;
-			MARK)
-				# 标记名缺省等于截图名；标注清单另起了 mark 的，按清单里的 shot 找截图
-				shot="${detail}"
-				marks_file=$(grep -lE "\"mark\"[[:space:]]*:[[:space:]]*\"${detail}\"" "${diagrams_dir}"/*.marks.json 2>/dev/null | head -1)
-
-				if [ -n "${marks_file}" ]; then
-					shot=$(json_string_field "${marks_file}" "shot")
-					shot="${shot:-${detail}}"
-				fi
-
-				if [ ! -f "${diagrams_dir}/${shot}.png" ]; then
-					report "${task_file} 的标记块 ${detail} 没有对应截图 diagrams/${shot}.png(先跑 tools/capture.mjs 截图再跑 tools/annotate.mjs)"
-				fi
-				;;
-		esac
-
-	done < <(awk -v fill="${FILL_MARK}" '
-		function flush() {
-			if (task != "" && count == 0 && !pending) {
-				print "NOANN\t" task
-			}
-		}
-		/^## Task-[0-9]+/ {
-			flush()
-			task = $0
-			sub(/^## /, "", task)
-			sub(/[：:].*/, "", task)
-			count = 0
-			pending = 0
-			next
-		}
-		index($0, fill) > 0 { pending = 1 }
-		/<!--annotation:/ {
-			count++
-			inside = 1
-			mark = $0
-			sub(/.*<!--annotation:/, "", mark)
-			sub(/-->.*/, "", mark)
-			print "MARK\t" mark
-			next
-		}
-		/<!--\/annotation-->/ { inside = 0; next }
-		/<svg/ && !inside { print "SVG\t" NR }
-		END { flush() }
-	' "${task_file}")
+	done < <(printf '%s\n' "${findings}" | awk '!seen[$0]++')
 }
 
 # 检查十四：需求确认记录
@@ -696,8 +678,9 @@ check_prototype_sources() {
 	done < <(find "${PRD_ROOT}" -type f -path '*/prototype/*' -name "${SOURCES_NAME}" 2>/dev/null | sort)
 }
 
-# 检查十六：表格单元格里的分点必须换行
+# 检查十六：表格单元格里的分点必须换行，且不超过上限
 # Markdown 表格单元格不能直接换行，几个编号点挤成一行在 PDF 里读不出层次，要用 <br> 分开
+# 引号、反引号与括号里的内容是提示原文或补充说明，里面的分号与编号不算分点
 check_table_points() {
 	echo "[16/${TOTAL_STEPS}] 检查表格单元格分点换行..."
 
@@ -707,57 +690,187 @@ check_table_points() {
 	fi
 
 	local findings
-	findings=$(PRD_ROOT="${PRD_ROOT}" python3 <<'PYCELL'
+	findings=$(PRD_ROOT="${PRD_ROOT}" SHOULD_FIX="${SHOULD_FIX}" MAX_POINTS="${MAX_TABLE_POINTS}" python3 <<'PYCELL'
 import os, re
 
 root = os.environ['PRD_ROOT']
+should_fix = os.environ['SHOULD_FIX'] == '1'
+max_points = int(os.environ['MAX_POINTS'])
 
-# 第二个分点出现在第一个之后，才算一格里挤了多个点；1. 后面紧跟数字的是版本号或小数，不算
-patterns = [
-    re.compile(r'(?:^|[^\d.])1[.、](?!\d).*?[^\d.]2[.、](?!\d)'),
-    re.compile(r'[(（]1[)）].*?[(（]2[)）]'),
-    re.compile(r'①.*?②'),
-    # 三个及以上用分号串起来的分句，同样是挤在一行的分点
-    re.compile(r'[^；]+；[^；]+；[^；]*\S'),
-]
+PAIRS = {'"': '"', '`': '`', '（': '）', '(': ')', '\u300c': '\u300d', '《': '》'}
+BREAK = re.compile(r'<br\s*/?>', re.I)
+CIRCLED = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳'
+SEPARATORS = ' \t；;，,。'
+
+
+def mask(text):
+    # 成对符号里的内容换成占位符，长度不变，下标仍能对回原文；只含数字的括号是 (1) 这类编号，保留
+    chars = list(text)
+    index = 0
+
+    while index < len(text):
+        opener = text[index]
+        closer = PAIRS.get(opener)
+
+        if closer is None:
+            index += 1
+            continue
+
+        end = text.find(closer, index + 1)
+
+        if end < 0:
+            index += 1
+            continue
+
+        inner = text[index + 1:end]
+
+        if opener in '（(' and inner.isdigit():
+            index = end + 1
+            continue
+
+        for position in range(index + 1, end):
+            chars[position] = '\0'
+
+        index = end + 1
+
+    return ''.join(chars)
+
+
+def sequential(matches, number_of):
+    # 编号要从 1 起连续递增，才认作分点，避免把正文里的"2."、"3、"误当成编号
+    picked = []
+    expect = 1
+
+    for match in matches:
+        if number_of(match) == expect:
+            picked.append(match)
+            expect += 1
+
+    return picked if len(picked) >= 2 else []
+
+
+def split_points(cell):
+    masked = mask(cell)
+    cuts = []
+
+    numbered = sequential(
+        re.finditer(r'(?:(?<=^)|(?<=[\s；;，,。]))(\d{1,2})[.、](?!\d)', masked),
+        lambda match: int(match.group(1)),
+    )
+
+    if numbered:
+        cuts = [(match.start(), match.end()) for match in numbered]
+    else:
+        parens = sequential(re.finditer(r'[(（](\d{1,2})[)）]', masked), lambda match: int(match.group(1)))
+
+        if parens:
+            cuts = [(match.start(), match.end()) for match in parens]
+        else:
+            circled = sequential(re.finditer(f'[{CIRCLED}]', masked), lambda match: CIRCLED.index(match.group(0)) + 1)
+
+            if circled:
+                cuts = [(match.start(), match.end()) for match in circled]
+
+    if cuts:
+        head = cell[:cuts[0][0]].strip(SEPARATORS)
+        points = []
+
+        for order, (start, end) in enumerate(cuts):
+            stop = cuts[order + 1][0] if order + 1 < len(cuts) else len(cell)
+            points.append(cell[end:stop].strip(SEPARATORS))
+
+        return head, [point for point in points if point]
+
+    semicolons = [match.start() for match in re.finditer('；', masked)]
+
+    # 两个分句用一个分号连接是正常句式，三段以上才算挤在一行的分点
+    if len(semicolons) < 2 or not masked[semicolons[-1] + 1:].strip():
+        return '', []
+
+    bounds = [-1] + semicolons + [len(cell)]
+    points = [cell[bounds[order] + 1:bounds[order + 1]].strip(SEPARATORS) for order in range(len(bounds) - 1)]
+    return '', [point for point in points if point]
+
+
+def rewrite(head, points):
+    body = '<br>'.join(f'{order}. {point}' for order, point in enumerate(points, 1))
+    return f'{head}<br>{body}' if head else body
+
 
 for cur, dirs, files in os.walk(root):
     dirs[:] = [d for d in dirs if d not in ('export', 'prototype', 'node_modules') and not d.startswith('.')]
 
     for name in sorted(files):
-
         if not name.endswith('.md'):
             continue
 
         path = os.path.join(cur, name)
+        lines = open(path, encoding='utf-8').read().split('\n')
+        changed = False
         in_fence = False
 
-        for number, line in enumerate(open(path, encoding='utf-8'), 1):
-
+        for number, line in enumerate(lines, 1):
             if line.startswith('```'):
                 in_fence = not in_fence
                 continue
 
-            if in_fence or not line.lstrip().startswith('|'):
+            if in_fence or not line.lstrip().startswith('|') or re.match(r'^\s*\|[\s:|-]+\|\s*$', line):
                 continue
 
-            for cell in line.strip().strip('|').split('|'):
-                cell = cell.strip()
+            cells = line.split('|')
 
-                if '<br' in cell:
+            for position in range(1, len(cells) - 1):
+                cell = cells[position].strip()
+
+                if BREAK.search(cell):
+                    count = len([part for part in BREAK.split(cell) if part.strip()])
+
+                    if count > max_points:
+                        print(f"{path}:{number}\t{count}\tLIMIT\t{cell[:40]}")
                     continue
 
-                if any(pattern.search(cell) for pattern in patterns):
-                    print(f"{path}:{number}\t{cell[:40]}")
+                head, points = split_points(cell)
+
+                if not points:
+                    continue
+
+                if len(points) > max_points:
+                    print(f"{path}:{number}\t{len(points)}\tLIMIT\t{cell[:40]}")
+                    continue
+
+                if should_fix:
+                    cells[position] = f' {rewrite(head, points)} '
+                    changed = True
+                    print(f"{path}:{number}\t{len(points)}\tFIXED\t{cell[:40]}")
+                else:
+                    print(f"{path}:{number}\t{len(points)}\tINLINE\t{cell[:40]}")
+
+            if changed:
+                lines[number - 1] = '|'.join(cells)
+
+        if changed:
+            open(path, 'w', encoding='utf-8').write('\n'.join(lines))
 PYCELL
 )
 
-	local line
-	while IFS= read -r line; do
+	local location count kind sample
+	while IFS=$'\t' read -r location count kind sample; do
 
-		if [ -n "${line}" ]; then
-			report "${line%%	*} 表格单元格里有多个分点没有换行：${line#*	}(每个分点之间用 <br> 换行,如 1. 弹确认框<br>2. 确认后删除)"
+		if [ -z "${location}" ]; then
+			continue
 		fi
+
+		case "${kind}" in
+			INLINE)
+				report "${location} 表格单元格里有多个分点没有换行：${sample}(每个分点编号并用 <br> 换行,如 1. 弹确认框<br>2. 确认后删除;check.sh --fix 可自动改写)"
+				;;
+			LIMIT)
+				report "${location} 表格单元格有 ${count} 个分点，超过 ${MAX_TABLE_POINTS} 个：${sample}(改成表格下方的编号列表,表格里只留一句概括)"
+				;;
+			FIXED)
+				echo "  [OK] 已改写 ${location} 的 ${count} 个分点"
+				;;
+		esac
 
 	done <<< "${findings}"
 }
@@ -823,8 +936,6 @@ check_tasks() {
 				report "${task_file} 有 ${task_count} 个任务，但交互规格里只有 ${field_count} 处 \"${field}\" 字段"
 			fi
 		done
-
-		check_task_interfaces "${task_file}"
 
 		# 流程小节要么画了图，要么写明单一路径无分支
 		local flow_diagrams flow_declared
@@ -1150,7 +1261,7 @@ check_viewports() {
 
 if [ ! -d "${PRD_ROOT}" ]; then
 	echo "[NG] 找不到 PRD 目录：${PRD_ROOT}"
-	echo "用法: check.sh [PRD 根目录]  缺省为 docs/prd"
+	echo "用法: check.sh [--fix] [PRD 根目录]  缺省为 docs/prd，--fix 自动改写表格里没换行的分点"
 	exit 2
 fi
 
@@ -1158,23 +1269,34 @@ echo "=== charles-prd 结构校验 ==="
 echo "校验目录：${PRD_ROOT}"
 echo "校验范围：${LINT_SCOPE}"
 
-check_required_files
-check_version_dirs
-check_version_docs
-check_prd_sections
-check_requirement_ids
-check_diagram_notes
-check_annotations
-check_version_states
-check_tasks
-check_todo_leftovers
-check_cross_reference
-check_fill_placeholders
-check_product_form
-check_viewports
-check_confirmation_records
-check_prototype_sources
-check_table_points
+# 每项检查结束打印耗时，大文档跑几十秒时能看出在哪一步，不会像卡死
+run_step() {
+	local started_at="${SECONDS}"
+
+	"$1"
+	echo "  耗时 $((SECONDS - started_at)) 秒"
+}
+
+for step in \
+	check_required_files \
+	check_version_dirs \
+	check_version_docs \
+	check_prd_sections \
+	check_requirement_ids \
+	check_diagram_notes \
+	check_annotations \
+	check_version_states \
+	check_tasks \
+	check_todo_leftovers \
+	check_cross_reference \
+	check_fill_placeholders \
+	check_product_form \
+	check_viewports \
+	check_confirmation_records \
+	check_prototype_sources \
+	check_table_points; do
+	run_step "${step}"
+done
 
 echo "==============================="
 

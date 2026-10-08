@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 把 PRD 的 Markdown 源文件渲染成带样式的 HTML 再打印为 PDF
 # 创建日期：2026-09-21
-# 修改日期：2026-09-21
+# 修改日期：2026-10-08
 
 set -uo pipefail
 
@@ -111,6 +111,16 @@ fi
 mkdir -p "$(dirname "${OUTPUT}")"
 HTML_PATH="${OUTPUT%.pdf}.html"
 
+# 渲染或打印失败时脚本直接退出，在退出时统一清理中间 HTML，成功失败都不留残留
+cleanup_html() {
+
+	if [ "${KEEP_HTML}" -eq 0 ]; then
+		rm -f "${HTML_PATH}"
+	fi
+}
+
+trap cleanup_html EXIT
+
 RENDER_ARGS=("${INPUTS[@]}" "--output" "${HTML_PATH}")
 
 if [ -n "${TITLE}" ]; then
@@ -145,10 +155,6 @@ fi
 if ! node "${SCRIPT_DIR}/print.mjs" "${HTML_PATH}" --output "${OUTPUT}" --footer "${FOOTER}"; then
 	echo "[NG] PDF 打印失败。"
 	exit 1
-fi
-
-if [ "${KEEP_HTML}" -eq 0 ]; then
-	rm -f "${HTML_PATH}"
 fi
 
 echo "==============================="

@@ -11,6 +11,8 @@ import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import MarkdownIt from "markdown-it";
 
+import { buildAnnotation, indexMarksFiles } from "./annotation.mjs";
+
 const require = createRequire(import.meta.url);
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const STYLE_PATH = resolve(SCRIPT_DIR, "../templates/export/style.css");
@@ -187,13 +189,53 @@ if (options.inputs.length === 0 || !options.output) {
 	process.exit(2);
 }
 
+// 界面标注图不存进 Markdown，导出时按同版本 diagrams/ 下的标注清单现场生成，换布局只需升级工具
+const ANNOTATION_BLOCK_PATTERN = /<!--annotation:([^>]+?)-->[\s\S]*?<!--\/annotation-->/g;
+
+const injectAnnotations = (markdownText, inputPath) => {
+	const marksIndex = indexMarksFiles(resolve(dirname(resolve(inputPath)), "diagrams"));
+	const errors = [];
+
+	const text = markdownText.replace(ANNOTATION_BLOCK_PATTERN, (match, mark) => {
+		const specFile = marksIndex.get(mark);
+
+		if (!specFile) {
+			errors.push(`${inputPath} 的标记块 ${mark} 在 diagrams/ 下找不到 mark 或 shot 为 ${mark} 的标注清单`);
+			return match;
+		}
+
+		try {
+			const { svg } = buildAnnotation(specFile);
+			return `<!--annotation:${mark}-->\n${svg}\n<!--/annotation-->`;
+		} catch (error) {
+			errors.push(error.message);
+			return match;
+		}
+	});
+
+	return { text, errors };
+};
+
 const svgBlocks = [];
+const annotationErrors = [];
 
 const sections = options.inputs.map((inputPath) => {
-	const raw = resolveAssetPaths(readFileSync(inputPath, "utf8"), inputPath);
+	const injected = injectAnnotations(readFileSync(inputPath, "utf8"), inputPath);
+	annotationErrors.push(...injected.errors);
+	const raw = resolveAssetPaths(injected.text, inputPath);
 	const source = protectSvgBlocks(raw, svgBlocks);
 	return markdown.render(source);
 });
+
+if (annotationErrors.length > 0) {
+
+	for (const message of annotationErrors) {
+		console.error(`[NG] ${message}`);
+	}
+
+	console.error(`[NG] ${annotationErrors.length} 张标注图生成失败，先用 annotate.mjs 校验标注清单`);
+	process.exit(1);
+}
 
 // 需求与任务编号加等宽高亮，便于对方在 PDF 上按编号反馈
 const body = addHeadingIds(restoreSvgBlocks(

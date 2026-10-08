@@ -21,6 +21,13 @@ const PAGE_MARGIN = {
 	left: "18mm",
 };
 
+// 截图按显示尺寸的这个倍数重采样为 JPEG，打印精度够用，PDF 体积降一个数量级；原始 PNG 不动
+const IMAGE_SCALE = 2;
+const JPEG_QUALITY = 0.82;
+
+// 几百页的任务规格单遍打印就要二十秒以上，单步超时会误杀，改为不限时、按步骤报错
+const NO_TIMEOUT = 0;
+
 // render.mjs 给目录页码留的位置，属性值是目标标题的 id
 const TOC_PAGE_SELECTOR = "[data-toc-target]";
 
@@ -149,27 +156,98 @@ const footerTemplate = `
 const browser = await puppeteer.launch({
 	executablePath: chromePath,
 	headless: "new",
-	args: ["--no-sandbox", "--disable-gpu"],
+	// 截图与页面都是 file 地址，不放开同源限制的话 canvas 会被污染，无法重采样
+	args: ["--no-sandbox", "--disable-gpu", "--allow-file-access-from-files"],
+	protocolTimeout: NO_TIMEOUT,
 });
+
+// 出错时报出是哪一步，几百页的文档不用再猜卡在打开、渲染还是打印
+const runStep = async (name, action) => {
+	const startedAt = Date.now();
+	console.log(`  [..] ${name}`);
+
+	try {
+		const result = await action();
+		console.log(`  [OK] ${name}，耗时 ${((Date.now() - startedAt) / 1000).toFixed(1)} 秒`);
+		return result;
+	} catch (error) {
+		throw new Error(`${name}失败：${error.message}`);
+	}
+};
+
+// 在页面里把每张截图按实际显示尺寸重采样成 JPEG，替换成 data 地址后再打印
+const compressImages = (scale, quality) => {
+	const load = (src) => new Promise((done, fail) => {
+		const image = new Image();
+		image.onload = () => done(image);
+		image.onerror = () => fail(new Error(`截图加载失败 ${src}`));
+		image.src = src;
+	});
+
+	const targets = [
+		...document.querySelectorAll("svg image"),
+		...document.querySelectorAll("img"),
+	];
+
+	return Promise.all(targets.map(async (node) => {
+		const isSvgImage = node.tagName.toLowerCase() === "image";
+		const src = isSvgImage ? node.getAttribute("href") : node.getAttribute("src");
+
+		if (!src || src.startsWith("data:")) {
+			return 0;
+		}
+
+		const box = node.getBoundingClientRect();
+		const image = await load(src);
+		const width = Math.min(image.naturalWidth, Math.ceil(box.width * scale));
+
+		if (width <= 0 || width >= image.naturalWidth) {
+			return 0;
+		}
+
+		const canvas = document.createElement("canvas");
+		canvas.width = width;
+		canvas.height = Math.round(image.naturalHeight * width / image.naturalWidth);
+		const context = canvas.getContext("2d");
+		context.fillStyle = "#ffffff";
+		context.fillRect(0, 0, canvas.width, canvas.height);
+		context.drawImage(image, 0, 0, canvas.width, canvas.height);
+		const data = canvas.toDataURL("image/jpeg", quality);
+
+		if (isSvgImage) {
+			node.setAttribute("href", data);
+		} else {
+			node.setAttribute("src", data);
+		}
+
+		return 1;
+	})).then((results) => results.reduce((sum, count) => sum + count, 0));
+};
 
 try {
 	const page = await browser.newPage();
-	await page.goto(`file://${resolve(options.input)}`, { waitUntil: "networkidle0" });
+	page.setDefaultTimeout(NO_TIMEOUT);
+
+	await runStep("打开页面", () => page.goto(`file://${resolve(options.input)}`, { waitUntil: "networkidle0", timeout: NO_TIMEOUT }));
 
 	// 图是浏览器端渲染的，不等它画完就打印会得到空白块
-	const mermaidResult = await page.evaluate(() => window.__mermaidDone ?? "no-diagram");
+	await runStep("渲染流程图", async () => {
+		const mermaidResult = await page.evaluate(() => window.__mermaidDone ?? "no-diagram");
 
-	if (mermaidResult !== true && mermaidResult !== "no-diagram") {
-		console.error(`[NG] 图渲染失败：${mermaidResult}`);
-		await browser.close();
-		process.exit(1);
-	}
+		if (mermaidResult !== true && mermaidResult !== "no-diagram") {
+			throw new Error(String(mermaidResult));
+		}
+	});
+
+	const compressed = await runStep("压缩截图", () => page.evaluate(compressImages, IMAGE_SCALE, JPEG_QUALITY));
+	console.log(`       重采样 ${compressed} 张截图`);
 
 	const pdfOptions = {
 		...PDF_OPTIONS,
 		footerTemplate,
+		timeout: NO_TIMEOUT,
 	};
-	const firstPass = Buffer.from(await page.pdf(pdfOptions));
+	const firstPass = Buffer.from(await runStep("第一遍打印", () => page.pdf(pdfOptions)));
 	const tocSlots = await page.evaluate((selector) => document.querySelectorAll(selector).length, TOC_PAGE_SELECTOR);
 
 	if (tocSlots === 0) {
@@ -177,8 +255,7 @@ try {
 		console.log(`[OK] 已生成 PDF: ${options.output}`);
 	} else {
 		// 页码只填进目录行尾的固定位置，不改变目录占的行数，第二遍打印的分页与第一遍一致
-		const pages = Object.fromEntries(readDestinationPages(firstPass));
-		const missing = await page.evaluate((selector, pageMap) => {
+		const missing = await runStep("回填目录页码", () => page.evaluate((selector, pageMap) => {
 			const unresolved = [];
 
 			for (const slot of document.querySelectorAll(selector)) {
@@ -192,18 +269,21 @@ try {
 			}
 
 			return unresolved;
-		}, TOC_PAGE_SELECTOR, pages);
+		}, TOC_PAGE_SELECTOR, Object.fromEntries(readDestinationPages(firstPass))));
 
 		if (missing.length > 0) {
 			console.error(`[WARN] ${missing.length} 个目录项没有读到页码，留空：${missing.slice(0, 5).join(" ")}`);
 		}
 
-		await page.pdf({
+		await runStep("第二遍打印", () => page.pdf({
 			...pdfOptions,
 			path: options.output,
-		});
+		}));
 		console.log(`[OK] 已生成 PDF: ${options.output}，目录 ${tocSlots - missing.length} 项已填页码`);
 	}
+} catch (error) {
+	console.error(`[NG] ${error.message}`);
+	process.exitCode = 1;
 } finally {
 	await browser.close();
 }
