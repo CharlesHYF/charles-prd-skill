@@ -1,7 +1,7 @@
 /**
  * 把 Markdown 渲染成带打印样式的单页 HTML
  * 创建日期：2026-09-21
- * 修改日期：2026-09-22
+ * 修改日期：2026-10-08
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -30,7 +30,8 @@ const SVG_PLACEHOLDER_PATTERN = /<!--CHARLES-SVG-(\d+)-->/g;
 
 // 标题数达到这个量才生成目录页，短文档加目录只是浪费一页
 const TOC_MIN_HEADINGS = 8;
-const HEADING_PATTERN = /<(h[123])>([\s\S]*?)<\/\1>/g;
+const HEADING_PATTERN = /<(h[123])(?: id="[^"]*")?>([\s\S]*?)<\/\1>/g;
+const HEADING_ID_PREFIX = "sec-";
 
 const protectSvgBlocks = (markdownText, blocks) =>
 	markdownText.replace(SVG_BLOCK_PATTERN, (match) => {
@@ -99,6 +100,17 @@ const escapeHtml = (text) =>
 		.replace(/>/g, "&gt;");
 
 // 目录只列层级不带页码，页内跳转靠 PDF 书签
+// 给标题编号加 id，目录项靠它跳转，print.mjs 也靠它回填页码
+const addHeadingIds = (htmlBody) => {
+	let index = 0;
+
+	return htmlBody.replace(HEADING_PATTERN, (match, tag, inner) => {
+		const id = `${HEADING_ID_PREFIX}${index}`;
+		index += 1;
+		return `<${tag} id="${id}">${inner}</${tag}>`;
+	});
+};
+
 const buildToc = (htmlBody) => {
 	const headings = [];
 	let match = HEADING_PATTERN.exec(htmlBody);
@@ -107,6 +119,7 @@ const buildToc = (htmlBody) => {
 		headings.push({
 			level: Number(match[1].slice(1)),
 			text: match[2].replace(/<[^>]+>/g, "").trim(),
+			id: `${HEADING_ID_PREFIX}${headings.length}`,
 		});
 		match = HEADING_PATTERN.exec(htmlBody);
 	}
@@ -118,7 +131,7 @@ const buildToc = (htmlBody) => {
 	}
 
 	const items = headings
-		.map((heading) => `<li class="toc__item toc__item--${heading.level}">${heading.text}</li>`)
+		.map((heading) => `<li class="toc__item toc__item--${heading.level}"><a class="toc__link" href="#${heading.id}"><span class="toc__text">${heading.text}</span><span class="toc__page" data-toc-target="${heading.id}"></span></a></li>`)
 		.join("\n");
 
 	return `<nav class="toc">\n<h2 class="toc__title">目录</h2>\n<ol class="toc__list">\n${items}\n</ol>\n</nav>`;
@@ -183,13 +196,13 @@ const sections = options.inputs.map((inputPath) => {
 });
 
 // 需求与任务编号加等宽高亮，便于对方在 PDF 上按编号反馈
-const body = restoreSvgBlocks(
+const body = addHeadingIds(restoreSvgBlocks(
 	sections
 		.join("\n<hr>\n")
 		.replace(REQ_ID_PATTERN, '<span class="req-id">$1</span>')
 		.replace(TASK_ID_PATTERN, '<span class="req-id">$1</span>'),
 	svgBlocks,
-);
+));
 
 const style = readFileSync(STYLE_PATH, "utf8");
 const mermaidConfig = readFileSync(MERMAID_THEME_PATH, "utf8");
